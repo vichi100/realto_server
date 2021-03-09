@@ -4,15 +4,16 @@ const reminderSchema = new Schema({
   reminder_id: {
     type: String
   },
-  property_id: {
-    type: String
-  },
+  agent_id: String,
+  property_id: [],
 
+  property_type: String, // commercial, residential
   expo_token: {
     type: String
   },
 
   reminder_for: {
+    // call, meeting, prop visit
     type: String,
     required: true
   },

@@ -43,7 +43,16 @@ const propertySchema = new mongoose.Schema({
     preferred_tenants: String,
     non_veg_allowed: String
   },
+
+  sell_details: {
+    expected_sell_price: String,
+    maintenance_charge: String,
+    available_from: String,
+    negotiable: String
+  },
+
   image_urls: [],
+  reminders: [],
   create_date_time: {
     type: Date
   },
@@ -52,7 +61,4 @@ const propertySchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model(
-  "commercial_rent_property_details",
-  propertySchema
-);
+module.exports = mongoose.model("property_details", propertySchema);

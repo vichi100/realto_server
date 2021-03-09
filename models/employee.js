@@ -1,17 +1,16 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-
-const agentSchema = new Schema({
+const employeeSchema = new Schema({
   user_type: String, // employee or agent
+  agent_ids: [],
   id: String,
   expo_token: String,
   name: String,
-  company_name: String,
   mobile: String,
-  address: String,
+  company_name: String,
+  // agent_address: String,
   city: String,
-  access_rights: String,
-  employees: [],
+  access_rights: String, // read , edit
   create_date_time: {
     type: Date
   },
@@ -20,7 +19,7 @@ const agentSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model("Agent", agentSchema);
+module.exports = mongoose.model("Employee", employeeSchema);
 
 // employees=[
 //   { employee_id: String, employee_name: String, employee_mobile: String, access_rights:String}

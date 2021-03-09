@@ -23,7 +23,7 @@ const propertySchema = new mongoose.Schema({
   },
 
   property_details: {
-    house_type: String,
+    property_used_for: String,
     building_type: String,
     ideal_for: [],
     parking_type: String,
@@ -35,11 +35,18 @@ const propertySchema = new mongoose.Schema({
   rent_details: {
     expected_rent: String,
     expected_deposit: String,
-    available_from: String,
-    preferred_tenants: String,
-    non_veg_allowed: String
+    available_from: String
   },
+
+  sell_details: {
+    expected_sell_price: String,
+    maintenance_charge: String,
+    available_from: String,
+    negotiable: String
+  },
+
   image_urls: [],
+  reminders: [],
   create_date_time: {
     type: Date
   },
@@ -48,7 +55,4 @@ const propertySchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model(
-  "commercial_sell_property_details",
-  propertySchema
-);
+module.exports = mongoose.model("commercial_property", propertySchema);

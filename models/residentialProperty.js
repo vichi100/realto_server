@@ -7,6 +7,7 @@ const propertySchema = new mongoose.Schema({
   property_type: String,
   property_for: String,
   property_status: String, // 0- close, 1- open
+  is_close_successfully: String, // yes, no
   owner_details: {
     name: String,
     mobile1: String,
@@ -24,11 +25,15 @@ const propertySchema = new mongoose.Schema({
 
   property_details: {
     house_type: String,
-    building_type: String,
-    ideal_for: [],
+    bhk_type: String,
+    washroom_numbers: String,
+    furnishing_status: String,
     parking_type: String,
+    parking_number: String,
     property_age: String,
-    power_backup: String,
+    floor_number: String,
+    total_floor: String,
+    lift: String,
     property_size: String
   },
 
@@ -39,7 +44,16 @@ const propertySchema = new mongoose.Schema({
     preferred_tenants: String,
     non_veg_allowed: String
   },
+
+  sell_details: {
+    expected_sell_price: String,
+    maintenance_charge: String,
+    available_from: String,
+    negotiable: String
+  },
+
   image_urls: [],
+  reminders: [],
   create_date_time: {
     type: Date
   },
@@ -48,7 +62,4 @@ const propertySchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model(
-  "commercial_sell_property_details",
-  propertySchema
-);
+module.exports = mongoose.model("residential_property", propertySchema);

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const agentSchema = new Schema({
+const userSchema = new Schema({
   user_type: String, // employee or agent
   id: String,
   expo_token: String,
@@ -11,7 +11,7 @@ const agentSchema = new Schema({
   address: String,
   city: String,
   access_rights: String,
-  employees: [],
+  employees: [], // if employee then it will be empty
   create_date_time: {
     type: Date
   },
@@ -20,7 +20,7 @@ const agentSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model("Agent", agentSchema);
+module.exports = mongoose.model("User", userSchema);
 
 // employees=[
 //   { employee_id: String, employee_name: String, employee_mobile: String, access_rights:String}
