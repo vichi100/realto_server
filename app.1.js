@@ -71,16 +71,6 @@ app.post("/addEmployee", function(req, res) {
   addEmployee(req, res);
 });
 
-app.post("/removeEmployee", function(req, res) {
-  console.log("removeEmployee");
-  removeEmployee(req, res);
-});
-
-app.post("/updateEmployeeEditRights", function(req, res) {
-  console.log("updateEmployeeEditRights");
-  updateEmployeeEditRights(req, res);
-});
-
 app.post("/getReminderList", function(req, res) {
   console.log("getReminderList");
   getReminderList(req, res);
@@ -315,37 +305,30 @@ const addEmployee = (req, res) => {
         User.collection
           .insertOne(empObj)
           .then(
-            result => {
+            res => {
               const agentId = employeeDetails.user_id;
               const employeeId = newUserId;
-              console.log("agentId: " + agentId);
-              console.log("employeeId: " + employeeId);
-              User.collection.updateOne(
+              console.log("-11");
+              User.updateOne(
                 { id: agentId },
                 { $addToSet: { employees: employeeId } }
               );
             },
             err => {
               console.log("err1: " + err);
-              res.send(JSON.stringify(err));
-              res.end();
             }
           )
           .then(
-            result => {
+            res => {
               console.log("1");
-              res.send(JSON.stringify(newUserId));
-              res.end();
             },
             err => {
               console.log("err2: " + err);
-              res.send(JSON.stringify(err));
-              res.end();
             }
           );
 
-        // const insertFlag = insertNewUserAsEmployee(empObj);
-        // console.log("updating .... " + insertFlag);
+        const insertFlag = insertNewUserAsEmployee(empObj);
+        console.log("updating .... " + insertFlag);
         // if (insertFlag) {
         //   console.log("updating .... ");
         //   const agentId = employeeDetails.user_id; // whom he works for
@@ -395,57 +378,24 @@ const updateUserEmployeeList = (agentId, employeeId) => {
   );
 };
 
-const removeEmployee = (req, res) => {
-  const removeEmpObj = JSON.parse(JSON.stringify(req.body));
-  const agent_id = removeEmpObj.agent_id;
-  const employee_id = removeEmpObj.employee_id;
-  console.log(JSON.stringify(req.body));
-  User.collection
-    .deleteOne({ id: employee_id })
-    .then(
-      result => {
-        User.collection.updateOne(
-          { id: agent_id },
-          { $pull: { employees: employee_id } }
-        );
-      },
-      err => {
-        console.log("err1: " + err);
-        res.send(JSON.stringify(err));
+const addEmployeeX = (req, res) => {
+  const employeeDetails = JSON.parse(JSON.stringify(req.body));
+  User.updateOne(
+    { id: employeeDetails.agent_id },
+    { $addToSet: { employees: employeeDetails.employee } },
+    function(err, data) {
+      if (err) {
+        console.log(err);
+        res.send(JSON.stringify("fail"));
         res.end();
+        return;
+      } else {
+        res.send(JSON.stringify({ user_id: agent_id }));
+        res.end();
+        return;
       }
-    )
-    .then(
-      result => {
-        console.log("1");
-        res.send(JSON.stringify("success"));
-        res.end();
-      },
-      err => {
-        console.log("err2: " + err);
-        res.send(JSON.stringify(err));
-        res.end();
-      }
-    );
-};
-
-const updateEmployeeEditRights = (req, res) => {
-  const editRightEmpObj = JSON.parse(JSON.stringify(req.body));
-  const employee_id = editRightEmpObj.employee_id;
-  const access_rights = editRightEmpObj.access_rights;
-  User.collection
-    .updateOne({ id: employee_id }, { $set: { access_rights: access_rights } })
-    .then(
-      result => {
-        res.send("success");
-        res.end();
-      },
-      err => {
-        console.log("err1: " + err);
-        res.send(JSON.stringify(err));
-        res.end();
-      }
-    );
+    }
+  );
 };
 
 const getReminderList = (req, res) => {

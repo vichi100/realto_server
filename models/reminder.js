@@ -4,7 +4,7 @@ const reminderSchema = new Schema({
   reminder_id: {
     type: String
   },
-  agent_id: String,
+  user_id: String,
   property_id: [],
 
   property_type: String, // commercial, residential

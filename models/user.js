@@ -11,7 +11,8 @@ const userSchema = new Schema({
   address: String,
   city: String,
   access_rights: String,
-  employees: [], // if employee then it will be empty
+  employees: [], // if employee then it will be empty,
+  works_for: [],
   create_date_time: {
     type: Date
   },
