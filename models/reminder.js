@@ -4,10 +4,11 @@ const reminderSchema = new Schema({
   reminder_id: {
     type: String
   },
-  user_id: String,
-  property_id: [],
-
-  property_type: String, // commercial, residential
+  user_id: String, // agent_id
+  category_ids: [], // property_id or buyer_id
+  category: String, // property, customer
+  category_type: String, // commercial, residential
+  category_for: String, // buy, sell rent
   expo_token: {
     type: String
   },
@@ -17,6 +18,7 @@ const reminderSchema = new Schema({
     type: String,
     required: true
   },
+  client_id: String, // Customer id
   client_name: {
     type: String
   },
@@ -40,4 +42,4 @@ const reminderSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model("Reminder", reminderSchema);
+module.exports = mongoose.model("reminders", reminderSchema);

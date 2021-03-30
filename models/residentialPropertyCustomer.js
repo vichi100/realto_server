@@ -2,42 +2,35 @@ const mongoose = require("mongoose");
 // var ObjectId = Schema.ObjectId;
 
 const propertySchema = new mongoose.Schema({
-  property_id: String,
+  customer_id: String,
   agent_id: String,
-  property_type: String,
-  property_for: String, // rent ,sell
-  property_status: String, // 0- close, 1- open
+  // property_type: String,
+  // property_for: String, // rent ,sell
+  customer_status: String, // 0- close, 1- open
   is_close_successfully: String, // yes, no
-  owner_details: {
+  customer_details: {
     name: String,
     mobile1: String,
     mobile2: String,
     address: String
   },
-  property_address: {
+  customer_locality: {
     city: String,
     location_area: String,
-    flat_number: String,
-    building_name: String,
-    landmark_or_street: String,
+    property_type: String,
+    property_for: String, // rent ,sell
     pin: String
   },
 
-  property_details: {
+  customer_property_details: {
     house_type: String,
     bhk_type: String,
-    washroom_numbers: String,
     furnishing_status: String,
     parking_type: String,
-    parking_number: String,
-    property_age: String,
-    floor_number: String,
-    total_floor: String,
-    lift: String,
-    property_size: String
+    lift: String
   },
 
-  rent_details: {
+  customer_rent_details: {
     expected_rent: String,
     expected_deposit: String,
     available_from: String,
@@ -45,14 +38,13 @@ const propertySchema = new mongoose.Schema({
     non_veg_allowed: String
   },
 
-  sell_details: {
-    expected_sell_price: String,
+  customer_buy_details: {
+    expected_buy_price: String,
     maintenance_charge: String,
     available_from: String,
     negotiable: String
   },
 
-  image_urls: [],
   reminders: [],
   create_date_time: {
     type: Date
@@ -62,4 +54,4 @@ const propertySchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model("residential_property", propertySchema);
+module.exports = mongoose.model("residential_customer", propertySchema);
