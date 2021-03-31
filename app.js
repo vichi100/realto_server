@@ -796,6 +796,9 @@ const getPropertyListingForMeeting = (req, res) => {
   let property_for = agentDetails.property_for;
 
   if (property_type === "Residential") {
+    if (property_for === "Buy") {
+      property_for = "Sell";
+    }
     ResidentialProperty.find(
       {
         agent_id: agent_id,
