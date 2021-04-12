@@ -15,6 +15,7 @@ const Employee = require("./models/employee");
 const User = require("./models/user");
 const ResidentialPropertyCustomer = require("./models/residentialPropertyCustomer");
 const CommercialPropertyCustomer = require("./models/commercialPropertyCustomer");
+const Message = require("./models/message");
 
 const app = express();
 app.use(busboy());
@@ -62,6 +63,16 @@ app.post("/getTotalListingSummary", function(req, res) {
   getTotalListingSummary(req, res);
 });
 
+app.post("/getMessagesList", function(req, res) {
+  console.log("getMessagesList");
+  getMessagesList(req, res);
+});
+
+app.post("/getSubjectDetails", function(req, res) {
+  console.log("getSubjectDetails");
+  getSubjectDetails(req, res);
+});
+
 app.post("/getEmployeeList", function(req, res) {
   console.log("getEmployeeList");
   getEmployeeList(req, res);
@@ -77,6 +88,11 @@ app.post("/getCustomerAndMeetingDetails", function(req, res) {
   getCustomerAndMeetingDetails(req, res);
 });
 
+app.post("/getAllGlobalListingByLocations", function(req, res) {
+  console.log("getAllGlobalListingByLocations");
+  getAllGlobalListingByLocations(req, res);
+});
+
 app.post("/checkLoginRole", function(req, res) {
   console.log("checkLoginRole");
   checkLoginRole(req, res);
@@ -90,6 +106,11 @@ app.post("/insertNewAgent", function(req, res) {
 app.post("/addEmployee", function(req, res) {
   console.log("addEmployee");
   addEmployee(req, res);
+});
+
+app.post("/sendMessage", function(req, res) {
+  console.log("sendMessage");
+  sendMessage(req, res);
 });
 
 app.post("/removeEmployee", function(req, res) {
@@ -1357,6 +1378,131 @@ const getCustomerAndMeetingDetails = (req, res) => {
   }
 };
 
+const getAllGlobalListingByLocations = (req, res) => {
+  console.log("getAllGlobalListingByLocations: " + JSON.stringify(req.body));
+  const queryObj = JSON.parse(JSON.stringify(req.body));
+  const selectedTab = queryObj.selectedTab; // property=0, customer=1
+  const propertyTypeIndex = queryObj.propertyTypeIndex; // Residential=0, Commercial=1
+  // first get all location of this agent's listings including property and customer
+  let queryDoc;
+  let condition;
+  if (selectedTab === 0) {
+    condition = {
+      "property_address.location_area": { $in: ["Andheri west", "Malad"] }
+    };
+    if (propertyTypeIndex === 0) {
+      queryDoc = ResidentialProperty;
+    } else if (propertyTypeIndex === 1) {
+      queryDoc = CommercialProperty;
+    }
+  } else if (selectedTab === 1) {
+    condition = {
+      "customer_locality.location_area": {
+        $in: ["Bandra", "And hero west", "Jogeshwari", "Powai"]
+      }
+    };
+    if (propertyTypeIndex === 0) {
+      queryDoc = ResidentialPropertyCustomer;
+    } else if (propertyTypeIndex === 1) {
+      queryDoc = CommercialPropertyCustomer;
+    }
+  }
+  queryDoc.find(condition, function(err, data) {
+    if (err) {
+      console.log(err);
+      return;
+    } else {
+      // console.log("response datax1:  " + JSON.stringify(data));
+      res.send(JSON.stringify(data));
+      res.end();
+      return;
+    }
+  });
+};
+
+const sendMessage = (req, res) => {
+  const messageDetails = JSON.parse(JSON.stringify(req.body));
+  const messageId = uuid.v4();
+  const create_date_time = new Date(Date.now());
+  const update_date_time = new Date(Date.now());
+  messageDetails["message_id"] = messageId;
+  messageDetails["create_date_time"] = create_date_time;
+  messageDetails["update_date_time"] = update_date_time;
+  console.log("messageDetails: " + JSON.stringify(messageDetails));
+
+  Message.collection.insertOne(messageDetails, function(err, data) {
+    if (err) {
+      console.log(err);
+      res.send(JSON.stringify("fail"));
+      res.end();
+      return;
+    } else {
+      console.log("message Added" + JSON.stringify(data));
+      res.send(JSON.stringify({ messageId: messageId }));
+      res.end();
+      return;
+    }
+  });
+};
+
+const getMessagesList = (req, res) => {
+  const userObj = JSON.parse(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.body));
+  Message.find(
+    { "receiver_details.id": userObj.agent_id },
+
+    function(err, data) {
+      if (err) {
+        console.log(err);
+        return;
+      } else {
+        console.log("response datax2:  " + JSON.stringify(data));
+        res.send(JSON.stringify(data));
+        res.end();
+        return;
+      }
+    }
+  ).sort({ create_date_time: -1 });
+};
+
+const getSubjectDetails = (req, res) => {
+  const subObj = JSON.parse(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.body));
+  let docName;
+  if (subObj.subject_category === "property") {
+    if (subObj.subject_type === "Residential") {
+      docName = ResidentialProperty;
+    } else if (subObj.subject_type === "Commercial") {
+      docName = CommercialProperty;
+    }
+    docName.findOne({ property_id: subObj.subject_id }, (err, data) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      console.log(JSON.stringify(data));
+      res.send(data);
+      res.end();
+    });
+  } else if (subObj.subject_category === "customer") {
+    if (subObj.subject_type === "Residential") {
+      docName = ResidentialPropertyCustomer;
+    } else if (subObj.subject_type === "Commercial") {
+      docName = CommercialPropertyCustomer;
+    }
+
+    docName.findOne({ customer_id: subObj.subject_id }, (err, data) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      console.log(JSON.stringify(data));
+      res.send(data);
+      res.end();
+    });
+  }
+};
+
 // Prop details: { "property_type": "Residential", "property_for": "Rent",
 // XXXX "owner_details": { "name": "C", "mobile1": "c", "mobile2": "c", "address": "C" },
 // XXXX "property_address": { "city": "C", "location_area": "C", "flat_number": "C", "building_name": "C",
@@ -1372,3 +1518,6 @@ const getCustomerAndMeetingDetails = (req, res) => {
 // http://192.168.0.101:3001/property-details
 
 // https://ayushcare.in/products/zandopa-powder-200gm?currency=INR&variant=38006456844478&utm_campaign=gs-2020-03-02&utm_source=google&utm_medium=smart_campaign&gclid=CjwKCAjwr_uCBhAFEiwAX8YJgeONlJnX2s8MiYYvH45nJtOmk9SDGfZtTkKiTq4im8NEQd4V6PNDuRoCT6YQAvD_BwE
+
+// https://github.com/Gapur/google-place-autocomplete
+// https://betterprogramming.pub/the-best-practice-with-google-place-autocomplete-api-on-react-939211e8b4ce

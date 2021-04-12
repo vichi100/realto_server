@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const propertySchema = new mongoose.Schema({
   property_id: String,
   agent_id: String,
-  property_type: String,
+  property_type: String, // residential, commercial
   property_for: String, // rent ,sell
   property_status: String, // 0- close, 1- open
   is_close_successfully: String, // yes, no
