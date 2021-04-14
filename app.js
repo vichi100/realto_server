@@ -1407,7 +1407,8 @@ const getAllGlobalListingByLocations = (req, res) => {
       queryDoc = CommercialPropertyCustomer;
     }
   }
-  queryDoc.find(condition, function(err, data) {
+  // queryDoc.find(condition, function(err, data) {
+  queryDoc.find(function(err, data) {
     if (err) {
       console.log(err);
       return;
