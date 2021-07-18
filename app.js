@@ -4,8 +4,13 @@ var busboy = require("connect-busboy");
 const mongoose = require("mongoose");
 const path = require("path"); //used for file path
 var uuid = require("uuid");
+const { nanoid } = require('nanoid');
+const axios = require('axios');
 
 // https://in.pinterest.com/pin/677299231444826508/
+
+// 2 Factor API
+const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
 
 const ResidentialProperty = require("./models/residentialProperty");
 const CommercialProperty = require("./models/commercialProperty");
@@ -57,6 +62,16 @@ mongoose
   .catch(err => console.log(err));
 
 // end: Connect to DB
+
+app.post('/generateOTP', function(req, res) {
+	console.log('generateOTP');
+	generateOTP(req, res);
+});
+
+app.post('/getUserDetails', function(req, res) {
+	console.log('getUserDetails');
+	getUserDetails(req, res);
+});
 
 app.post("/getTotalListingSummary", function(req, res) {
   console.log("getTotalListingSummary");
@@ -198,6 +213,79 @@ app.post("/addNewResidentialCustomer", function(req, res) {
 app.post("/addNewCommercialCustomer", function(req, res) {
   addNewCommercialCustomer(req, res);
 });
+
+const generateOTP = (req, res) => {
+	console.log(JSON.stringify(req.body));
+	const obj = JSON.parse(JSON.stringify(req.body));
+	const mobile = obj.mobile;
+	const OTP = obj.otp;
+
+	axios
+		.get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}/FlickSickOTP1`)
+		.then((response) => {
+			// console.log(response);
+			res.send(JSON.stringify('success'));
+			res.end();
+			// console.log('response sent');
+			return;
+		})
+		.catch((err) => {
+			console.error(`generateOTP# Failed to fetch documents : ${err}`);
+			res.send(JSON.stringify('fail'));
+			res.end();
+			return;
+		});
+};
+
+const getUserDetails = (req, res) => {
+	const obj = JSON.parse(JSON.stringify(req.body));
+	console.log(JSON.stringify(req.body));
+	const mobileXX = obj.mobile;
+
+	const countryCode = obj.country_code;
+	User.findOne({ mobile: obj.mobile })
+		.then((result) => {
+			if (result) {
+				res.send(JSON.stringify(result));
+				res.end();
+				return;
+			} else {
+				const userObj = {
+					id: nanoid(),
+					expo_token: '',
+					name: null,
+					country: obj.country,
+					country_code: countryCode,
+					mobile: obj.mobile,
+					create_date_time: new Date(Date.now()),
+					update_date_time: new Date(Date.now())
+				};
+				User.collection
+					.insertOne(userObj)
+					.then((result) => {
+						console.log('1');
+
+						USER_MOBILE_DICT[mobileXX] = 'y';
+						res.send(JSON.stringify(userObj));
+						res.end();
+						return;
+					
+					})
+					.catch((err) => {
+						console.error(`getUserDetails# Failed to insert documents : ${err}`);
+						res.send(JSON.stringify(null));
+						res.end();
+						return;
+					});
+			}
+		})
+		.catch((err) => {
+			console.error(`getUserDetails# Failed to fetch documents : ${err}`);
+			res.send(JSON.stringify(null));
+			res.end();
+			return;
+		});
+};
 
 const getPropertyDetailsById = (req, res) => {
   const propObj = JSON.parse(JSON.stringify(req.body));
