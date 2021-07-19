@@ -522,6 +522,7 @@ const addEmployee = (req, res) => {
           access_rights: employeeDetails.access_rights,
           employees: [], // if employee then it will be empty,
           works_for: [employeeDetails.user_id],
+          user_status: "active",
           create_date_time: new Date(Date.now()),
           update_date_time: new Date(Date.now())
         };
