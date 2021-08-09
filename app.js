@@ -27,7 +27,7 @@ app.use(busboy());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(bodyParser.json());
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   // res.header(
   //   "Access-Control-Allow-Methods",
@@ -53,7 +53,7 @@ mongoose
   )
   .then(() => {
     // app.listen(6000 ,'0.0.0.0');
-    app.listen(3000, "0.0.0.0", () => {
+    app.listen(7000, "0.0.0.0", () => {
       console.log("server is listening on 3000 port");
     });
 
@@ -63,228 +63,228 @@ mongoose
 
 // end: Connect to DB
 
-app.post('/generateOTP', function(req, res) {
-	console.log('generateOTP');
-	generateOTP(req, res);
+app.post('/generateOTP', function (req, res) {
+  console.log('generateOTP');
+  generateOTP(req, res);
 });
 
-app.post('/getUserDetails', function(req, res) {
-	console.log('getUserDetails');
-	getUserDetails(req, res);
+app.post('/getUserDetails', function (req, res) {
+  console.log('getUserDetails');
+  getUserDetails(req, res);
 });
 
-app.post("/getTotalListingSummary", function(req, res) {
+app.post("/getTotalListingSummary", function (req, res) {
   console.log("getTotalListingSummary");
   getTotalListingSummary(req, res);
 });
 
-app.post("/getMessagesList", function(req, res) {
+app.post("/getMessagesList", function (req, res) {
   console.log("getMessagesList");
   getMessagesList(req, res);
 });
 
-app.post("/getSubjectDetails", function(req, res) {
+app.post("/getSubjectDetails", function (req, res) {
   console.log("getSubjectDetails");
   getSubjectDetails(req, res);
 });
 
-app.post("/getEmployeeList", function(req, res) {
+app.post("/getEmployeeList", function (req, res) {
   console.log("getEmployeeList");
   getEmployeeList(req, res);
 });
 
-app.post("/getPropReminderList", function(req, res) {
+app.post("/getPropReminderList", function (req, res) {
   console.log("getPropReminderList");
   getPropReminderList(req, res);
 });
 
-app.post("/getCustomerAndMeetingDetails", function(req, res) {
+app.post("/getCustomerAndMeetingDetails", function (req, res) {
   console.log("getCustomerAndMeetingDetails");
   getCustomerAndMeetingDetails(req, res);
 });
 
-app.post("/getAllGlobalListingByLocations", function(req, res) {
+app.post("/getAllGlobalListingByLocations", function (req, res) {
   console.log("getAllGlobalListingByLocations");
   getAllGlobalListingByLocations(req, res);
 });
 
-app.post("/checkLoginRole", function(req, res) {
+app.post("/checkLoginRole", function (req, res) {
   console.log("checkLoginRole");
   checkLoginRole(req, res);
 });
 
-app.post("/insertNewAgent", function(req, res) {
+app.post("/insertNewAgent", function (req, res) {
   console.log("insertNewAgent");
   insertNewAgent(req, res);
 });
 
-app.post("/addEmployee", function(req, res) {
+app.post("/addEmployee", function (req, res) {
   console.log("addEmployee");
   addEmployee(req, res);
 });
 
-app.post("/sendMessage", function(req, res) {
+app.post("/sendMessage", function (req, res) {
   console.log("sendMessage");
   sendMessage(req, res);
 });
 
-app.post("/removeEmployee", function(req, res) {
+app.post("/removeEmployee", function (req, res) {
   console.log("removeEmployee");
   removeEmployee(req, res);
 });
 
-app.post("/deleteAgentAccount", function(req, res) {
+app.post("/deleteAgentAccount", function (req, res) {
   console.log("deleteAgentAccount");
   deleteAgentAccount(req, res);
 });
 
-app.post("/reactivateAccount", function(req, res) {
+app.post("/reactivateAccount", function (req, res) {
   console.log("reactivateAccount");
   reactivateAccount(req, res);
 });
 
-app.post("/updateEmployeeEditRights", function(req, res) {
+app.post("/updateEmployeeEditRights", function (req, res) {
   console.log("updateEmployeeEditRights");
   updateEmployeeEditRights(req, res);
 });
 
-app.post("/updateUserProfile", function(req, res) {
+app.post("/updateUserProfile", function (req, res) {
   console.log("updateUserProfile");
   updateUserProfile(req, res);
 });
 
-app.post("/getReminderList", function(req, res) {
+app.post("/getReminderList", function (req, res) {
   console.log("getReminderList");
   getReminderList(req, res);
 });
 
-app.post("/addNewReminder", function(req, res) {
+app.post("/addNewReminder", function (req, res) {
   console.log("addNewReminder");
   addNewReminder(req, res);
 });
 
-app.post("/addNewResidentialRentProperty", function(req, res) {
+app.post("/addNewResidentialRentProperty", function (req, res) {
   addNewResidentialRentProperty(req, res);
 });
 
-app.post("/addNewCommercialProperty", function(req, res) {
+app.post("/addNewCommercialProperty", function (req, res) {
   addNewCommercialProperty(req, res);
 });
 
-app.post("/commercialPropertyListings", function(req, res) {
+app.post("/commercialPropertyListings", function (req, res) {
   console.log("commercial Property Listings");
   getCommercialPropertyListings(req, res);
 });
 
-app.post("/commercialCustomerList", function(req, res) {
+app.post("/commercialCustomerList", function (req, res) {
   console.log("commercial customer Listings");
   getCommercialCustomerListings(req, res);
 });
 
-app.post("/residentialPropertyListings", function(req, res) {
+app.post("/residentialPropertyListings", function (req, res) {
   console.log("residential property Listings");
   getResidentialPropertyListings(req, res);
 });
 
-app.post("/getPropertyListingForMeeting", function(req, res) {
+app.post("/getPropertyListingForMeeting", function (req, res) {
   console.log("property Listings for meeting");
   getPropertyListingForMeeting(req, res);
 });
 
-app.post("/getCustomerListForMeeting", function(req, res) {
+app.post("/getCustomerListForMeeting", function (req, res) {
   console.log("customer List for meeting");
   getCustomerListForMeeting(req, res);
 });
 
-app.post("/residentialCustomerList", function(req, res) {
+app.post("/residentialCustomerList", function (req, res) {
   console.log("residential customer Listings");
   getResidentialCustomerList(req, res);
 });
 
-app.post("/getPropertyDetailsById", function(req, res) {
+app.post("/getPropertyDetailsById", function (req, res) {
   console.log("getPropertyDetailsById Listings");
   getPropertyDetailsById(req, res);
 });
 
-app.post("/addNewResidentialCustomer", function(req, res) {
+app.post("/addNewResidentialCustomer", function (req, res) {
   addNewResidentialCustomer(req, res);
 });
 
-app.post("/addNewCommercialCustomer", function(req, res) {
+app.post("/addNewCommercialCustomer", function (req, res) {
   addNewCommercialCustomer(req, res);
 });
 
 const generateOTP = (req, res) => {
-	console.log(JSON.stringify(req.body));
-	const obj = JSON.parse(JSON.stringify(req.body));
-	const mobile = obj.mobile;
-	const OTP = obj.otp;
+  console.log(JSON.stringify(req.body));
+  const obj = JSON.parse(JSON.stringify(req.body));
+  const mobile = obj.mobile;
+  const OTP = obj.otp;
 
-	axios
-		.get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}/FlickSickOTP1`)
-		.then((response) => {
-			// console.log(response);
-			res.send(JSON.stringify('success'));
-			res.end();
-			// console.log('response sent');
-			return;
-		})
-		.catch((err) => {
-			console.error(`generateOTP# Failed to fetch documents : ${err}`);
-			res.send(JSON.stringify('fail'));
-			res.end();
-			return;
-		});
+  axios
+    .get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}/FlickSickOTP1`)
+    .then((response) => {
+      // console.log(response);
+      res.send(JSON.stringify('success'));
+      res.end();
+      // console.log('response sent');
+      return;
+    })
+    .catch((err) => {
+      console.error(`generateOTP# Failed to fetch documents : ${err}`);
+      res.send(JSON.stringify('fail'));
+      res.end();
+      return;
+    });
 };
 
 const getUserDetails = (req, res) => {
-	const obj = JSON.parse(JSON.stringify(req.body));
-	console.log(JSON.stringify(req.body));
-	const mobileXX = obj.mobile;
+  const obj = JSON.parse(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.body));
+  const mobileXX = obj.mobile;
 
-	const countryCode = obj.country_code;
-	User.findOne({ mobile: obj.mobile })
-		.then((result) => {
-			if (result) {
-				res.send(JSON.stringify(result));
-				res.end();
-				return;
-			} else {
-				const userObj = {
-					id: nanoid(),
-					expo_token: '',
-					name: null,
-					country: obj.country,
-					country_code: countryCode,
-					mobile: obj.mobile,
-					create_date_time: new Date(Date.now()),
-					update_date_time: new Date(Date.now())
-				};
-				User.collection
-					.insertOne(userObj)
-					.then((result) => {
-						console.log('1');
+  const countryCode = obj.country_code;
+  User.findOne({ mobile: obj.mobile })
+    .then((result) => {
+      if (result) {
+        res.send(JSON.stringify(result));
+        res.end();
+        return;
+      } else {
+        const userObj = {
+          id: nanoid(),
+          expo_token: '',
+          name: null,
+          country: obj.country,
+          country_code: countryCode,
+          mobile: obj.mobile,
+          create_date_time: new Date(Date.now()),
+          update_date_time: new Date(Date.now())
+        };
+        User.collection
+          .insertOne(userObj)
+          .then((result) => {
+            console.log('1');
 
-						USER_MOBILE_DICT[mobileXX] = 'y';
-						res.send(JSON.stringify(userObj));
-						res.end();
-						return;
-					
-					})
-					.catch((err) => {
-						console.error(`getUserDetails# Failed to insert documents : ${err}`);
-						res.send(JSON.stringify(null));
-						res.end();
-						return;
-					});
-			}
-		})
-		.catch((err) => {
-			console.error(`getUserDetails# Failed to fetch documents : ${err}`);
-			res.send(JSON.stringify(null));
-			res.end();
-			return;
-		});
+            USER_MOBILE_DICT[mobileXX] = 'y';
+            res.send(JSON.stringify(userObj));
+            res.end();
+            return;
+
+          })
+          .catch((err) => {
+            console.error(`getUserDetails# Failed to insert documents : ${err}`);
+            res.send(JSON.stringify(null));
+            res.end();
+            return;
+          });
+      }
+    })
+    .catch((err) => {
+      console.error(`getUserDetails# Failed to fetch documents : ${err}`);
+      res.send(JSON.stringify(null));
+      res.end();
+      return;
+    });
 };
 
 const getPropertyDetailsById = (req, res) => {
@@ -324,7 +324,7 @@ const getPropertyDetailsById = (req, res) => {
 
 const getPropReminderList = (req, res) => {
   const propertyId = JSON.parse(JSON.stringify(req.body)).property_id;
-  Reminder.find({ property_id: propertyId }, function(err, data) {
+  Reminder.find({ property_id: propertyId }, function (err, data) {
     if (err) {
       console.log(err);
       return;
@@ -341,7 +341,7 @@ const checkLoginRole = (req, res) => {
   const mobileNumber = JSON.parse(JSON.stringify(req.body)).user_mobile;
   console.log(JSON.stringify(req.body));
 
-  User.findOne({ mobile: mobileNumber }, function(err, data) {
+  User.findOne({ mobile: mobileNumber }, function (err, data) {
     if (err) {
       console.log(err);
       res.send(JSON.stringify("fail"));
@@ -397,7 +397,7 @@ const insertNewUserAsAgent = (res, mobileNumber, userType, accessRights) => {
     create_date_time: new Date(Date.now()),
     update_date_time: new Date(Date.now())
   };
-  User.collection.insertOne(userObj, function(err, data) {
+  User.collection.insertOne(userObj, function (err, data) {
     if (err) {
       console.log(err);
       res.send(JSON.stringify("fail"));
@@ -441,7 +441,7 @@ const insertNewUserAsEmployee = empObj => {
   //   create_date_time: new Date(Date.now()),
   //   update_date_time: new Date(Date.now())
   // };
-  User.collection.insertOne(empObj, function(err, data) {
+  User.collection.insertOne(empObj, function (err, data) {
     if (err) {
       console.log(err);
       // res.send(JSON.stringify("fail"));
@@ -458,7 +458,7 @@ const insertNewUserAsEmployee = empObj => {
 };
 
 const getEmployerDetails = agentIdsArray => {
-  Agent.find({ agent_id: { $in: agentIdsArray } }, function(err, data) {
+  Agent.find({ agent_id: { $in: agentIdsArray } }, function (err, data) {
     if (err) {
       console.log(err);
       res.send(JSON.stringify("fail"));
@@ -483,7 +483,7 @@ const getEmployeeList = (req, res) => {
   User.find(
     { works_for: userObj.user_id },
     { name: 1, mobile: 1, id: 1, access_rights: 1, _id: 0 },
-    function(err, data) {
+    function (err, data) {
       if (err) {
         console.log(err);
         return;
@@ -501,7 +501,7 @@ const addEmployee = (req, res) => {
   const employeeDetails = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
   // first check if any employee with that mobile number exist
-  User.find({ mobile: employeeDetails.mobile }, function(err, data) {
+  User.find({ mobile: employeeDetails.mobile }, function (err, data) {
     if (err) {
       console.log(err);
       return;
@@ -595,7 +595,7 @@ const updateUserEmployeeList = (agentId, employeeId) => {
   User.updateOne(
     { id: agentId },
     { $addToSet: { employees: employeeId } },
-    function(err, data) {
+    function (err, data) {
       if (err) {
         console.log(err);
         // res.send(JSON.stringify("fail"));
@@ -731,7 +731,7 @@ const getReminderList = (req, res) => {
   const agentIdDict = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
 
-  Reminder.find({ user_id: agentIdDict.agent_id }, function(err, data) {
+  Reminder.find({ user_id: agentIdDict.agent_id }, function (err, data) {
     if (err) {
       console.log(err);
       return;
@@ -749,7 +749,7 @@ const addNewReminder = (req, res) => {
   const reminderId = uuid.v4();
   reminderDetails["reminder_id"] = reminderId;
   console.log("reminderDetails: " + JSON.stringify(reminderDetails));
-  Reminder.collection.insertOne(reminderDetails, function(err, data) {
+  Reminder.collection.insertOne(reminderDetails, function (err, data) {
     if (err) {
       console.log(err);
       res.send(JSON.stringify("fail"));
@@ -761,7 +761,7 @@ const addNewReminder = (req, res) => {
         ResidentialProperty.updateOne(
           { category_id: reminderDetails.property_id },
           { $addToSet: { reminders: reminderId } },
-          function(err, data) {
+          function (err, data) {
             if (err) {
               console.log(err);
               res.send(JSON.stringify("fail"));
@@ -779,7 +779,7 @@ const addNewReminder = (req, res) => {
         CommercialProperty.updateOne(
           { category_id: reminderDetails.property_id },
           { $addToSet: { reminders: reminderId } },
-          function(err, data) {
+          function (err, data) {
             if (err) {
               console.log(err);
               res.send(JSON.stringify("fail"));
@@ -1021,7 +1021,7 @@ const addNewCommercialProperty = (req, res) => {
     }
   }
 
-  CommercialProperty.collection.insertOne(propertyDetailsDict, function(
+  CommercialProperty.collection.insertOne(propertyDetailsDict, function (
     err,
     data
   ) {
@@ -1112,7 +1112,7 @@ const addNewResidentialRentProperty = (req, res) => {
     }
   }
 
-  ResidentialProperty.collection.insertOne(propertyDetailsDict, function(
+  ResidentialProperty.collection.insertOne(propertyDetailsDict, function (
     err,
     data
   ) {
@@ -1323,7 +1323,7 @@ const addNewResidentialCustomer = (req, res) => {
 
   ResidentialPropertyCustomer.collection.insertOne(
     customerDetailsDict,
-    function(err, data) {
+    function (err, data) {
       if (err) {
         console.log(err);
         res.send(JSON.stringify({ customer_id: null }));
@@ -1393,7 +1393,7 @@ const addNewCommercialCustomer = (req, res) => {
     }
   }
 
-  CommercialPropertyCustomer.collection.insertOne(customerDetailsDict, function(
+  CommercialPropertyCustomer.collection.insertOne(customerDetailsDict, function (
     err,
     data
   ) {
@@ -1497,7 +1497,7 @@ const getAllGlobalListingByLocations = (req, res) => {
     }
   }
   // queryDoc.find(condition, function(err, data) {
-  queryDoc.find(function(err, data) {
+  queryDoc.find(function (err, data) {
     if (err) {
       console.log(err);
       return;
@@ -1520,7 +1520,7 @@ const sendMessage = (req, res) => {
   messageDetails["update_date_time"] = update_date_time;
   console.log("messageDetails: " + JSON.stringify(messageDetails));
 
-  Message.collection.insertOne(messageDetails, function(err, data) {
+  Message.collection.insertOne(messageDetails, function (err, data) {
     if (err) {
       console.log(err);
       res.send(JSON.stringify("fail"));
@@ -1541,7 +1541,7 @@ const getMessagesList = (req, res) => {
   Message.find(
     { "receiver_details.id": userObj.agent_id },
 
-    function(err, data) {
+    function (err, data) {
       if (err) {
         console.log(err);
         return;
