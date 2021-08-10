@@ -14,9 +14,15 @@ const propertySchema = new mongoose.Schema({
     mobile2: String,
     address: String
   },
+  location: {
+    type: String,
+    coordinates: []
+  },
   property_address: {
     city: String,
-    location_area: String,
+    // location_area: String,
+    main_text: String,
+    formatted_address: String,
     flat_number: String,
     building_name: String,
     landmark_or_street: String,
