@@ -21,6 +21,8 @@ const User = require("./models/user");
 const ResidentialPropertyCustomer = require("./models/residentialPropertyCustomer");
 const CommercialPropertyCustomer = require("./models/commercialPropertyCustomer");
 const Message = require("./models/message");
+const commercialProperty = require("./models/commercialProperty");
+const { json } = require("body-parser");
 
 const app = express();
 app.use(busboy());
@@ -28,19 +30,24 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(bodyParser.json());
 app.use(function (req, res, next) {
+  // res.header("Access-Control-Allow-Origin", "*");
+  // // res.header(
+  // //   "Access-Control-Allow-Methods",
+  // //   "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+  // // );
+  // // res.header(
+  // //   //"Access-Control-Allow-Headers",
+  // //   "Origin, X-Requested-With, Content-Type, Accept"
+  // // );
+  // res.header(
+  //   "Access-Control-Allow-Headers",
+  //   "Origin, X-Requested With, Content-Type, Accept"
+  // );
+
   res.header("Access-Control-Allow-Origin", "*");
-  // res.header(
-  //   "Access-Control-Allow-Methods",
-  //   "GET,PUT,POST,DELETE,PATCH,OPTIONS"
-  // );
-  // res.header(
-  //   //"Access-Control-Allow-Headers",
-  //   "Origin, X-Requested-With, Content-Type, Accept"
-  // );
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested With, Content-Type, Accept"
-  );
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+
 
   next();
 });
@@ -62,6 +69,10 @@ mongoose
   .catch(err => console.log(err));
 
 // end: Connect to DB
+
+
+
+
 
 app.post('/generateOTP', function (req, res) {
   console.log('generateOTP');
@@ -201,9 +212,9 @@ app.post("/residentialCustomerList", function (req, res) {
   getResidentialCustomerList(req, res);
 });
 
-app.post("/getPropertyDetailsById", function (req, res) {
-  console.log("getPropertyDetailsById Listings");
-  getPropertyDetailsById(req, res);
+app.post("/getPropertyDetailsByIdToShare", function (req, res) {
+  console.log("getPropertyDetailsByIdToShare Listings");
+  getPropertyDetailsByIdToShare(req, res);
 });
 
 app.post("/addNewResidentialCustomer", function (req, res) {
@@ -213,6 +224,56 @@ app.post("/addNewResidentialCustomer", function (req, res) {
 app.post("/addNewCommercialCustomer", function (req, res) {
   addNewCommercialCustomer(req, res);
 });
+
+const getPropertyDetailsByIdToShare = (req, res) => {
+  const propObj = JSON.parse(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.body));
+  // const propertyId = JSON.parse(JSON.stringify(req.body)).property_id;
+  // const agentId = JSON.parse(JSON.stringify(req.body)).agent_id;
+  // property_type: String,
+  //   property_for: String,
+  let propQuery = null;
+  if (propObj.property_type === "residential") {
+    propQuery = ResidentialProperty.findOne({ property_id: propObj.property_id }).exec();
+  } else {
+    propQuery = commercialProperty.findOne({ property_id: propObj.property_id }).exec();
+  }
+  Promise.all([
+    propQuery,
+    User.findOne({ id: propObj.agent_id }).exec()
+  ]).then(results => {
+    const propertyDetail = results[0];
+    const agentDetails = results[1];
+    propertyDetail["owner_details"] = {
+      "name": agentDetails.name,
+      // "company_name": agentDetails.company_name,
+      "mobile1": agentDetails.mobile,
+      "address": agentDetails.address,
+    }
+    console.log(JSON.stringify(propertyDetail));
+    console.log(JSON.stringify(agentDetails));
+    res.send(JSON.stringify(propertyDetail));
+    res.end();
+    return;
+  });
+
+  // if (propObj.property_type.toLowerCase() === "residential".toLowerCase()) {
+  //   ResidentialProperty.findOne(
+  //     { property_id: propObj.property_id },
+  //     (err, data) => {
+  //       if (err) {
+  //         console.log(err);
+  //         return;
+  //       }
+  //       // console.log(JSON.stringify(data));
+  //       res.send(data);
+  //       res.end();
+  //     }
+  //   );
+  // }
+
+
+};
 
 const generateOTP = (req, res) => {
   console.log(JSON.stringify(req.body));
@@ -287,40 +348,7 @@ const getUserDetails = (req, res) => {
     });
 };
 
-const getPropertyDetailsById = (req, res) => {
-  const propObj = JSON.parse(JSON.stringify(req.body));
-  // const propertyId = JSON.parse(JSON.stringify(req.body)).property_id;
-  // const agentId = JSON.parse(JSON.stringify(req.body)).agent_id;
-  // property_type: String,
-  //   property_for: String,
-  Promise.all([
-    ResidentialProperty.findOne({ property_id: propObj.property_id }).exec(),
-    User.findOne({ id: propObj.agent_id }).exec()
-  ]).then(results => {
-    const propertyDetail = results[0];
-    const agentDetails = results[1];
-    console.log(JSON.stringify(propertyDetail));
-    console.log(JSON.stringify(agentDetails));
-    res.send("x");
-    res.end();
-    return;
-  });
 
-  if (propObj.property_type.toLowerCase() === "residential".toLowerCase()) {
-    ResidentialProperty.findOne(
-      { property_id: propObj.property_id },
-      (err, data) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        // console.log(JSON.stringify(data));
-        res.send(data);
-        res.end();
-      }
-    );
-  }
-};
 
 const getPropReminderList = (req, res) => {
   const propertyId = JSON.parse(JSON.stringify(req.body)).property_id;
@@ -381,7 +409,7 @@ const checkLoginRole = (req, res) => {
 };
 
 const insertNewUserAsAgent = (res, mobileNumber, userType, accessRights) => {
-  const userId = uuid.v4();
+  const userId = nanoid();
   const userObj = {
     user_type: userType, // employee or agent
     id: userId,
@@ -509,7 +537,7 @@ const addEmployee = (req, res) => {
       console.log("response datax3:  " + JSON.stringify(data));
       if (data && data.length === 0) {
         // create a new employee n update agent employee list
-        const newUserId = uuid.v4();
+        const newUserId = nanoid();
         const empObj = {
           user_type: "employee", // employee or agent
           id: newUserId,
@@ -746,7 +774,7 @@ const getReminderList = (req, res) => {
 
 const addNewReminder = (req, res) => {
   const reminderDetails = JSON.parse(JSON.stringify(req.body));
-  const reminderId = uuid.v4();
+  const reminderId = nanoid();
   reminderDetails["reminder_id"] = reminderId;
   console.log("reminderDetails: " + JSON.stringify(reminderDetails));
   Reminder.collection.insertOne(reminderDetails, function (err, data) {
@@ -967,7 +995,7 @@ const addNewCommercialProperty = (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
   const propertyDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
-  const propertyId = uuid.v4();
+  const propertyId = nanoid();
   const locationArea = propertyDetails.property_address.location_area
   const gLocation = locationArea.location;
 
@@ -1058,7 +1086,7 @@ const addNewResidentialRentProperty = (req, res) => {
   //   pin: locationArea.pin
   // }
   // console.log("Prop details2: " + propertyDetails);
-  const propertyId = uuid.v4();
+  const propertyId = nanoid();
   let x;
 
   const propertyDetailsDict = {
@@ -1283,7 +1311,7 @@ const addNewResidentialCustomer = (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
   const customerDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
-  const customerId = uuid.v4();
+  const customerId = nanoid();
 
   const customerDetailsDict = {
     customer_id: customerId,
@@ -1360,7 +1388,7 @@ const addNewCommercialCustomer = (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
   const customerDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
-  const customerId = uuid.v4();
+  const customerId = nanoid();
 
   const customerDetailsDict = {
     customer_id: customerId,
@@ -1529,7 +1557,7 @@ const getAllGlobalListingByLocations = (req, res) => {
 
 const sendMessage = (req, res) => {
   const messageDetails = JSON.parse(JSON.stringify(req.body));
-  const messageId = uuid.v4();
+  const messageId = nanoid();
   const create_date_time = new Date(Date.now());
   const update_date_time = new Date(Date.now());
   messageDetails["message_id"] = messageId;
