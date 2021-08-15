@@ -1094,12 +1094,12 @@ const addNewCommercialProperty = (req, res) => {
   ) {
     if (err) {
       console.log(err);
-      res.send(JSON.stringify("fail"));
+      res.send(JSON.stringify(null));
       res.end();
       return;
     } else {
       // console.log("addNewProperty" + JSON.stringify(data));
-      res.send(JSON.stringify({ propertyId: propertyId }));
+      res.send(JSON.stringify(propertyDetailsDict));
       res.end();
       return;
     }
@@ -1198,12 +1198,12 @@ const addNewResidentialRentProperty = (req, res) => {
   ) {
     if (err) {
       console.log(err);
-      res.send(JSON.stringify({ property_id: null }));
+      res.send(JSON.stringify(null));
       res.end();
       return;
     } else {
       // console.log("addNewProperty" + JSON.stringify(data));
-      res.send(JSON.stringify({ property_id: propertyId }));
+      res.send(JSON.stringify(propertyDetailsDict));
       res.end();
       return;
     }
