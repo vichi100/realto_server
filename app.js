@@ -217,6 +217,12 @@ app.post("/getPropertyDetailsByIdToShare", function (req, res) {
   getPropertyDetailsByIdToShare(req, res);
 });
 
+app.post("/getCustomerDetailsByIdToShare", function (req, res) {
+  console.log("getCustomerDetailsByIdToShare Listings");
+  getCustomerDetailsByIdToShare(req, res);
+});
+
+
 app.post("/addNewResidentialCustomer", function (req, res) {
   addNewResidentialCustomer(req, res);
 });
@@ -224,6 +230,46 @@ app.post("/addNewResidentialCustomer", function (req, res) {
 app.post("/addNewCommercialCustomer", function (req, res) {
   addNewCommercialCustomer(req, res);
 });
+
+const getCustomerDetailsByIdToShare = (req, res) => {
+  const propObj = JSON.parse(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.body));
+  // const propertyId = JSON.parse(JSON.stringify(req.body)).property_id;
+  // const agentId = JSON.parse(JSON.stringify(req.body)).agent_id;
+  // property_type: String,
+  //   property_for: String,
+  let propQuery = null;
+  if (propObj.property_type === "residential") {
+    propQuery = ResidentialPropertyCustomer.findOne({ customer_id: propObj.customer_id }).lean().exec();
+  } else {
+    propQuery = CommercialPropertyCustomer.findOne({ customer_id: propObj.customer_id }).lean().exec();
+  }
+  Promise.all([
+    propQuery,
+    User.findOne({ id: propObj.agent_id }).exec()
+  ]).then(results => {
+    // results[0].xxxxxx = "kkkkk"
+    let customerDetailX = results[0];
+    // console.log(JSON.stringify(customerDetail));
+
+    const agentDetails = results[1];
+    // console.log(JSON.stringify(agentDetails));
+
+    // console.log(propObj.customer_id);
+
+    // customerDetailX.customer_details = null;
+    customerDetailX.customer_details = {
+      name: agentDetails.name,
+      mobile1: agentDetails.mobile,
+      customer_id: propObj.customer_id
+    }
+    console.log(customerDetailX);
+    res.send(JSON.stringify(customerDetailX));
+    res.end();
+    return;
+  });
+
+};
 
 const getPropertyDetailsByIdToShare = (req, res) => {
   const propObj = JSON.parse(JSON.stringify(req.body));
@@ -250,27 +296,14 @@ const getPropertyDetailsByIdToShare = (req, res) => {
       "mobile1": agentDetails.mobile,
       "address": agentDetails.address,
     }
-    console.log(JSON.stringify(propertyDetail));
-    console.log(JSON.stringify(agentDetails));
+    // console.log(JSON.stringify(propertyDetail));
+    // console.log(JSON.stringify(agentDetails));
     res.send(JSON.stringify(propertyDetail));
     res.end();
     return;
   });
 
-  // if (propObj.property_type.toLowerCase() === "residential".toLowerCase()) {
-  //   ResidentialProperty.findOne(
-  //     { property_id: propObj.property_id },
-  //     (err, data) => {
-  //       if (err) {
-  //         console.log(err);
-  //         return;
-  //       }
-  //       // console.log(JSON.stringify(data));
-  //       res.send(data);
-  //       res.end();
-  //     }
-  //   );
-  // }
+
 
 
 };
@@ -302,7 +335,7 @@ const getUserDetails = (req, res) => {
   const obj = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
   const mobileXX = obj.mobile;
-
+  const idx = nanoid()
   const countryCode = obj.country_code;
   User.findOne({ mobile: obj.mobile })
     .then((result) => {
@@ -312,8 +345,10 @@ const getUserDetails = (req, res) => {
         return;
       } else {
         const userObj = {
-          id: nanoid(),
+          id: idx,
           expo_token: '',
+          user_type: "agent",
+          works_for: [idx],
           name: null,
           country: obj.country,
           country_code: countryCode,
