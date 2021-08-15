@@ -1406,12 +1406,12 @@ const addNewResidentialCustomer = (req, res) => {
     function (err, data) {
       if (err) {
         console.log(err);
-        res.send(JSON.stringify({ customer_id: null }));
+        res.send(JSON.stringify(null));
         res.end();
         return;
       } else {
         // console.log("addNewProperty" + JSON.stringify(data));
-        res.send(JSON.stringify({ customer_id: customerId }));
+        res.send(JSON.stringify(customerDetailsDict));
         res.end();
         return;
       }
@@ -1479,12 +1479,12 @@ const addNewCommercialCustomer = (req, res) => {
   ) {
     if (err) {
       console.log(err);
-      res.send(JSON.stringify({ customer_id: null }));
+      res.send(JSON.stringify(null));
       res.end();
       return;
     } else {
       // console.log("addNewProperty" + JSON.stringify(data));
-      res.send(JSON.stringify({ customer_id: customerId }));
+      res.send(JSON.stringify(customerDetailsDict));
       res.end();
       return;
     }
