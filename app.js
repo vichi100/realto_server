@@ -109,6 +109,13 @@ app.post("/getPropReminderList", function (req, res) {
   getPropReminderList(req, res);
 });
 
+app.post("/getCustomerReminderList", function (req, res) {
+  console.log("getCustomerReminderList");
+  getCustomerReminderList(req, res);
+});
+
+
+
 app.post("/getCustomerAndMeetingDetails", function (req, res) {
   console.log("getCustomerAndMeetingDetails");
   getCustomerAndMeetingDetails(req, res);
@@ -385,9 +392,29 @@ const getUserDetails = (req, res) => {
 
 
 
+const getCustomerReminderList = (req, res) => {
+  console.log(JSON.stringify(req.body));
+  const customer_id = JSON.parse(JSON.stringify(req.body)).customer_id;
+  console.log(customer_id);
+  Reminder.find({ client_id: customer_id }, function (err, data) {
+    if (err) {
+      console.log(err);
+      return;
+    } else {
+      console.log("response datax22:  " + JSON.stringify(data));
+      res.send(JSON.stringify(data));
+      res.end();
+      return;
+    }
+  }).sort({ property_id: -1 });
+};
+
+
+// {category_ids: { $in: [propertyId] } }
 const getPropReminderList = (req, res) => {
+  console.log(JSON.stringify(req.body));
   const propertyId = JSON.parse(JSON.stringify(req.body)).property_id;
-  Reminder.find({ property_id: propertyId }, function (err, data) {
+  Reminder.find({ category_ids: { $in: [propertyId] } }, function (err, data) {
     if (err) {
       console.log(err);
       return;
@@ -791,6 +818,7 @@ const updateUserProfile = (req, res) => {
 };
 
 const getReminderList = (req, res) => {
+  console.log("getReminderList 1: ")
   const agentIdDict = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
 
@@ -799,7 +827,7 @@ const getReminderList = (req, res) => {
       console.log(err);
       return;
     } else {
-      console.log("response datax4:  " + JSON.stringify(data));
+      // console.log("response datax4:  " + JSON.stringify(data));
       res.send(JSON.stringify(data));
       res.end();
       return;
