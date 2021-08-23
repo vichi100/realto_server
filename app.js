@@ -1074,7 +1074,28 @@ const getResidentialPropertyListings = (req, res) => {
 
 const addNewCommercialProperty = (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
-  const propertyDetails = JSON.parse(JSON.stringify(req.body));
+  const obj = JSON.parse(JSON.stringify(req.body));
+  const propertyDetails = JSON.parse(obj.propertyFinalDetails)
+
+  // storing files- START
+  Object.keys(req.files).map((item, index) => {
+    console.log("item", item);
+    const file = req.files[item];
+    const path = __dirname + "/files/" + propertyDetails.agent_id + "_" + index + "_" + new Date(Date.now()).getTime() + ".jpeg";
+    sharp(file.data)
+      .resize(320, 240)
+      .toFile(path, (err, info) => {
+        if (err) {
+          console.log('sharp>>>', err);
+        }
+        else {
+          console.log('resize ok !');
+        }
+      });
+
+  })
+  // storing files- END
+
   // console.log("Prop details2: " + propertyDetails);
   const propertyId = nanoid();
   const locationArea = propertyDetails.property_address.location_area
@@ -1158,8 +1179,6 @@ const addNewResidentialRentProperty = (req, res) => {
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
   // storing files- START
-
-  // console.log(req.files)
   Object.keys(req.files).map((item, index) => {
     console.log("item", item);
     const file = req.files[item];
@@ -1176,34 +1195,10 @@ const addNewResidentialRentProperty = (req, res) => {
       });
 
   })
-  // const file = req.files.vichi0;
-  // console.log(file);
-  // console.log('__dirname: ', __dirname);
-  // const path = __dirname + "/files/" + propertyDetails.agent_id + "_" + new Date(Date.now()) + ".jpeg";
-
-
-
-
-  // storing files: END
-
-  // const obj = JSON.parse(JSON.stringify(req.body));
-  // const propertyDetails = JSON.parse(JSON.stringify(obj.propertyFinalDetails));//obj.propertyFinalDetails
-  // console.log("addNewResidentialRentProperty propertyDetails: " + JSON.parse(JSON.stringify(propertyDetails)));
+  // storing files- END
   const locationArea = propertyDetails.property_address.location_area
-  // console.log("addNewResidentialRentProperty propertyDetails: " + obj.propertyFinalDetails);
   const gLocation = locationArea.location;
-  // const locationAreaX = {
-  //   city: locationArea.city,
-  //   main_text: locationArea.main_text,
-  //   formatted_address: locationArea.formatted_address,
-  //   flat_number: locationArea.flat_number,
-  //   building_name: locationArea.building_name,
-  //   landmark_or_street: locationArea.landmark_or_street,
-  //   pin: locationArea.pin
-  // }
-  // console.log("Prop details2: " + propertyDetails);
   const propertyId = nanoid();
-
 
   const propertyDetailsDict = {
     property_id: propertyId,
