@@ -4,8 +4,11 @@ var busboy = require("connect-busboy");
 const mongoose = require("mongoose");
 const path = require("path"); //used for file path
 var uuid = require("uuid");
+const fileUpload = require('express-fileupload');
 const { nanoid } = require('nanoid');
 const axios = require('axios');
+const sharp = require('sharp');
+// const multer = require('multer');
 
 // https://in.pinterest.com/pin/677299231444826508/
 
@@ -24,33 +27,45 @@ const Message = require("./models/message");
 const commercialProperty = require("./models/commercialProperty");
 const { json } = require("body-parser");
 
+
+
 const app = express();
-app.use(busboy());
-app.use(express.static(path.join(__dirname, "public")));
+// app.use(busboy());
+
+// app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(__dirname));
+app.use(fileUpload());
 
 app.use(bodyParser.json());
-app.use(function (req, res, next) {
-  // res.header("Access-Control-Allow-Origin", "*");
-  // // res.header(
-  // //   "Access-Control-Allow-Methods",
-  // //   "GET,PUT,POST,DELETE,PATCH,OPTIONS"
-  // // );
-  // // res.header(
-  // //   //"Access-Control-Allow-Headers",
-  // //   "Origin, X-Requested-With, Content-Type, Accept"
-  // // );
-  // res.header(
-  //   "Access-Control-Allow-Headers",
-  //   "Origin, X-Requested With, Content-Type, Accept"
-  // );
+// app.use(function (req, res, next) {
+//   // res.header("Access-Control-Allow-Origin", "*");
+//   // // res.header(
+//   // //   "Access-Control-Allow-Methods",
+//   // //   "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+//   // // );
+//   // // res.header(
+//   // //   //"Access-Control-Allow-Headers",
+//   // //   "Origin, X-Requested-With, Content-Type, Accept"
+//   // // );
+//   // res.header(
+//   //   "Access-Control-Allow-Headers",
+//   //   "Origin, X-Requested With, Content-Type, Accept"
+//   // );
 
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+//   // res.header("Access-Control-Allow-Origin", "*");
+//   // res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+//   // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
 
-  next();
-});
+//   // res.header('Access-Control-Allow-Origin', '*');
+//   // res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT');
+//   // res.header(
+//   //   'Access-Control-Allow-Headers',
+//   //   'Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization'
+//   // );
+
+//   next();
+// });
 
 // start: Connect to DB
 mongoose
@@ -180,6 +195,9 @@ app.post("/addNewReminder", function (req, res) {
   console.log("addNewReminder");
   addNewReminder(req, res);
 });
+
+
+
 
 app.post("/addNewResidentialRentProperty", function (req, res) {
   addNewResidentialRentProperty(req, res);
@@ -1135,9 +1153,44 @@ const addNewCommercialProperty = (req, res) => {
 };
 
 const addNewResidentialRentProperty = (req, res) => {
-  console.log("Prop details1: " + JSON.stringify(req.body));
-  const propertyDetails = JSON.parse(JSON.stringify(req.body));
+
+  const obj = JSON.parse(JSON.stringify(req.body));
+  const propertyDetails = JSON.parse(obj.propertyFinalDetails)
+
+  // storing files- START
+
+  // console.log(req.files)
+  Object.keys(req.files).map((item, index) => {
+    console.log("item", item);
+    const file = req.files[item];
+    const path = __dirname + "/files/" + propertyDetails.agent_id + "_" + new Date(Date.now()).getTime() + ".jpeg";
+    sharp(file.data)
+      .resize(320, 240)
+      .toFile(path, (err, info) => {
+        if (err) {
+          console.log('sharp>>>', err);
+        }
+        else {
+          console.log('resize ok !');
+        }
+      });
+
+  })
+  // const file = req.files.vichi0;
+  // console.log(file);
+  // console.log('__dirname: ', __dirname);
+  // const path = __dirname + "/files/" + propertyDetails.agent_id + "_" + new Date(Date.now()) + ".jpeg";
+
+
+
+
+  // storing files: END
+
+  // const obj = JSON.parse(JSON.stringify(req.body));
+  // const propertyDetails = JSON.parse(JSON.stringify(obj.propertyFinalDetails));//obj.propertyFinalDetails
+  // console.log("addNewResidentialRentProperty propertyDetails: " + JSON.parse(JSON.stringify(propertyDetails)));
   const locationArea = propertyDetails.property_address.location_area
+  // console.log("addNewResidentialRentProperty propertyDetails: " + obj.propertyFinalDetails);
   const gLocation = locationArea.location;
   // const locationAreaX = {
   //   city: locationArea.city,
@@ -1150,7 +1203,7 @@ const addNewResidentialRentProperty = (req, res) => {
   // }
   // console.log("Prop details2: " + propertyDetails);
   const propertyId = nanoid();
-  let x;
+
 
   const propertyDetailsDict = {
     property_id: propertyId,
