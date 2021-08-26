@@ -8,6 +8,7 @@ const fileUpload = require('express-fileupload');
 const { nanoid } = require('nanoid');
 const axios = require('axios');
 const sharp = require('sharp');
+var fs = require('fs');
 // const multer = require('multer');
 
 // https://in.pinterest.com/pin/677299231444826508/
@@ -27,13 +28,14 @@ const Message = require("./models/message");
 const commercialProperty = require("./models/commercialProperty");
 const { json } = require("body-parser");
 
-
+const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images"
+const IMAGE_PATH_PROD = "/Users/vichirajan/Documents/github/realtoproject/images"
 
 const app = express();
 // app.use(busboy());
 
 // app.use(express.static(path.join(__dirname, "public")));
-app.use(express.static(__dirname));
+app.use(express.static(IMAGE_PATH_DEV));
 app.use(fileUpload());
 
 app.use(bodyParser.json());
@@ -1066,6 +1068,7 @@ const getResidentialPropertyListings = (req, res) => {
       console.log(err);
       return;
     }
+
     // console.log(JSON.stringify(data));
     res.send(data);
     res.end();
@@ -1077,11 +1080,26 @@ const addNewCommercialProperty = (req, res) => {
   const obj = JSON.parse(JSON.stringify(req.body));
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
+  const dir = getDirectoryPath(propertyDetails.agent_id);
+  const createDirPath = IMAGE_PATH_DEV + dir;
+
+
+  if (!fs.existsSync(createDirPath)) {
+    fs.mkdirSync(createDirPath, { recursive: true });
+  }
+
   // storing files- START
+  propertyDetails.image_urls = [];
+
   Object.keys(req.files).map((item, index) => {
     console.log("item", item);
     const file = req.files[item];
-    const path = __dirname + "/files/" + propertyDetails.agent_id + "_" + index + "_" + new Date(Date.now()).getTime() + ".jpeg";
+
+    const fileName = getFileName(propertyDetails.agent_id, index);
+    // propertyDetails.agent_id + "_"+index+ "_"+ new Date(Date.now()).getTime() + ".jpeg";
+    const path = createDirPath + fileName
+    propertyDetails.image_urls.push({ url: dir + fileName });
+
     sharp(file.data)
       .resize(320, 240)
       .toFile(path, (err, info) => {
@@ -1178,11 +1196,23 @@ const addNewResidentialRentProperty = (req, res) => {
   const obj = JSON.parse(JSON.stringify(req.body));
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
+  const dir = getDirectoryPath(propertyDetails.agent_id);
+  const createDirPath = IMAGE_PATH_DEV + dir;
+
+  console.log("createDirPath: ", createDirPath)
+  if (!fs.existsSync(createDirPath)) {
+    fs.mkdirSync(createDirPath, { recursive: true });
+  }
+
   // storing files- START
+  propertyDetails.image_urls = [];
   Object.keys(req.files).map((item, index) => {
     console.log("item", item);
     const file = req.files[item];
-    const path = __dirname + "/files/" + propertyDetails.agent_id + "_" + new Date(Date.now()).getTime() + ".jpeg";
+    const fileName = getFileName(propertyDetails.agent_id, index);
+    // propertyDetails.agent_id + "_"+index+ "_"+ new Date(Date.now()).getTime() + ".jpeg";
+    const path = createDirPath + fileName
+    propertyDetails.image_urls.push({ url: dir + fileName });
     sharp(file.data)
       .resize(320, 240)
       .toFile(path, (err, info) => {
@@ -1285,6 +1315,28 @@ const addNewResidentialRentProperty = (req, res) => {
     }
   });
 };
+
+const getFileName = (agent_id, index) => {
+  return agent_id + "_" + index + "_" + new Date(Date.now()).getTime() + ".jpeg";
+}
+
+const getDirectoryPath = (agent_id) => {
+  const hashCode = Math.abs(hash(agent_id)).toString();
+  console.log("propertyDetails: ", agent_id)
+  console.log("hashCode: ", hashCode);
+
+  const lastFive = hashCode.slice(- 5);
+  const childOneDir = lastFive.slice(0, 2)
+  const childTwoDir = lastFive.slice(2, 4)
+  const childThreeDir = lastFive.slice(-1)
+  console.log("lastFive: ", lastFive);
+  console.log("childOneDir: ", childOneDir);
+  console.log("childTwoDir: ", childTwoDir);
+  console.log("childThreeDir: ", childThreeDir);
+  const dir = "/" + childOneDir + "/" + childTwoDir + "/" + childThreeDir + "/";
+  return dir;
+
+}
 
 const getTotalListingSummaryX = (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
@@ -1748,6 +1800,16 @@ const getSubjectDetails = (req, res) => {
     });
   }
 };
+
+const hash = (str) => {
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+    var character = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + character;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
+}
 
 // Prop details: { "property_type": "Residential", "property_for": "Rent",
 // XXXX "owner_details": { "name": "C", "mobile1": "c", "mobile2": "c", "address": "C" },
