@@ -28,14 +28,15 @@ const Message = require("./models/message");
 const commercialProperty = require("./models/commercialProperty");
 const { json } = require("body-parser");
 
-const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images"
-const IMAGE_PATH_PROD = "/Users/vichirajan/Documents/github/realtoproject/images"
+const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
+const IMAGE_PATH_PROD = "/Users/vichirajan/Documents/github/realtoproject/images";
+const IMAGE_PATH_URL = IMAGE_PATH_DEV;
 
 const app = express();
 // app.use(busboy());
 
 // app.use(express.static(path.join(__dirname, "public")));
-app.use(express.static(IMAGE_PATH_DEV));
+app.use(express.static(IMAGE_PATH_URL));
 app.use(fileUpload());
 
 app.use(bodyParser.json());
@@ -1081,7 +1082,7 @@ const addNewCommercialProperty = (req, res) => {
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
   const dir = getDirectoryPath(propertyDetails.agent_id);
-  const createDirPath = IMAGE_PATH_DEV + dir;
+  const createDirPath = IMAGE_PATH_URL + dir;
 
 
   if (!fs.existsSync(createDirPath)) {
@@ -1197,7 +1198,7 @@ const addNewResidentialRentProperty = (req, res) => {
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
   const dir = getDirectoryPath(propertyDetails.agent_id);
-  const createDirPath = IMAGE_PATH_DEV + dir;
+  const createDirPath = IMAGE_PATH_URL + dir;
 
   console.log("createDirPath: ", createDirPath)
   if (!fs.existsSync(createDirPath)) {
