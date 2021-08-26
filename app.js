@@ -1133,7 +1133,7 @@ const addNewCommercialProperty = (req, res) => {
       property_size: propertyDetails.property_details.property_size
     },
 
-    image_urls: ["vichi1"],
+    image_urls: propertyDetails.image_urls, //["vichi1"],
     create_date_time: new Date(Date.now()),
     update_date_time: new Date(Date.now())
   };
@@ -1244,7 +1244,7 @@ const addNewResidentialRentProperty = (req, res) => {
     //   non_veg_allowed: propertyDetails.rent_details.non_veg_allowed
     // },
 
-    image_urls: ["vichi1"],
+    image_urls: propertyDetails.image_urls,//["vichi1"],
     create_date_time: new Date(Date.now()),
     update_date_time: new Date(Date.now())
   };
@@ -1767,3 +1767,6 @@ const getSubjectDetails = (req, res) => {
 
 // https://github.com/Gapur/google-place-autocomplete
 // https://betterprogramming.pub/the-best-practice-with-google-place-autocomplete-api-on-react-939211e8b4ce
+
+
+// realto/prop/<days 1 to 30>/<days name>/
