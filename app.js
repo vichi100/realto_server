@@ -1195,6 +1195,7 @@ const addNewCommercialProperty = (req, res) => {
 const addNewResidentialRentProperty = (req, res) => {
 
   const obj = JSON.parse(JSON.stringify(req.body));
+  console.log("propertyFinalDetails: ", JSON.parse(obj.propertyFinalDetails))
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
   const dir = getDirectoryPath(propertyDetails.agent_id);
