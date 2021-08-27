@@ -1102,7 +1102,7 @@ const addNewCommercialProperty = (req, res) => {
     propertyDetails.image_urls.push({ url: dir + fileName });
 
     sharp(file.data)
-      .resize(320, 240)
+      // .resize(320, 240)
       .toFile(path, (err, info) => {
         if (err) {
           console.log('sharp>>>', err);
@@ -1215,7 +1215,7 @@ const addNewResidentialRentProperty = (req, res) => {
     const path = createDirPath + fileName
     propertyDetails.image_urls.push({ url: dir + fileName });
     sharp(file.data)
-      .resize(320, 240)
+      // .resize(320, 240)
       .toFile(path, (err, info) => {
         if (err) {
           console.log('sharp>>>', err);
