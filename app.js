@@ -29,8 +29,8 @@ const commercialProperty = require("./models/commercialProperty");
 const { json } = require("body-parser");
 
 const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
-const IMAGE_PATH_PROD = "/Users/vichirajan/Documents/github/realtoproject/images";
-const IMAGE_PATH_URL = IMAGE_PATH_DEV;
+const IMAGE_PATH_PROD = "/root/realto/images";
+const IMAGE_PATH_URL = IMAGE_PATH_PROD;
 
 const app = express();
 // app.use(busboy());
