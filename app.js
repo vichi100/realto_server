@@ -74,7 +74,9 @@ app.use(bodyParser.json());
 mongoose
   .connect(
     // "mongodb+srv://vichi:vichi123@cluster0-1ys3l.gcp.mongodb.net/test?retryWrites=true&w=majority"
-    "mongodb+srv://vichi:vichi123@cluster0.dx3cf.mongodb.net/propM?retryWrites=true&w=majority"
+    // "mongodb+srv://vichi:vichi123@cluster0.dx3cf.mongodb.net/propM?retryWrites=true&w=majority"
+    "mongodb://realto:realto123@66.94.118.23:27017/realtodb"
+
   )
   .then(() => {
     // app.listen(6000 ,'0.0.0.0');
