@@ -15,9 +15,16 @@ const propertySchema = new mongoose.Schema({
   },
 
   location: {
-    type: String,// "Point"
-    coordinates: []
-  },
+    type: {
+      type: String, // GeoJSON type (e.g., "Point")
+      enum: ["Point"], // Only "Point" is allowed in this case
+      required: true
+    },
+    coordinates: {
+      type: [Number], // Array of numbers: [longitude, latitude]
+      required: true
+    }
+  }, 
 
   property_address: {
     city: String,
@@ -61,5 +68,7 @@ const propertySchema = new mongoose.Schema({
     type: Date
   }
 });
+
+propertySchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("commercial_property", propertySchema);

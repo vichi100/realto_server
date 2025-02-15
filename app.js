@@ -30,7 +30,7 @@ const { json } = require("body-parser");
 
 const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
 const IMAGE_PATH_PROD = "/root/realto/images";
-const IMAGE_PATH_URL = IMAGE_PATH_PROD;
+const IMAGE_PATH_URL = IMAGE_PATH_DEV;
 
 const app = express();
 // app.use(busboy());
@@ -70,17 +70,17 @@ app.use(bodyParser.json());
 //   next();
 // });
 
-// start: Connect to DB
+// start: Connect to DB   mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.8
 mongoose
   .connect(
     // "mongodb+srv://vichi:vichi123@cluster0-1ys3l.gcp.mongodb.net/test?retryWrites=true&w=majority"
     // "mongodb+srv://vichi:vichi123@cluster0.dx3cf.mongodb.net/propM?retryWrites=true&w=majority"
-    "mongodb://realto:realto123@66.94.118.23:27017/realtodb"
+    "mongodb://realto:realto123@207.180.239.115:27017/realtodb"
 
   )
   .then(() => {
     // app.listen(6000 ,'0.0.0.0');
-    app.listen(7000, "0.0.0.0", () => {
+    app.listen(7002, "0.0.0.0", () => {
       console.log("server is listening on 7000 port");
     });
 
@@ -90,7 +90,10 @@ mongoose
 
 // end: Connect to DB
 
-
+app.post('/getGlobalSearchResult', function (req, res) {
+  console.log('getGlobalSearchResult');
+  getGlobalSearchResult(req, res);
+});
 
 
 
@@ -333,9 +336,6 @@ const getPropertyDetailsByIdToShare = (req, res) => {
     return;
   });
 
-
-
-
 };
 
 const generateOTP = (req, res) => {
@@ -412,6 +412,89 @@ const getUserDetails = (req, res) => {
       return;
     });
 };
+
+
+
+
+const getGlobalSearchResult = (req, res) => {
+  console.log(JSON.stringify(req.body));
+  const obj = JSON.parse(JSON.stringify(req.body));
+  if (obj.lookingFor.trim().toLowerCase() === "Property".trim().toLowerCase()) {
+    if (obj.whatType.trim().toLowerCase() === "Residential".trim().toLowerCase()) {
+      const agent_id = agentDetails.agent_id;
+      // Query properties
+      // Coordinates of the "Example Document" location
+      const centerCoordinates = [72.1234, 18.5678]; // [longitude, latitude]
+
+      const gLocations = obj.selectedLocationArray
+      // Create an array of coordinates objects
+      const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
+
+      console.log(coordinatesArray);
+
+      // const locations = [
+      //   [72.1234, 18.5678], // First location
+      //   [72.1245, 18.5689], // Second location
+      //   [72.1256, 18.5690], // Third location
+      // ];
+
+      // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
+      const radiusInMiles = 5;
+      const radiusInRadians = radiusInMiles / 3963.2;
+
+      // Create an array of geospatial queries for each location
+      const locationQueries = coordinatesArray.map((coordinates) => ({
+        location: {
+          $geoWithin: {
+            $centerSphere: [coordinates, radiusInRadians],
+          },
+        },
+      }));
+
+      // Combined query
+      const query = {
+        $or: locationQueries,
+        property_for: obj.purpose,
+        property_status: "1",
+        "property_address.city": obj.city,
+        "property_details.bhk_type": obj.selectedBHK, // Filter by bhk_type
+        "rent_details.expected_rent": {
+          $gte: obj.priceRange[0],//15000, // Greater than or equal to 15000
+          $lte: obj.priceRange[1],//20000, // Less than or equal to 20000
+        },
+        "rent_details.available_from": obj.reqWithin,
+        "rent_details.preferred_tenants": obj.tenant,
+
+      };
+      ResidentialProperty.find({ query }, (err, data) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+
+        console.log(JSON.stringify(data));
+        res.send(data);
+        res.end();
+      });
+
+      // ResidentialProperty.find(query)
+      //   .then((properties) => {
+      //     console.log("Matching properties:", properties);
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error fetching properties:", error);
+      //   })
+      //   .finally(() => {
+      //     mongoose.connection.close(); // Close the connection
+      //   });
+    }
+  }
+}
+
+const searchResidentResult = (query) => {
+
+}
+
 
 
 
@@ -933,7 +1016,7 @@ const getCommercialPropertyListings = (req, res) => {
       console.log(err);
       return;
     }
-    // console.log(JSON.stringify(data));
+    console.log(JSON.stringify(data));
     res.send(data);
     res.end();
   });
@@ -1072,7 +1155,7 @@ const getResidentialPropertyListings = (req, res) => {
       return;
     }
 
-    // console.log(JSON.stringify(data));
+    console.log(JSON.stringify(data));
     res.send(data);
     res.end();
   });
@@ -1479,6 +1562,11 @@ const addNewResidentialCustomer = (req, res) => {
   const customerDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
   const customerId = nanoid();
+  const locationArray = [];
+  customerDetails.customer_locality.location_area.forEach((locationData, i) => {
+    console.log(locationData.location);
+    locationArray.push(locationData.location);
+  });
 
   const customerDetailsDict = {
     customer_id: customerId,
@@ -1556,6 +1644,17 @@ const addNewCommercialCustomer = (req, res) => {
   const customerDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
   const customerId = nanoid();
+  // get location from location_area
+  // const locationArray = [];
+  // customerDetails.customer_locality.location_area.forEach((locationData, i) => {
+  //   console.log(locationData.location);
+  //   locationArray.push(locationData.location);
+  // });
+
+  const locationArray = customerDetails.customer_locality.location_area.map(locationData => ({
+    type: "Point",
+    coordinates: locationData.location.coordinates,
+  }));
 
   const customerDetailsDict = {
     customer_id: customerId,
@@ -1567,6 +1666,7 @@ const addNewCommercialCustomer = (req, res) => {
       mobile2: customerDetails.customer_details.mobile2,
       address: customerDetails.customer_details.address
     },
+    location:locationArray,
     customer_locality: {
       city: customerDetails.customer_locality.city,
       location_area: customerDetails.customer_locality.location_area,
