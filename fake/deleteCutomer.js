@@ -2,7 +2,7 @@ const faker = require('faker');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const Property = require('../models/residentialProperty');
+const Property = require('../models/commercialPropertyCustomer');
 
 const MONGO_URI = 'mongodb://realto:realto123@207.180.239.115:27017/realtodb'; // Update with your actual MongoDB URI
 
@@ -25,7 +25,7 @@ mongoose.connect(MONGO_URI, {
 async function deleteEntriesFromToday() {
   try {
     // Get today's date at midnight (start of the day)
-    const today = new Date("2025-02-09");
+    const today = new Date("2024-02-09");
     // today.setHours(0, 0, 0, 0); // Set time to 00:00:00.000
     // today.setDate(today.getDate() -2);
 
@@ -34,11 +34,11 @@ async function deleteEntriesFromToday() {
     tomorrow.setDate(today.getDate() + 5);
 
     // Delete documents created today
-    const result = await Property.delete({
-      create_date_time: {
-        $gte: today, // Greater than or equal to today's start
-        $lt: tomorrow, // Less than tomorrow's start
-      },
+    const result = await Property.deleteMany({
+      // create_date_time: {
+      //   $gte: today, // Greater than or equal to today's start
+      //   $lt: tomorrow, // Less than tomorrow's start
+      // },
     });
 
     console.log(`Deleted ${result.deletedCount} entries created today.`);

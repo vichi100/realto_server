@@ -31,7 +31,7 @@ const propertySchema = new mongoose.Schema({
     location_area: [],
     property_type: String,
     property_for: String, // rent ,sell
-    
+    pin: String
   },
 
   customer_property_details: {
@@ -49,6 +49,7 @@ const propertySchema = new mongoose.Schema({
     expected_buy_price: String,
     maintenance_charge: String,
     available_from: String,
+    negotiable: String
   },
 
   reminders: [],
@@ -59,8 +60,6 @@ const propertySchema = new mongoose.Schema({
     type: Date
   }
 });
-
-propertySchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("commercial_customer", propertySchema);
 

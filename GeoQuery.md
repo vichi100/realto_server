@@ -121,3 +121,80 @@ Property.find(query)
   create_date_time: new Date(),
   update_date_time: new Date()
 }
+
+
+
+###### Query to find customer who have same name and have location around 5km #####
+
+
+
+const mongoose = require('mongoose');
+const Customer = require('./models/Customer'); // Import Customer model
+const Location = require('./models/Location'); // Import Location model
+
+async function findCustomersByNameAndLocation(name, coordinates, maxDistance) {
+  try {
+    const results = await Customer.aggregate([
+      // Step 1: Match customers by name
+      {
+        $match: {
+          name: name, // Filter by name
+        },
+      },
+      // Step 2: Join the Location collection
+      {
+        $lookup: {
+          from: 'locations', // Name of the Location collection
+          localField: '_id', // Field from Customer collection
+          foreignField: 'customer_id', // Field from Location collection
+          as: 'locations', // Output array field
+        },
+      },
+      // Step 3: Unwind the locations array (one document per location)
+      {
+        $unwind: '$locations',
+      },
+      // Step 4: Filter locations within 5 km of the given coordinates
+      {
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: coordinates, // Center point
+          },
+          distanceField: 'distance', // Add a field to store the distance
+          maxDistance: maxDistance, // 5 km in meters
+          spherical: true, // Use spherical geometry
+          query: { 'locations.location': { $exists: true } }, // Ensure location exists
+          key: 'locations.location', // Geospatial field to query
+        },
+      },
+      // Step 5: Group results by customer
+      {
+        $group: {
+          _id: '$_id', // Group by customer ID
+          name: { $first: '$name' }, // Include customer name
+          email: { $first: '$email' }, // Include customer email
+          locations: { $push: '$locations' }, // Include matching locations
+        },
+      },
+    ]);
+
+    if (results.length === 0) {
+      console.log('No customers found with the specified criteria.');
+      return;
+    }
+
+    // Step 6: Return the results
+    console.log('Customers:', results);
+    return results;
+  } catch (error) {
+    console.error('Error finding customers:', error);
+  }
+}
+
+// Example usage
+const name = 'vichi';
+const coordinates = [72.81703279999999, 19.1246969]; // [longitude, latitude]
+const maxDistance = 5000; // 5 km in meters
+
+findCustomersByNameAndLocation(name, coordinates, maxDistance);

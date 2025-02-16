@@ -18,6 +18,8 @@ const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
 
 const ResidentialProperty = require("./models/residentialProperty");
 const CommercialProperty = require("./models/commercialProperty");
+const CommercialCustomerLocation = require("./models/commercialCustomerLocation");
+const ResidentialCustomerLocation = require("./models/residentialCustomerLocation");
 const Reminder = require("./models/reminder");
 const Agent = require("./models/agent");
 const Employee = require("./models/employee");
@@ -419,30 +421,16 @@ const getUserDetails = (req, res) => {
 const getGlobalSearchResult = (req, res) => {
   console.log(JSON.stringify(req.body));
   const obj = JSON.parse(JSON.stringify(req.body));
-  if (obj.lookingFor.trim().toLowerCase() === "Property".trim().toLowerCase()) {
-    if (obj.whatType.trim().toLowerCase() === "Residential".trim().toLowerCase()) {
-      const agent_id = agentDetails.agent_id;
-      // Query properties
-      // Coordinates of the "Example Document" location
-      const centerCoordinates = [72.1234, 18.5678]; // [longitude, latitude]
-
-      const gLocations = obj.selectedLocationArray
-      // Create an array of coordinates objects
+  if (obj.lookingFor.trim().toLowerCase() === "property".trim().toLowerCase()) {
+    if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
+            const gLocations = obj.selectedLocationArray;
       const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
 
       console.log(coordinatesArray);
 
-      // const locations = [
-      //   [72.1234, 18.5678], // First location
-      //   [72.1245, 18.5689], // Second location
-      //   [72.1256, 18.5690], // Third location
-      // ];
-
-      // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
-      const radiusInMiles = 5;
+      const radiusInMiles = 55;
       const radiusInRadians = radiusInMiles / 3963.2;
 
-      // Create an array of geospatial queries for each location
       const locationQueries = coordinatesArray.map((coordinates) => ({
         location: {
           $geoWithin: {
@@ -451,24 +439,25 @@ const getGlobalSearchResult = (req, res) => {
         },
       }));
 
-      // Combined query
       const query = {
         $or: locationQueries,
         property_for: obj.purpose,
-        property_status: "1",
+        // property_status: "1",
         "property_address.city": obj.city,
-        "property_details.bhk_type": obj.selectedBHK, // Filter by bhk_type
+        "property_details.bhk_type": { $in: ["1BHK"] }, // Filter by bhk_type
         "rent_details.expected_rent": {
-          $gte: obj.priceRange[0],//15000, // Greater than or equal to 15000
-          $lte: obj.priceRange[1],//20000, // Less than or equal to 20000
+          $gte: obj.priceRange[0] || 0,
+          $lte: obj.priceRange[1] || Number.MAX_SAFE_INTEGER,
         },
-        "rent_details.available_from": obj.reqWithin,
-        "rent_details.preferred_tenants": obj.tenant,
-
+        // "rent_details.available_from": obj.reqWithin,
+        // "rent_details.preferred_tenants": obj.tenant,
       };
-      ResidentialProperty.find({ query }, (err, data) => {
+
+      ResidentialProperty.find(query, (err, data) => {
         if (err) {
           console.log(err);
+          res.send(JSON.stringify(null));
+          res.end();
           return;
         }
 
@@ -476,27 +465,9 @@ const getGlobalSearchResult = (req, res) => {
         res.send(data);
         res.end();
       });
-
-      // ResidentialProperty.find(query)
-      //   .then((properties) => {
-      //     console.log("Matching properties:", properties);
-      //   })
-      //   .catch((error) => {
-      //     console.error("Error fetching properties:", error);
-      //   })
-      //   .finally(() => {
-      //     mongoose.connection.close(); // Close the connection
-      //   });
     }
   }
-}
-
-const searchResidentResult = (query) => {
-
-}
-
-
-
+};
 
 const getCustomerReminderList = (req, res) => {
   console.log(JSON.stringify(req.body));
@@ -1562,11 +1533,12 @@ const addNewResidentialCustomer = (req, res) => {
   const customerDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
   const customerId = nanoid();
-  const locationArray = [];
-  customerDetails.customer_locality.location_area.forEach((locationData, i) => {
-    console.log(locationData.location);
-    locationArray.push(locationData.location);
-  });
+  // get location from location_area
+  const locations = customerDetails.customer_locality.location_area.map((location) => ({
+    ...location,
+    customer_id: customerId, // Reference the customer
+    agent_id: customerDetails.agent_id,
+  }));
 
   const customerDetailsDict = {
     customer_id: customerId,
@@ -1631,9 +1603,23 @@ const addNewResidentialCustomer = (req, res) => {
         return;
       } else {
         // console.log("addNewProperty" + JSON.stringify(data));
-        res.send(JSON.stringify(customerDetailsDict));
-        res.end();
-        return;
+        ResidentialCustomerLocation.collection.insertMany(locations, function (err, data) {
+          if (err) {
+            console.log(err);
+            res.send(JSON.stringify(null));
+            res.end();
+            return;
+          }else{
+            console.log("addNewProperty" + JSON.stringify(data));
+            res.send(JSON.stringify(customerDetailsDict));
+            res.end();
+            return;
+          }
+  
+        })
+        // res.send(JSON.stringify(customerDetailsDict));
+        // res.end();
+        // return;
       }
     }
   );
@@ -1651,9 +1637,15 @@ const addNewCommercialCustomer = (req, res) => {
   //   locationArray.push(locationData.location);
   // });
 
-  const locationArray = customerDetails.customer_locality.location_area.map(locationData => ({
-    type: "Point",
-    coordinates: locationData.location.coordinates,
+  // const locationArray = customerDetails.customer_locality.location_area.map(locationData => ({
+  //   type: "Point",
+  //   coordinates: locationData.location.coordinates,
+  // }));
+
+  const locations = customerDetails.customer_locality.location_area.map((location) => ({
+    ...location,
+    customer_id: customerId, // Reference the customer
+    agent_id: customerDetails.agent_id,
   }));
 
   const customerDetailsDict = {
@@ -1666,7 +1658,6 @@ const addNewCommercialCustomer = (req, res) => {
       mobile2: customerDetails.customer_details.mobile2,
       address: customerDetails.customer_details.address
     },
-    location:locationArray,
     customer_locality: {
       city: customerDetails.customer_locality.city,
       location_area: customerDetails.customer_locality.location_area,
@@ -1716,12 +1707,25 @@ const addNewCommercialCustomer = (req, res) => {
       return;
     } else {
       // console.log("addNewProperty" + JSON.stringify(data));
-      res.send(JSON.stringify(customerDetailsDict));
-      res.end();
-      return;
+      CommercialCustomerLocation.collection.insertMany(locations, function (err, data) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify(null));
+          res.end();
+          return;
+        }else{
+          console.log("addNewProperty" + JSON.stringify(data));
+          res.send(JSON.stringify(customerDetailsDict));
+          res.end();
+          return;
+        }
+
+      })
+      
     }
   });
 };
+
 
 const getCustomerAndMeetingDetails = (req, res) => {
   console.log("getCustomerAndMeetingDetails: " + JSON.stringify(req.body));
