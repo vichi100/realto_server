@@ -444,7 +444,7 @@ const getGlobalSearchResultForResidentialProperty = (obj, res) => {
       $gte: obj.priceRange[0] || 0,
       $lte: obj.priceRange[1] || Number.MAX_SAFE_INTEGER,
     },
-    // "rent_details.available_from": obj.reqWithin,
+    // "rent_details.available_from": { $lt: obj.reqWithin },
     // "rent_details.preferred_tenants": obj.tenant,
   };
 
@@ -462,6 +462,10 @@ const getGlobalSearchResultForResidentialProperty = (obj, res) => {
   });
 };
 
+const getGlobalSearchResultForCommercialProperty=(obj, res) => {
+  const gLocations = obj.selectedLocationArray;
+}
+
 
 
 const getGlobalSearchResult = (req, res) => {
@@ -470,6 +474,14 @@ const getGlobalSearchResult = (req, res) => {
   if (obj.lookingFor.trim().toLowerCase() === "property".trim().toLowerCase()) {
     if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
       getGlobalSearchResultForResidentialProperty(obj, res);
+    }else if (obj.whatType.trim().toLowerCase() === "commercial".trim().toLowerCase()) {
+      getGlobalSearchResultForCommercialProperty(obj, res);
+    }
+  }else if (obj.lookingFor.trim().toLowerCase() === "customer".trim().toLowerCase()) {
+    if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
+      getGlobalSearchResultForResidentialCustomer(obj, res);
+    }else if (obj.whatType.trim().toLowerCase() === "commercial".trim().toLowerCase()) {
+      getGlobalSearchResultForCommercialCustomer(obj, res);
     }
   }
 };

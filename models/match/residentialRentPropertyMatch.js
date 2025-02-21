@@ -1,0 +1,15 @@
+const mongoose = require("mongoose");
+
+const propertySchema = new mongoose.Schema({
+  property_id: String,
+  agent_id: String,
+  matched_customer_id: [],
+  create_date_time: {
+    type: Date
+  },
+  update_date_time: {
+    type: Date
+  }
+});
+
+module.exports = mongoose.model("residential_rent_property_match", propertySchema);

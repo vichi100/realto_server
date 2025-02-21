@@ -39,3 +39,76 @@ node    68127 vichirajan   29u  IPv4 0xa75a392e36e53a95      0t0  TCP 192.168.1.
 vichirajan@192 ~ % kill 68127
 vichirajan@192 ~ % sudo lsof -i :7002
 vichirajan@192 ~ % 
+
+
+
+
+
+
+# TODO
+1) DB functinality to delete property and customer
+2) meeting categorization past and future on reminder screen and customer details screen - Done
+3) Global search
+4) diffrent collor coding on bottom bar - Done
+5) meeting reschedule functionality
+6) Modify code to store the location where customer wants property. for both type of customer Residential and Commercial
+7) create a form so that agent will sent link on whats up to fill that with details
+8) create a button on global search right top to check recenly matched property or cutomer  this will have below sections
+   1) matched witin hour
+   2) today
+   3) older
+9) liked property
+10) display how many percent property or customer match to eachother
+11) create location model for residential and commercial property too like customer to provide sugestion at time when some one posting .. that how many possible match this post have
+12) add a flag when any add/update/edit opration happen so that if you go to that data page you can refetch the data
+   example: you create a meeting then make set newMeetingadded flag to true so if you go on reminder page, you will refech the meeting data
+
+13) create below tables for matching cutomer to property, create seprate table for buy and rent
+   1) property -> customer array for residential : residentialRentPropertyMatch, residentialBuyPropertyMatch
+   2) property -> customer array for commercial: commercialRentPropertyMatch, commercialBuyPropertyMatch
+   3) cusomer -> properties array for residential: residentialRentCustomerMatch, residentialBuyCustomerMatch
+   4) cusomer -> properties array for commercial: commercialRentCustomerMatch, commercialBuyCustomerMatch
+
+   There will be schduled job will run after 1 hour from last run
+
+   const PropertySchema = new mongoose.Schema({
+      id: { type: String, required: true },
+      location: { type: String, required: true },
+      price: { type: Number, required: true },
+      interestedCustomers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }] // Many-to-Many Reference
+   });
+
+   const Property = mongoose.model('Property', PropertySchema);
+   module.exports = Property;
+
+
+   const CustomerSchema = new mongoose.Schema({
+      name: { type: String, required: true },
+      email: { type: String, required: true, unique: true },
+      interestedProperties: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Property' }] // Many-to-Many Reference
+   });
+
+   const Customer = mongoose.model('Customer', CustomerSchema);
+   module.exports = Customer;
+
+
+   ✅ 6️⃣ Example: Schedule a Database Cleanup Every Sunday
+      const cron = require('node-cron');
+      const mongoose = require('mongoose');
+      const User = require('./models/User'); // Example Mongoose model
+
+      // Connect to MongoDB
+      mongoose.connect('mongodb://localhost:27017/mydb');
+
+      cron.schedule('0 0 * * 0', async () => {
+      console.log('Running database cleanup...');
+      await User.deleteMany({ inactive: true }); // Delete inactive users
+      console.log('Cleanup done!');
+      });
+
+
+
+
+
+
+

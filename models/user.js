@@ -13,6 +13,8 @@ const userSchema = new Schema({
   access_rights: String,
   employees: [], // if employee then it will be empty,
   works_for: [],
+  liked_properties: [],
+  liked_customers: [],
   email: String,
   user_status: String, //"active", suspend, blocked
   create_date_time: {
