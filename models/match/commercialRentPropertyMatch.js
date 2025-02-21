@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const propertySchema = new mongoose.Schema({
   property_id: String,
   agent_id: String,
-  matched_customer_id: [],
+  matched_customer_id_mine: [],
+  matched_customer_id_other: [],
   create_date_time: {
     type: Date
   },
