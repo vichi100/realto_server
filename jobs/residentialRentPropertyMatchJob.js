@@ -1,16 +1,16 @@
 // Description: Job to match residential rent properties with users.
 
-const cron = require('node-cron');
+// const cron = require('node-cron');
+const schedule = require('node-schedule');
 const mongoose = require('mongoose');
-const User = require('../models/user'); // Example Mongoose model
 const residentialProperty = require('../models/residentialProperty');
 const residentialCustomerRentLocation = require('../models/residentialCustomerRentLocation');
 const residentialRentPropertyMatch = require('../models/match/residentialRentPropertyMatch');
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/mydb');
+mongoose.connect('mongodb://realto:realto123@207.180.239.115:27017/realtodb');
 
-cron.schedule('0 0 * * 0', async () => {
+schedule.scheduleJob('0 0 * * 0', async () => {
   console.log('Updating Residnetial rent property match...');
   const residentialRentPropertyArr = await residentialProperty.find({ property_type: 'residential', property_for: 'rent' });
   const matchedCustomerMine = [];
