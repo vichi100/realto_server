@@ -16,7 +16,7 @@ const propertySchema = new mongoose.Schema({
     preferred_tenants: String,
     non_veg: String
   },
-  location: [
+  location: [// this we are using to display the location names on screen
     {
       type: {
         type: String,

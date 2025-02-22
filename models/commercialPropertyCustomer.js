@@ -14,7 +14,7 @@ const propertySchema = new mongoose.Schema({
     mobile2: String,
     address: String
   },
-  location: [
+  location: [// this we are using to display the location names on screen
     {
       type: {
         type: String,

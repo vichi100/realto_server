@@ -18,8 +18,10 @@ const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
 
 const ResidentialProperty = require("./models/residentialProperty");
 const CommercialProperty = require("./models/commercialProperty");
-const CommercialCustomerLocation = require("./models/commercialCustomerLocation");
-const ResidentialCustomerLocation = require("./models/residentialCustomerLocation");
+const CommercialCustomerBuyLocation = require("./models/commercialCustomerBuyLocation");
+const CommercialCustomerRentLocation = require("./models/commercialCustomerRentLocation");
+const ResidentialCustomerBuyLocation = require("./models/residentialCustomerBuyLocation");
+const ResidentialCustomerRentLocation = require("./models/residentialCustomerRentLocation");
 const Reminder = require("./models/reminder");
 const Agent = require("./models/agent");
 const Employee = require("./models/employee");
@@ -415,56 +417,6 @@ const getUserDetails = (req, res) => {
     });
 };
 
-const getGlobalSearchResultForResidentialProperty = (obj, res) => {
-  
-
-  const gLocations = obj.selectedLocationArray;
-  const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
-
-  console.log(coordinatesArray);
-
-  const radiusInMiles = 55;
-  const radiusInRadians = radiusInMiles / 3963.2;
-
-  const locationQueries = coordinatesArray.map((coordinates) => ({
-    location: {
-      $geoWithin: {
-        $centerSphere: [coordinates, radiusInRadians],
-      },
-    },
-  }));
-
-  const query = {
-    $or: locationQueries,
-    property_for: obj.purpose,
-    // property_status: "1",
-    "property_address.city": obj.city,
-    "property_details.bhk_type": { $in: ["1BHK"] }, // Filter by bhk_type
-    "rent_details.expected_rent": {
-      $gte: obj.priceRange[0] || 0,
-      $lte: obj.priceRange[1] || Number.MAX_SAFE_INTEGER,
-    },
-    // "rent_details.available_from": { $lt: obj.reqWithin },
-    // "rent_details.preferred_tenants": obj.tenant,
-  };
-
-  ResidentialProperty.find(query, (err, data) => {
-    if (err) {
-      console.log(err);
-      res.send(JSON.stringify(null));
-      res.end();
-      return;
-    }
-
-    console.log(JSON.stringify(data));
-    res.send(data);
-    res.end();
-  });
-};
-
-const getGlobalSearchResultForCommercialProperty=(obj, res) => {
-  const gLocations = obj.selectedLocationArray;
-}
 
 
 
@@ -473,18 +425,63 @@ const getGlobalSearchResult = (req, res) => {
   const obj = JSON.parse(JSON.stringify(req.body));
   if (obj.lookingFor.trim().toLowerCase() === "property".trim().toLowerCase()) {
     if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
-      getGlobalSearchResultForResidentialProperty(obj, res);
-    }else if (obj.whatType.trim().toLowerCase() === "commercial".trim().toLowerCase()) {
-      getGlobalSearchResultForCommercialProperty(obj, res);
-    }
-  }else if (obj.lookingFor.trim().toLowerCase() === "customer".trim().toLowerCase()) {
-    if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
-      getGlobalSearchResultForResidentialCustomer(obj, res);
-    }else if (obj.whatType.trim().toLowerCase() === "commercial".trim().toLowerCase()) {
-      getGlobalSearchResultForCommercialCustomer(obj, res);
+      const gLocations = obj.selectedLocationArray;
+      // Create an array of coordinates objects
+      const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
+
+      console.log(coordinatesArray);
+
+      // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
+      const radiusInMiles = 5;
+      const radiusInRadians = radiusInMiles / 3963.2;
+
+      // Create an array of geospatial queries for each location
+      const locationQueries = coordinatesArray.map((coordinates) => ({
+        location: {
+          $geoWithin: {
+            $centerSphere: [coordinates, radiusInRadians],
+          },
+        },
+      }));
+
+      // Combined query
+      const query = {
+        $or: locationQueries,
+        property_for: obj.purpose,
+        property_status: "1",
+        "property_address.city": obj.city,
+        "property_details.bhk_type": { $in: obj.selectedBHK }, // Filter by bhk_type
+        "rent_details.expected_rent": {
+          $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+          $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+        },
+        "rent_details.available_from": obj.reqWithin,
+        "rent_details.preferred_tenants": obj.tenant,
+      };
+
+      ResidentialProperty.find(query, (err, data) => {
+        if (err) {
+          console.log(err);
+          res.status(500).send(err);
+          return;
+        }
+
+        console.log(JSON.stringify(data));
+        res.send(data);
+        res.end();
+      });
     }
   }
 };
+
+
+
+const searchResidentResult = (query) => {
+
+}
+
+
+
 
 const getCustomerReminderList = (req, res) => {
   console.log(JSON.stringify(req.body));
@@ -1620,20 +1617,38 @@ const addNewResidentialCustomer = (req, res) => {
         return;
       } else {
         // console.log("addNewProperty" + JSON.stringify(data));
-        ResidentialCustomerLocation.collection.insertMany(locations, function (err, data) {
-          if (err) {
-            console.log(err);
-            res.send(JSON.stringify(null));
-            res.end();
-            return;
-          }else{
-            console.log("addNewProperty" + JSON.stringify(data));
-            res.send(JSON.stringify(customerDetailsDict));
-            res.end();
-            return;
-          }
-  
-        })
+        if(customerDetails.customer_locality.property_for === "Rent"){
+          ResidentialCustomerRentLocation.collection.insertMany(locations, function (err, data) {
+            if (err) {
+              console.log(err);
+              res.send(JSON.stringify(null));
+              res.end();
+              return;
+            }else{
+              console.log("addNewProperty" + JSON.stringify(data));
+              res.send(JSON.stringify(customerDetailsDict));
+              res.end();
+              return;
+            }
+    
+          })
+        }else if(customerDetails.customer_locality.property_for === "Buy"){
+          ResidentialCustomerBuyLocation.collection.insertMany(locations, function (err, data) {
+            if (err) {
+              console.log(err);
+              res.send(JSON.stringify(null));
+              res.end();
+              return;
+            }else{
+              console.log("addNewProperty" + JSON.stringify(data));
+              res.send(JSON.stringify(customerDetailsDict));
+              res.end();
+              return;
+            }
+    
+          })
+        }
+        
         // res.send(JSON.stringify(customerDetailsDict));
         // res.end();
         // return;
@@ -1724,20 +1739,38 @@ const addNewCommercialCustomer = (req, res) => {
       return;
     } else {
       // console.log("addNewProperty" + JSON.stringify(data));
-      CommercialCustomerLocation.collection.insertMany(locations, function (err, data) {
-        if (err) {
-          console.log(err);
-          res.send(JSON.stringify(null));
-          res.end();
-          return;
-        }else{
-          console.log("addNewProperty" + JSON.stringify(data));
-          res.send(JSON.stringify(customerDetailsDict));
-          res.end();
-          return;
-        }
-
-      })
+      if(customerDetails.customer_locality.property_for === "Rent"){
+        CommercialCustomerRentLocation.collection.insertMany(locations, function (err, data) {
+          if (err) {
+            console.log(err);
+            res.send(JSON.stringify(null));
+            res.end();
+            return;
+          }else{
+            console.log("addNewProperty" + JSON.stringify(data));
+            res.send(JSON.stringify(customerDetailsDict));
+            res.end();
+            return;
+          }
+  
+        })
+      }else if(customerDetails.customer_locality.property_for === "Buy"){
+        CommercialCustomerBuyLocation.collection.insertMany(locations, function (err, data) {
+          if (err) {
+            console.log(err);
+            res.send(JSON.stringify(null));
+            res.end();
+            return;
+          }else{
+            console.log("addNewProperty" + JSON.stringify(data));
+            res.send(JSON.stringify(customerDetailsDict));
+            res.end();
+            return;
+          }
+  
+        })
+      }
+      
       
     }
   });
