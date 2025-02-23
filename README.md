@@ -25,6 +25,21 @@ users
 realtodb> 
 
 
+### Delete data from one collection
+
+db.your_collection_name.deleteMany({});
+
+### Delete all data from all collections
+
+const collections = db.getCollectionNames();
+
+collections.forEach(collection => {
+    db[collection].deleteMany({}); // Delete all documents in the collection
+   // Optionally, drop the collection itself:
+    // db[collection].drop();
+});
+
+
 
 ### How to kill Process which is using a port ###
 

@@ -17,6 +17,8 @@ var fs = require('fs');
 const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
 
 const ResidentialProperty = require("./models/residentialProperty");
+const ResidentialPropertyRent = require("./models/residentialPropertyRent");
+const ResidentialPropertySell = require('./models/residentialPropertySell');
 const CommercialProperty = require("./models/commercialProperty");
 const CommercialCustomerBuyLocation = require("./models/commercialCustomerBuyLocation");
 const CommercialCustomerRentLocation = require("./models/commercialCustomerRentLocation");
@@ -432,7 +434,7 @@ const getGlobalSearchResult = (req, res) => {
       console.log(coordinatesArray);
 
       // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
-      const radiusInMiles = 5;
+      const radiusInMiles = 55;
       const radiusInRadians = radiusInMiles / 3963.2;
 
       // Create an array of geospatial queries for each location
@@ -446,20 +448,20 @@ const getGlobalSearchResult = (req, res) => {
 
       // Combined query
       const query = {
-        $or: locationQueries,
-        property_for: obj.purpose,
-        property_status: "1",
+        // $or: locationQueries,
+        // property_for: obj.purpose,
+        // property_status: "1",
         "property_address.city": obj.city,
-        "property_details.bhk_type": { $in: obj.selectedBHK }, // Filter by bhk_type
-        "rent_details.expected_rent": {
-          $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
-          $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
-        },
-        "rent_details.available_from": obj.reqWithin,
-        "rent_details.preferred_tenants": obj.tenant,
+        // "property_details.bhk_type": { $in: obj.selectedBHK }, // Filter by bhk_type
+        // "rent_details.expected_rent": {
+        //   $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+        //   $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+        // },
+        // "rent_details.available_from": obj.reqWithin,
+        // "rent_details.preferred_tenants": obj.tenant,
       };
 
-      ResidentialProperty.find(query, (err, data) => {
+      ResidentialProperty.find((err, data) => {
         if (err) {
           console.log(err);
           res.status(500).send(err);
@@ -1130,20 +1132,44 @@ const getPropertyListingForMeeting = (req, res) => {
   }
 };
 
-const getResidentialPropertyListings = (req, res) => {
-  const agentDetails = JSON.parse(JSON.stringify(req.body));
-  // console.log(JSON.stringify(req.body));
-  const agent_id = agentDetails.agent_id;
-  ResidentialProperty.find({ agent_id: agent_id }, (err, data) => {
-    if (err) {
-      console.log(err);
-      return;
-    }
+// const getResidentialPropertyListings = (req, res) => {
+//   const agentDetails = JSON.parse(JSON.stringify(req.body));
+//   // console.log(JSON.stringify(req.body));
+//   const agent_id = agentDetails.agent_id;
+//   ResidentialProperty.find({ agent_id: agent_id }, (err, data) => {
+//     if (err) {
+//       console.log(err);
+//       return;
+//     }
 
-    console.log(JSON.stringify(data));
-    res.send(data);
-    res.end();
-  });
+//     console.log(JSON.stringify(data));
+//     res.send(data);
+//     res.end();
+//   });
+// };
+
+const getResidentialPropertyListings = async (req, res) => {
+  try {
+    const agentDetails = JSON.parse(JSON.stringify(req.body));
+    const agent_id = agentDetails.agent_id;
+
+    // Use await to wait for the database query to complete
+    const residentialPropertyRentData = await ResidentialPropertyRent.find({ agent_id: agent_id }).exec();
+    const residentialPropertySellData = await ResidentialPropertySell.find({ agent_id: agent_id }).exec();
+
+    // Merge the two arrays
+    const allProperties = [...residentialPropertyRentData, ...residentialPropertySellData];
+
+    // Sort the merged array based on update_date_time
+    allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
+
+    console.log(JSON.stringify(allProperties));
+    res.send(allProperties); // Send the response with the sorted data
+    res.end(); // End the response
+  } catch (err) {
+    console.error(err); // Log the error
+    res.status(500).send("Internal Server Error"); // Send an error response
+  }
 };
 
 const addNewCommercialProperty = (req, res) => {

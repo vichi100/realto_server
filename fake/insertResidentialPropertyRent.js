@@ -3,7 +3,7 @@ const faker = require('faker');
 const { nanoid } = require('nanoid');
 const fs = require('fs');
 const path = require('path');
-const ResidentialProperty = require('../models/residentialProperty');
+const ResidentialProperty = require('../models/residentialPropertyRent');
 
 const MONGO_URI = 'mongodb://realto:realto123@207.180.239.115:27017/realtodb';
 
