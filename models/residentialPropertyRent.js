@@ -61,12 +61,6 @@ const propertySchema = new mongoose.Schema({
     non_veg_allowed: String
   },
 
-  sell_details: {
-    expected_sell_price: String,
-    maintenance_charge: String,
-    available_from: String,
-    negotiable: String
-  },
 
   image_urls: [],
   reminders: [],

@@ -31,14 +31,6 @@ const propertySchema = new mongoose.Schema({
     lift: String
   },
 
-  customer_rent_details: {
-    expected_rent: String,
-    expected_deposit: String,
-    available_from: String,
-    preferred_tenants: String,
-    non_veg_allowed: String
-  },
-
   customer_buy_details: {
     expected_buy_price: String,
     maintenance_charge: String,

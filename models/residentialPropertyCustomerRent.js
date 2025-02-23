@@ -39,12 +39,6 @@ const propertySchema = new mongoose.Schema({
     non_veg_allowed: String
   },
 
-  customer_buy_details: {
-    expected_buy_price: String,
-    maintenance_charge: String,
-    available_from: String,
-  },
-
   reminders: [],
   create_date_time: {
     type: Date
