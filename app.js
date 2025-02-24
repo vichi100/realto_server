@@ -1411,6 +1411,24 @@ const addNewResidentialRentProperty = (req, res) => {
         preferred_tenants: propertyDetails.rent_details.preferred_tenants,
         non_veg_allowed: propertyDetails.rent_details.non_veg_allowed
       };
+
+      ResidentialPropertyRent.collection.insertOne(propertyDetailsDict, function (
+        err,
+        data
+      ) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify(null));
+          res.end();
+          return;
+        } else {
+          // console.log("addNewProperty" + JSON.stringify(data));
+          res.send(JSON.stringify(propertyDetailsDict));
+          res.end();
+          return;
+        }
+      });
+
     } else if (propertyDetails.property_for === "Sell") {
       propertyDetailsDict["sell_details"] = {
         expected_sell_price: propertyDetails.sell_details.expected_sell_price,
@@ -1418,25 +1436,27 @@ const addNewResidentialRentProperty = (req, res) => {
         available_from: propertyDetails.sell_details.available_from,
         negotiable: propertyDetails.sell_details.negotiable
       };
+
+      ResidentialPropertySell.collection.insertOne(propertyDetailsDict, function (
+        err,
+        data
+      ) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify(null));
+          res.end();
+          return;
+        } else {
+          // console.log("addNewProperty" + JSON.stringify(data));
+          res.send(JSON.stringify(propertyDetailsDict));
+          res.end();
+          return;
+        }
+      });
     }
   }
 
-  ResidentialProperty.collection.insertOne(propertyDetailsDict, function (
-    err,
-    data
-  ) {
-    if (err) {
-      console.log(err);
-      res.send(JSON.stringify(null));
-      res.end();
-      return;
-    } else {
-      // console.log("addNewProperty" + JSON.stringify(data));
-      res.send(JSON.stringify(propertyDetailsDict));
-      res.end();
-      return;
-    }
-  });
+  
 };
 
 const getFileName = (agent_id, index) => {
@@ -1840,26 +1860,50 @@ const getCustomerAndMeetingDetails = (req, res) => {
   // Agent.find({ agent_id: { $in: agentIdsArray } }, function(err, data) {
 
   if (queryObj.category_type === "Residential") {
-    Promise.all([
-      ResidentialProperty.find({
-        property_id: { $in: queryObj.category_ids }
-      }).exec(),
-      ResidentialPropertyCustomer.findOne({
-        customer_id: queryObj.client_id
-      }).exec()
-    ]).then(results => {
-      const propertyDetail = results[0];
-      const customerDetails = results[1];
-      console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
-      console.log("customerDetails:  ", JSON.stringify(customerDetails));
-      const resObj = {
-        property_details: propertyDetail,
-        customer_details: customerDetails
-      };
-      res.send(resObj);
-      res.end();
-      return;
-    });
+    if(queryObj.category_for === "Rent") {
+      Promise.all([
+        ResidentialPropertyRent.find({
+          property_id: { $in: queryObj.category_ids }
+        }).exec(),
+        ResidentialPropertyCustomer.findOne({
+          customer_id: queryObj.client_id
+        }).exec()
+      ]).then(results => {
+        const propertyDetail = results[0];
+        const customerDetails = results[1];
+        console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
+        console.log("customerDetails:  ", JSON.stringify(customerDetails));
+        const resObj = {
+          property_details: propertyDetail,
+          customer_details: customerDetails
+        };
+        res.send(resObj);
+        res.end();
+        return;
+      });
+    } else if(queryObj.category_for === "Sell") {
+      Promise.all([
+        ResidentialPropertySell.find({
+          property_id: { $in: queryObj.category_ids }
+        }).exec(),
+        ResidentialPropertyCustomer.findOne({
+          customer_id: queryObj.client_id
+        }).exec()
+      ]).then(results => {
+        const propertyDetail = results[0];
+        const customerDetails = results[1];
+        console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
+        console.log("customerDetails:  ", JSON.stringify(customerDetails));
+        const resObj = {
+          property_details: propertyDetail,
+          customer_details: customerDetails
+        };
+        res.send(resObj);
+        res.end();
+        return;
+      });
+    }
+    
   } else if (queryObj.category_type === "Commercial") {
     Promise.all([
       CommercialProperty.find({
