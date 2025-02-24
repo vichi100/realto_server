@@ -318,8 +318,13 @@ const getPropertyDetailsByIdToShare = (req, res) => {
   // property_type: String,
   //   property_for: String,
   let propQuery = null;
-  if (propObj.property_type === "residential") {
-    propQuery = ResidentialProperty.findOne({ property_id: propObj.property_id }).exec();
+  if (propObj.property_type.toLowerCase() === "residential") {
+    if (propObj.property_for.toLowerCase() === "rent") {
+      propQuery = ResidentialPropertyRent.findOne({ property_id: propObj.property_id }).lean().exec();
+    } else if (propObj.property_for.toLowerCase() === "sell") {
+      propQuery = ResidentialPropertySell.findOne({ property_id: propObj.property_id }).lean().exec();
+    }
+
   } else {
     propQuery = commercialProperty.findOne({ property_id: propObj.property_id }).exec();
   }
@@ -942,43 +947,63 @@ const addNewReminder = (req, res) => {
     } else {
       // console.log("addNewProperty" + JSON.stringify(data));
       if (reminderDetails.category_type === "Residential") {
-        ResidentialProperty.updateOne(
-          { category_id: reminderDetails.property_id },
-          { $addToSet: { reminders: reminderId } },
-          function (err, data) {
-            if (err) {
-              console.log(err);
-              res.send(JSON.stringify("fail"));
-              res.end();
-              return;
-            } else {
-              console.log("reminderId: ", reminderId);
-              res.send(JSON.stringify({ reminderId: reminderId }));
-              res.end();
-              return;
+        if (reminderDetails.category_for === "Rent") {
+          ResidentialPropertyRent.updateOne(
+            { property_id: reminderDetails.category_ids[0] },
+            { $addToSet: { reminders: reminderId } },
+            function (err, data) {
+              if (err) {
+                console.log(err);
+                res.send(JSON.stringify("fail"));
+                res.end();
+                return;
+              } else {
+                console.log("reminderId: ", reminderId);
+                res.send(JSON.stringify({ reminderId: reminderId }));
+                res.end();
+                return;
+              }
             }
-          }
-        );
-      } else if (reminderDetails.category_type === "Commercial") {
-        CommercialProperty.updateOne(
-          { category_id: reminderDetails.property_id },
-          { $addToSet: { reminders: reminderId } },
-          function (err, data) {
-            if (err) {
-              console.log(err);
-              res.send(JSON.stringify("fail"));
-              res.end();
-              return;
-            } else {
-              res.send(JSON.stringify({ reminderId: reminderId }));
-              res.end();
-              return;
+          );
+        } else if (reminderDetails.category_for === "Sell") {
+          ResidentialPropertySell.updateOne
+            (
+              { property_id: reminderDetails.category_ids[0] },
+              { $addToSet: { reminders: reminderId } },
+              function (err, data) {
+                if (err) {
+                  console.log(err);
+                  res.send(JSON.stringify("fail"));
+                  res.end();
+                  return;
+                } else {
+                  console.log("reminderId: ", reminderId);
+                  res.send(JSON.stringify({ reminderId: reminderId }));
+                  res.end();
+                  return;
+                }
+              }
+            );
+        } else if (reminderDetails.category_type === "Commercial") {
+          CommercialProperty.updateOne(
+            { property_id: reminderDetails.category_ids[0] },
+            { $addToSet: { reminders: reminderId } },
+            function (err, data) {
+              if (err) {
+                console.log(err);
+                res.send(JSON.stringify("fail"));
+                res.end();
+                return;
+              } else {
+                res.send(JSON.stringify({ reminderId: reminderId }));
+                res.end();
+                return;
+              }
             }
-          }
-        );
+          );
+        }
       }
-    }
-  });
+    }});
 };
 
 const getCommercialCustomerListings = (req, res) => {
@@ -1643,38 +1668,38 @@ const addNewResidentialCustomer = (req, res) => {
         return;
       } else {
         // console.log("addNewProperty" + JSON.stringify(data));
-        if(customerDetails.customer_locality.property_for === "Rent"){
+        if (customerDetails.customer_locality.property_for === "Rent") {
           ResidentialCustomerRentLocation.collection.insertMany(locations, function (err, data) {
             if (err) {
               console.log(err);
               res.send(JSON.stringify(null));
               res.end();
               return;
-            }else{
+            } else {
               console.log("addNewProperty" + JSON.stringify(data));
               res.send(JSON.stringify(customerDetailsDict));
               res.end();
               return;
             }
-    
+
           })
-        }else if(customerDetails.customer_locality.property_for === "Buy"){
+        } else if (customerDetails.customer_locality.property_for === "Buy") {
           ResidentialCustomerBuyLocation.collection.insertMany(locations, function (err, data) {
             if (err) {
               console.log(err);
               res.send(JSON.stringify(null));
               res.end();
               return;
-            }else{
+            } else {
               console.log("addNewProperty" + JSON.stringify(data));
               res.send(JSON.stringify(customerDetailsDict));
               res.end();
               return;
             }
-    
+
           })
         }
-        
+
         // res.send(JSON.stringify(customerDetailsDict));
         // res.end();
         // return;
@@ -1765,39 +1790,39 @@ const addNewCommercialCustomer = (req, res) => {
       return;
     } else {
       // console.log("addNewProperty" + JSON.stringify(data));
-      if(customerDetails.customer_locality.property_for === "Rent"){
+      if (customerDetails.customer_locality.property_for === "Rent") {
         CommercialCustomerRentLocation.collection.insertMany(locations, function (err, data) {
           if (err) {
             console.log(err);
             res.send(JSON.stringify(null));
             res.end();
             return;
-          }else{
+          } else {
             console.log("addNewProperty" + JSON.stringify(data));
             res.send(JSON.stringify(customerDetailsDict));
             res.end();
             return;
           }
-  
+
         })
-      }else if(customerDetails.customer_locality.property_for === "Buy"){
+      } else if (customerDetails.customer_locality.property_for === "Buy") {
         CommercialCustomerBuyLocation.collection.insertMany(locations, function (err, data) {
           if (err) {
             console.log(err);
             res.send(JSON.stringify(null));
             res.end();
             return;
-          }else{
+          } else {
             console.log("addNewProperty" + JSON.stringify(data));
             res.send(JSON.stringify(customerDetailsDict));
             res.end();
             return;
           }
-  
+
         })
       }
-      
-      
+
+
     }
   });
 };
