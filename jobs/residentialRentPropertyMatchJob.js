@@ -6,16 +6,15 @@ const mongoose = require('mongoose');
 const residentialPropertyRent = require('../models/residentialPropertyRent');
 const residentialCustomerRentLocation = require('../models/residentialCustomerRentLocation');
 const residentialRentPropertyMatch = require('../models/match/residentialRentPropertyMatch');
+const { json } = require('body-parser');
 
 // Connect to MongoDB
 mongoose.connect('mongodb://realto:realto123@207.180.239.115:27017/realtodb');
 
 schedule.scheduleJob('* * * * *', async () => {
-  console.log('Updating Residnetial rent property match...');
+  console.log('Updating Residential rent property match...');
   const residentialRentPropertyArr = await residentialPropertyRent.find();
-  const matchedCustomerMine = [];
-  const matchedCustomerOther = [];
-
+  
   for (const property of residentialRentPropertyArr) {
     const propertyLocation = property.location;
 
@@ -31,53 +30,69 @@ schedule.scheduleJob('* * * * *', async () => {
       }
     ]);
 
-    for(const customer of nearbyCustomersArr) {
-      if(customer.agent_id === property.agent_id) {
+    const matchedCustomerMine = [];
+    const matchedCustomerOther = [];
+
+    for (const customer of nearbyCustomersArr) {
+      if (customer.agent_id === property.agent_id) {
         const obj = {
           customer_id: customer.customer_id,
           distance: customer.distance
-        }
+        };
         matchedCustomerMine.push(obj);
-      }else if(customer.agent_id !== property.agent_id) {
+      } else if (customer.agent_id !== property.agent_id) {
         const obj = {
           customer_id: customer.customer_id,
           distance: customer.distance
-        }
+        };
         matchedCustomerOther.push(obj);
       }
     }
-    const finalObj = {
-      property_id: property.property_id,
-      agent_id: property.agent_id,
-      matched_count: matchedCustomerMine.length+matchedCustomerOther.length,
-      matched_customer_id_mine: matchedCustomerMine,
-      matched_customer_id_other: matchedCustomerOther,
-      update_date_time: new Date(),
+
+    const existingMatch = await residentialRentPropertyMatch.findOne({ property_id: property.property_id });
+
+    if (existingMatch) {
+      // Update existing match
+      const updatedMine = [...existingMatch.matched_customer_id_mine];
+      const updatedOther = [...existingMatch.matched_customer_id_other];
+
+      matchedCustomerMine.forEach(customer => {
+        if (!updatedMine.some(c => c.customer_id === customer.customer_id)) {
+          updatedMine.push(customer);
+        }
+      });
+
+      matchedCustomerOther.forEach(customer => {
+        if (!updatedOther.some(c => c.customer_id === customer.customer_id)) {
+          updatedOther.push(customer);
+        }
+      });
+
+      await residentialRentPropertyMatch.updateOne(
+        { property_id: property.property_id },
+        {
+          $set: {
+            matched_customer_id_mine: updatedMine,
+            matched_customer_id_other: updatedOther,
+            matched_count: updatedMine.length + updatedOther.length,
+            update_date_time: new Date()
+          }
+        }
+      );
+    } else {
+      // Create new match
+      const finalObj = {
+        property_id: property.property_id,
+        agent_id: property.agent_id,
+        matched_count: matchedCustomerMine.length + matchedCustomerOther.length,
+        matched_customer_id_mine: matchedCustomerMine,
+        matched_customer_id_other: matchedCustomerOther,
+        update_date_time: new Date()
+      };
+      // console.log('residentialRentPropertyMatch: '+ JSON.stringify(finalObj, null, 2) );
+      await residentialRentPropertyMatch.create(finalObj);
     }
-    console.log('residentialRentPropertyMatch'+ JSON.stringify(finalObj, null, 2));
-    // residentialRentPropertyMatch.create(finalObj);
-    
   }
-  
 
-  console.log('Residnetial rent property match done!');
+  console.log('Residential rent property match done!');
 });
-
-// 1) get location of property, check the table of customer residentialCustomerRentLocation to find out the customers which 
-// shown interest within 5km of the property location
-// 2) get the details of the customers from residentialCustomerRentDetails table
-// 3) match the property details with the customer details
-// 4) if the property details match with the customer details then send the notification to the customer
-// console.log('Property:', property);
-
-    // const obj = {
-    //   property_id: property.property_id,
-    //   agent_id: property.agent_id,
-    //   customer_id: nearbyCustomers.map(customer => ({
-    //     customer_id: customer.customer_id,
-        
-    //     distance: customer.distance
-    //   }))
-    // };
-
-    // result.push(obj);
