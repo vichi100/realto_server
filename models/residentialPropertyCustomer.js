@@ -61,7 +61,7 @@ module.exports = mongoose.model("residential_customer", propertySchema);
 // write a function to insert data mongodb for schema residentialPropertyCustomer in insertResidentialPropertyCustomer.js file. flllow below instructions:
 // 1) ignore all Comments
 // 2) use faker to generate dummy data for residentialPropertyCustomer schema
-// 3) insert 50 dummy data in residentialPropertyCustomer schema
+// 3) insert 5 dummy data in residentialPropertyCustomer schema
 // 4) location_area coordinates should be random within 10km of below location
 // "coordinates": [
 //         72.8084232,
@@ -69,8 +69,10 @@ module.exports = mongoose.model("residential_customer", propertySchema);
 //       ],
 // 5) customer_locality city must be mumbai
 // 6) customer_details should be indian name and mobile number
-// 7) agent_id must be 2WfWC8MFzlCmWIUYougXd for all data
+// 7) agent_id must be 0j57gbLQYKQeGSzzpNrjC for all data
 // 8) customer_id should be unique for all data
+// 9) also use customer_locality.location data to insert data for schema residentialCustomerRentLocation.js 
+
 
 // use below samlple data for reference
 

@@ -1003,7 +1003,8 @@ const addNewReminder = (req, res) => {
           );
         }
       }
-    }});
+    }
+  });
 };
 
 const getCommercialCustomerListings = (req, res) => {
@@ -1118,22 +1119,43 @@ const getPropertyListingForMeeting = (req, res) => {
     if (property_for === "Buy") {
       property_for = "Sell";
     }
-    ResidentialProperty.find(
-      {
-        agent_id: agent_id,
-        property_type: property_type,
-        property_for: property_for
-      },
-      (err, data) => {
-        if (err) {
-          console.log(err);
-          return;
+    if (property_for === "Rent") {
+      ResidentialPropertyRent.find(
+        {
+          agent_id: agent_id,
+          property_type: property_type,
+          property_for: property_for
+        },
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          // console.log(JSON.stringify(data));
+          res.send(data);
+          res.end();
         }
-        // console.log(JSON.stringify(data));
-        res.send(data);
-        res.end();
-      }
-    );
+      );
+    } else if (property_for === "Sell") {
+      ResidentialPropertySell.find(
+        {
+          agent_id: agent_id,
+          property_type: property_type,
+          property_for: property_for
+        },
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          // console.log(JSON.stringify(data));
+          res.send(data);
+          res.end();
+        }
+      );
+    }
+
+
   } else if (property_type === "Commercial") {
     if (property_for === "Buy") {
       property_for = "Sell";
@@ -1456,7 +1478,7 @@ const addNewResidentialRentProperty = (req, res) => {
     }
   }
 
-  
+
 };
 
 const getFileName = (agent_id, index) => {
@@ -1860,7 +1882,7 @@ const getCustomerAndMeetingDetails = (req, res) => {
   // Agent.find({ agent_id: { $in: agentIdsArray } }, function(err, data) {
 
   if (queryObj.category_type === "Residential") {
-    if(queryObj.category_for === "Rent") {
+    if (queryObj.category_for === "Rent") {
       Promise.all([
         ResidentialPropertyRent.find({
           property_id: { $in: queryObj.category_ids }
@@ -1881,7 +1903,7 @@ const getCustomerAndMeetingDetails = (req, res) => {
         res.end();
         return;
       });
-    } else if(queryObj.category_for === "Sell") {
+    } else if (queryObj.category_for === "Sell") {
       Promise.all([
         ResidentialPropertySell.find({
           property_id: { $in: queryObj.category_ids }
@@ -1903,7 +1925,7 @@ const getCustomerAndMeetingDetails = (req, res) => {
         return;
       });
     }
-    
+
   } else if (queryObj.category_type === "Commercial") {
     Promise.all([
       CommercialProperty.find({

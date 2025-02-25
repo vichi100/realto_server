@@ -47,10 +47,10 @@ const insertDummyData = async () => {
   const baseCoordinates = [72.8084232, 19.1392024];
   const properties = [];
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 5; i++) {
     const property = {
       property_id: nanoid(),
-      agent_id: '2WfWC8MFzlCmWIUYougXd',
+      agent_id: '0j57gbLQYKQeGSzzpNrjC',
       property_type: 'Residential',
       property_for: 'Sell',
       property_status: '1',
