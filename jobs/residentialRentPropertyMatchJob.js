@@ -11,7 +11,7 @@ const { json } = require('body-parser');
 // Connect to MongoDB
 mongoose.connect('mongodb://realto:realto123@207.180.239.115:27017/realtodb');
 
-schedule.scheduleJob('* * * * *', async () => {
+schedule.scheduleJob('*/10 * * * * *', async () => {
   console.log('Updating Residential rent property match...');
   const residentialRentPropertyArr = await residentialPropertyRent.find();
   
@@ -32,7 +32,7 @@ schedule.scheduleJob('* * * * *', async () => {
 
     const matchedCustomerMine = [];
     const matchedCustomerOther = [];
-
+    // here apply other condition to match like rent, deposit, bhk, furnishing_status, parking_type, lift, preferred_tenants, non_veg_allowed
     for (const customer of nearbyCustomersArr) {
       if (customer.agent_id === property.agent_id) {
         const obj = {

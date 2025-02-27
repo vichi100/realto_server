@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const propertySchema = new mongoose.Schema({
   customer_id: String,
   agent_id: String,
+  rent: Number,
+  deposit: Number,
   location: {
     type: {
       type: String, // GeoJSON type (e.g., "Point")
