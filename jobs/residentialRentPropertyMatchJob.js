@@ -32,20 +32,28 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
 
     const matchedCustomerMine = [];
     const matchedCustomerOther = [];
+    const uniqueCustomerMine = new Set();
+    const uniqueCustomerOther = new Set();
     // here apply other condition to match like rent, deposit, bhk, furnishing_status, parking_type, lift, preferred_tenants, non_veg_allowed
     for (const customer of nearbyCustomersArr) {
       if (customer.agent_id === property.agent_id) {
-        const obj = {
-          customer_id: customer.customer_id,
-          distance: customer.distance
-        };
-        matchedCustomerMine.push(obj);
+        if (!uniqueCustomerMine.has(customer.customer_id)) {
+          const obj = {
+            customer_id: customer.customer_id,
+            distance: customer.distance
+          };
+          matchedCustomerMine.push(obj);
+          uniqueCustomerMine.add(customer.customer_id);
+        }
       } else if (customer.agent_id !== property.agent_id) {
-        const obj = {
-          customer_id: customer.customer_id,
-          distance: customer.distance
-        };
-        matchedCustomerOther.push(obj);
+        if (!uniqueCustomerOther.has(customer.customer_id)) {
+          const obj = {
+            customer_id: customer.customer_id,
+            distance: customer.distance
+          };
+          matchedCustomerOther.push(obj);
+          uniqueCustomerOther.add(customer.customer_id);
+        }
       }
     }
 
@@ -74,7 +82,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
           $set: {
             matched_customer_id_mine: updatedMine,
             matched_customer_id_other: updatedOther,
-            matched_count: updatedMine.length + updatedOther.length,
+            match_count: updatedMine.length + updatedOther.length,
             update_date_time: new Date()
           }
         }
@@ -84,7 +92,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
       const finalObj = {
         property_id: property.property_id,
         agent_id: property.agent_id,
-        matched_count: matchedCustomerMine.length + matchedCustomerOther.length,
+        match_count: matchedCustomerMine.length + matchedCustomerOther.length,
         matched_customer_id_mine: matchedCustomerMine,
         matched_customer_id_other: matchedCustomerOther,
         update_date_time: new Date()
@@ -92,6 +100,12 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
       // console.log('residentialRentPropertyMatch: '+ JSON.stringify(finalObj, null, 2) );
       await residentialRentPropertyMatch.create(finalObj);
     }
+
+    // Update match count in residentialPropertyRent schema document
+    await residentialPropertyRent.updateOne(
+      { _id: property._id },
+      { $set: { match_count: matchedCustomerMine.length + matchedCustomerOther.length } }
+    );
   }
 
   console.log('Residential rent property match done!');

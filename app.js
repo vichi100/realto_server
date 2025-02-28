@@ -24,6 +24,7 @@ const CommercialCustomerBuyLocation = require("./models/commercialCustomerBuyLoc
 const CommercialCustomerRentLocation = require("./models/commercialCustomerRentLocation");
 const ResidentialCustomerBuyLocation = require("./models/residentialCustomerBuyLocation");
 const ResidentialCustomerRentLocation = require("./models/residentialCustomerRentLocation");
+const residentialRentPropertyMatch = require('./models/match/residentialRentPropertyMatch');
 const Reminder = require("./models/reminder");
 const Agent = require("./models/agent");
 const Employee = require("./models/employee");
@@ -249,6 +250,11 @@ app.post("/getCustomerListForMeeting", function (req, res) {
 app.post("/residentialCustomerList", function (req, res) {
   console.log("residential customer Listings");
   getResidentialCustomerList(req, res);
+});
+
+app.post("/matchedResidentialCustomerList", function (req, res) {
+  console.log("residential customer Listings");
+  getMatchedResidentialCustomerList(req, res);
 });
 
 app.post("/getPropertyDetailsByIdToShare", function (req, res) {
@@ -1048,6 +1054,51 @@ const getResidentialCustomerList = (req, res) => {
     res.send(data);
     res.end();
   });
+};
+
+/*
+get matched property using property_id from residentialRentPropertyMatch
+get matched_customer_id_mine from matched property
+get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
+get matched_customer_id_other from matched property
+get customer details using matched_customer_id_other from residentialPropertyCustomerRent
+send both customer details
+*/
+const getMatchedResidentialCustomerList = async (req, res) => {
+  try {
+    const propertyDetails = JSON.parse(JSON.stringify(req.body));
+    const property_id = propertyDetails.property_id;
+
+    // 1) Get matched property using property_id from residentialRentPropertyMatch
+    const matchedProperty = await residentialRentPropertyMatch.findOne({ property_id: property_id });
+
+    if (!matchedProperty) {
+      res.status(404).send("No matched property found");
+      return;
+    }
+
+    // 2) Get matched_customer_id_mine from matched property
+    const matchedCustomerMineIds = matchedProperty.matched_customer_id_mine.map(customer => customer.customer_id);
+
+    // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
+    const matchedCustomerDetailsMine = await ResidentialPropertyCustomer.find({ customer_id: { $in: matchedCustomerMineIds } });
+
+    // 4) Get matched_customer_id_other from matched property
+    const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
+
+    // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
+    const matchedCustomerDetailsOther = await ResidentialPropertyCustomer.find({ customer_id: { $in: matchedCustomerOtherIds } });
+
+    // 6) Send both customer details
+    res.send({
+      matchedCustomerDetailsMine,
+      matchedCustomerDetailsOther
+    });
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
 };
 
 const getCustomerListForMeeting = (req, res) => {

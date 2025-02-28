@@ -50,7 +50,7 @@ const insertDummyData = async () => {
   for (let i = 0; i < 5; i++) {
     const property = {
       property_id: nanoid(),
-      agent_id: '0j57gbLQYKQeGSzzpNrjC',
+      agent_id: '3tHn5RqF_D7iU3OkqN_sL',
       property_type: 'Residential',
       property_for: 'Sell',
       property_status: '1',

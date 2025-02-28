@@ -10,6 +10,7 @@ const propertySchema = new mongoose.Schema({
   property_for: String, // rent ,sell
   property_status: String, // 0- close, 1- open
   is_close_successfully: String, // yes, no
+  match_count: { type: Number, default: 0 },
   owner_details: {
     name: String,
     mobile1: String,

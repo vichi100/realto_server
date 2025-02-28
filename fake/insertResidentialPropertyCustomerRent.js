@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const faker = require('faker');
 const { nanoid } = require('nanoid');
-const ResidentialPropertyCustomer = require('../models/residentialPropertyCustomer');
+const ResidentialPropertyCustomerRent = require('../models/residentialPropertyCustomerRent');
 const ResidentialCustomerRentLocation = require('../models/residentialCustomerRentLocation');
 
 const MONGO_URI = 'mongodb://realto:realto123@207.180.239.115:27017/realtodb';
@@ -46,7 +46,7 @@ const insertDummyData = async () => {
 
     const customer = {
       customer_id: customerId,
-      agent_id: '0j57gbLQYKQeGSzzpNrjC',
+      agent_id: '3tHn5RqF_D7iU3OkqN_sL',
       customer_status: '1',
       is_close_successfully: 'no',
       customer_details: {
@@ -59,7 +59,7 @@ const insertDummyData = async () => {
         city: 'Mumbai',
         location_area: locationArea,
         property_type: 'Residential',
-        property_for: 'Rent',
+        property_for: 'Rent',//faker.random.arrayElement(['Rent', 'Sell']),
         pin: faker.address.zipCode('######')
       },
       customer_property_details: {
@@ -87,7 +87,7 @@ const insertDummyData = async () => {
     const rentLocations = locationArea.map(location => ({
       ...location,
       customer_id: customerId,
-      agent_id: '0j57gbLQYKQeGSzzpNrjC'
+      agent_id: '3tHn5RqF_D7iU3OkqN_sL'
     }));
 
     await ResidentialCustomerRentLocation.insertMany(rentLocations);
@@ -95,7 +95,7 @@ const insertDummyData = async () => {
   }
 
   try {
-    await ResidentialPropertyCustomer.insertMany(customers);
+    await ResidentialPropertyCustomerRent.insertMany(customers);
     console.log("ResidentialPropertyCustomer"+ JSON.stringify(customers, null, 2) );
     // console.log("5 dummy customers inserted successfully");
   } catch (error) {
