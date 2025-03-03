@@ -16,6 +16,8 @@ mongoose.connect(MONGO_URI, {
   process.exit(1);
 });
 
+const agentId = 'h3ZeVaca1V1jOrJh7sT5K';
+
 const generateRandomCoordinates = (baseCoordinates, radiusInKm) => {
   const radiusInDegrees = radiusInKm / 111; // 1 degree is approximately 111 km
   const randomOffset = () => (Math.random() - 0.5) * 2 * radiusInDegrees;
@@ -46,7 +48,7 @@ const insertDummyData = async () => {
 
     const customer = {
       customer_id: customerId,
-      agent_id: '3tHn5RqF_D7iU3OkqN_sL',
+      agent_id: agentId,
       customer_status: '1',
       is_close_successfully: 'no',
       customer_details: {
@@ -87,7 +89,7 @@ const insertDummyData = async () => {
     const rentLocations = locationArea.map(location => ({
       ...location,
       customer_id: customerId,
-      agent_id: '3tHn5RqF_D7iU3OkqN_sL'
+      agent_id: agentId,
     }));
 
     await ResidentialCustomerRentLocation.insertMany(rentLocations);

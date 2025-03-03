@@ -3,7 +3,7 @@ const faker = require('faker');
 const { nanoid } = require('nanoid');
 const fs = require('fs');
 const path = require('path');
-const ResidentialProperty = require('../models/residentialPropertySell');
+const ResidentialPropertySell = require('../models/residentialPropertySell');
 
 const MONGO_URI = 'mongodb://realto:realto123@207.180.239.115:27017/realtodb';
 
@@ -16,6 +16,8 @@ mongoose.connect(MONGO_URI, {
   console.error("MongoDB connection error:", err);
   process.exit(1);
 });
+
+const agentId = '3tHn5RqF_D7iU3OkqN_sL';
 
 const getLocalImages = () => {
   const imageDir = '/Users/vichirajan/Documents/github/realtoproject/images/89/97/7/';
@@ -50,7 +52,7 @@ const insertDummyData = async () => {
   for (let i = 0; i < 5; i++) {
     const property = {
       property_id: nanoid(),
-      agent_id: '3tHn5RqF_D7iU3OkqN_sL',
+      agent_id: agentId,
       property_type: 'Residential',
       property_for: 'Sell',
       property_status: '1',
@@ -104,7 +106,7 @@ const insertDummyData = async () => {
   }
 
   try {
-    await ResidentialProperty.insertMany(properties);
+    await ResidentialPropertySell.insertMany(properties);
     console.log("50 dummy properties inserted successfully       "+ JSON.stringify(properties, null, 2) );
   } catch (error) {
     console.error("Error inserting dummy properties:", error);

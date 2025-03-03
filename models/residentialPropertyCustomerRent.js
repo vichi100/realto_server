@@ -48,9 +48,8 @@ const propertySchema = new mongoose.Schema({
     type: Date
   }
 });
-propertySchema.index({ location: "2dsphere" });
 
-module.exports = mongoose.model("residential_customer", propertySchema);
+module.exports = mongoose.model("residential_customer_rent", propertySchema);
 
 
 // write a function to insert data mongodb for schema residentialPropertyCustomer in insertResidentialPropertyCustomer.js file. flllow below instructions:

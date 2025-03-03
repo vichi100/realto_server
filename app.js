@@ -16,7 +16,7 @@ var fs = require('fs');
 // 2 Factor API
 const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
 
-const ResidentialProperty = require("./models/residentialProperty");
+// const ResidentialProperty = require("./models/residentialProperty");
 const ResidentialPropertyRent = require("./models/residentialPropertyRent");
 const ResidentialPropertySell = require('./models/residentialPropertySell');
 const CommercialProperty = require("./models/commercialProperty");
@@ -29,7 +29,9 @@ const Reminder = require("./models/reminder");
 const Agent = require("./models/agent");
 const Employee = require("./models/employee");
 const User = require("./models/user");
-const ResidentialPropertyCustomer = require("./models/residentialPropertyCustomer");
+// const ResidentialPropertyCustomer = require("./models/residentialPropertyCustomer");
+const ResidentialPropertyCustomerRent = require("./models/residentialPropertyCustomerRent");
+const ResidentialPropertyCustomerBuy = require("./models/residentialPropertyCustomerBuy");
 const CommercialPropertyCustomer = require("./models/commercialPropertyCustomer");
 const Message = require("./models/message");
 const commercialProperty = require("./models/commercialProperty");
@@ -206,6 +208,11 @@ app.post("/getReminderList", function (req, res) {
   getReminderList(req, res);
 });
 
+app.post("/getReminderListByCustomerId", function (req, res) {
+  console.log("getReminderListByCustomerId");
+  getReminderListByCustomerId(req, res);
+});
+
 app.post("/addNewReminder", function (req, res) {
   console.log("addNewReminder");
   addNewReminder(req, res);
@@ -285,7 +292,12 @@ const getCustomerDetailsByIdToShare = (req, res) => {
   //   property_for: String,
   let propQuery = null;
   if (propObj.property_type === "residential") {
-    propQuery = ResidentialPropertyCustomer.findOne({ customer_id: propObj.customer_id }).lean().exec();
+    if (propObj.property_for.toLowerCase() === "rent") {
+      propQuery = ResidentialPropertyCustomerRent.findOne({ customer_id: propObj.customer_id }).lean().exec();
+    } else if (propObj.property_for.toLowerCase() === "buy") {
+      propQuery = ResidentialPropertyCustomerBuy.findOne({ customer_id: propObj.customer_id }).lean().exec();
+    }
+
   } else {
     propQuery = CommercialPropertyCustomer.findOne({ customer_id: propObj.customer_id }).lean().exec();
   }
@@ -433,57 +445,74 @@ const getUserDetails = (req, res) => {
 
 
 
-const getGlobalSearchResult = (req, res) => {
+const getGlobalSearchResult = async (req, res) => {
   console.log(JSON.stringify(req.body));
   const obj = JSON.parse(JSON.stringify(req.body));
-  if (obj.lookingFor.trim().toLowerCase() === "property".trim().toLowerCase()) {
-    if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
-      const gLocations = obj.selectedLocationArray;
-      // Create an array of coordinates objects
-      const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
+  try {
+    if (obj.lookingFor.trim().toLowerCase() === "property".trim().toLowerCase()) {
+      if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
+        const gLocations = obj.selectedLocationArray;
+        // Create an array of coordinates objects
+        const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
 
-      console.log(coordinatesArray);
+        console.log(coordinatesArray);
 
-      // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
-      const radiusInMiles = 55;
-      const radiusInRadians = radiusInMiles / 3963.2;
+        // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
+        const radiusInMiles = 55;
+        const radiusInRadians = radiusInMiles / 3963.2;
 
-      // Create an array of geospatial queries for each location
-      const locationQueries = coordinatesArray.map((coordinates) => ({
-        location: {
-          $geoWithin: {
-            $centerSphere: [coordinates, radiusInRadians],
+        // Create an array of geospatial queries for each location
+        const locationQueries = coordinatesArray.map((coordinates) => ({
+          location: {
+            $geoWithin: {
+              $centerSphere: [coordinates, radiusInRadians],
+            },
           },
-        },
-      }));
+        }));
 
-      // Combined query
-      const query = {
-        // $or: locationQueries,
-        // property_for: obj.purpose,
-        // property_status: "1",
-        "property_address.city": obj.city,
-        // "property_details.bhk_type": { $in: obj.selectedBHK }, // Filter by bhk_type
-        // "rent_details.expected_rent": {
-        //   $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
-        //   $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
-        // },
-        // "rent_details.available_from": obj.reqWithin,
-        // "rent_details.preferred_tenants": obj.tenant,
-      };
+        // Combined query
+        const query = {
+          // $or: locationQueries,
+          // property_for: obj.purpose,
+          // property_status: "1",
+          "property_address.city": obj.city,
+          // "property_details.bhk_type": { $in: obj.selectedBHK }, // Filter by bhk_type
+          // "rent_details.expected_rent": {
+          //   $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+          //   $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+          // },
+          // "rent_details.available_from": obj.reqWithin,
+          // "rent_details.preferred_tenants": obj.tenant,
+        };
 
-      ResidentialProperty.find((err, data) => {
-        if (err) {
-          console.log(err);
-          res.status(500).send(err);
-          return;
-        }
+        // Use await to wait for the database query to complete
+        const residentialPropertyRentData = await ResidentialPropertyRent.find().exec();
+        const residentialPropertySellData = await ResidentialPropertySell.find().exec();
 
-        console.log(JSON.stringify(data));
-        res.send(data);
+        // Merge the two arrays
+        const allProperties = [...residentialPropertyRentData, ...residentialPropertySellData];
+
+        console.log(JSON.stringify(allProperties));
+        res.send(allProperties);
         res.end();
-      });
+
+        // ResidentialProperty.find((err, data) => {
+        //   if (err) {
+        //     console.log(err);
+        //     res.status(500).send(err);
+        //     return;
+        //   }
+
+        //   console.log(JSON.stringify(data));
+        //   res.send(data);
+        //   res.end();
+        // });
+      }
     }
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
   }
 };
 
@@ -939,6 +968,51 @@ const getReminderList = (req, res) => {
   }).sort({ user_id: -1 });
 };
 
+
+const getReminderListByCustomerId = (req, res) => {
+  console.log("getReminderListByCustomerId 1: ")
+  // customer_id: customerData.customer_id,
+  //   property_type: customerData.customer_locality.property_type,// Residential, commercial
+  //   property_for: customerData.customer_locality.property_for,// Rent, sell
+  const customerDataDict = JSON.parse(JSON.stringify(req.body));
+  const customerId = customerDataDict.customer_id;
+  const propertyType = customerDataDict.property_type;
+  const propertyFor = customerDataDict.property_for;
+  // first find cusomer and get reminder of the customer
+  console.log(JSON.stringify(req.body));
+
+  if (propertyType.toLowerCase() === "Residential".toLowerCase()) {
+    if (propertyFor.toLowerCase() === "Rent".toLowerCase()) {
+      ResidentialPropertyCustomerRent.find({ customer_id: customerId }, function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        } else {
+          // console.log("response datax4:  " + JSON.stringify(data));
+          const customerDataFromDB = JSON.parse(JSON.stringify(data));
+          const reminderArr = customerDataFromDB[0].reminders;
+          Reminder.find({ reminder_id: { $in: reminderArr } }, function (err, data) {
+            if (err) {
+              console.log(err);
+              return;
+            } else {
+              // console.log("response datax4:  " + JSON.stringify(data));
+              res.send(JSON.stringify(data));
+              res.end();
+              return;
+            }
+          })
+
+        }
+
+      })
+
+    }
+  }
+
+
+};
+
 const addNewReminder = (req, res) => {
   const reminderDetails = JSON.parse(JSON.stringify(req.body));
   const reminderId = nanoid();
@@ -964,13 +1038,27 @@ const addNewReminder = (req, res) => {
                 res.end();
                 return;
               } else {
-                console.log("reminderId: ", reminderId);
-                res.send(JSON.stringify({ reminderId: reminderId }));
-                res.end();
-                return;
+                ResidentialPropertyCustomerRent.updateOne(
+                  { customer_id: reminderDetails.client_id },
+                  { $addToSet: { reminders: reminderId } },
+                  function (err, data) {
+                    if (err) {
+                      console.log(err);
+                      res.send(JSON.stringify("fail"));
+                      res.end();
+                      return;
+                    } else {
+                      console.log("reminderId: ", reminderId);
+                      res.send(JSON.stringify({ reminderId: reminderId }));
+                      res.end();
+                      return;
+                    }
+                  }
+                );
               }
             }
           );
+
         } else if (reminderDetails.category_for === "Sell") {
           ResidentialPropertySell.updateOne
             (
@@ -983,10 +1071,24 @@ const addNewReminder = (req, res) => {
                   res.end();
                   return;
                 } else {
-                  console.log("reminderId: ", reminderId);
-                  res.send(JSON.stringify({ reminderId: reminderId }));
-                  res.end();
-                  return;
+                  ResidentialPropertyCustomerBuy.updateOne
+                    (
+                      { client_id: reminderDetails.client_id },
+                      { $addToSet: { reminders: reminderId } },
+                      function (err, data) {
+                        if (err) {
+                          console.log(err);
+                          res.send(JSON.stringify("fail"));
+                          res.end();
+                          return;
+                        } else {
+                          console.log("reminderId: ", reminderId);
+                          res.send(JSON.stringify({ reminderId: reminderId }));
+                          res.end();
+                          return;
+                        }
+                      }
+                    );
                 }
               }
             );
@@ -1041,19 +1143,24 @@ const getCommercialPropertyListings = (req, res) => {
   });
 };
 
-const getResidentialCustomerList = (req, res) => {
-  const agentDetails = JSON.parse(JSON.stringify(req.body));
-  // console.log(JSON.stringify(req.body));
-  const agent_id = agentDetails.agent_id;
-  ResidentialPropertyCustomer.find({ agent_id: agent_id }, (err, data) => {
-    if (err) {
-      console.log(err);
-      return;
-    }
+const getResidentialCustomerList = async (req, res) => {
+  try {
+    const agentDetails = JSON.parse(JSON.stringify(req.body));
+    // console.log(JSON.stringify(req.body));
+    const agent_id = agentDetails.agent_id;
+    const residentialPropertyCustomerRent = await ResidentialPropertyCustomerRent.find({ agent_id: agent_id });
+    const residentialPropertyCustomerBuy = await ResidentialPropertyCustomerBuy.find({ agent_id: agent_id });
+
+    const data = [...residentialPropertyCustomerRent, ...residentialPropertyCustomerBuy];
+
     console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
     res.send(data);
     res.end();
-  });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
 };
 
 /*
@@ -1081,14 +1188,19 @@ const getMatchedResidentialCustomerList = async (req, res) => {
     const matchedCustomerMineIds = matchedProperty.matched_customer_id_mine.map(customer => customer.customer_id);
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
-    const matchedCustomerDetailsMine = await ResidentialPropertyCustomer.find({ customer_id: { $in: matchedCustomerMineIds } });
+    const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } });
+    const matchedCustomerBuyDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
+
+    const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine, ...matchedCustomerBuyDetailsMine];
 
     // 4) Get matched_customer_id_other from matched property
     const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
-    const matchedCustomerDetailsOther = await ResidentialPropertyCustomer.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
+    const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther, ...matchedCustomerBuyDetailsOther];
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1101,7 +1213,7 @@ const getMatchedResidentialCustomerList = async (req, res) => {
   }
 };
 
-const getCustomerListForMeeting = (req, res) => {
+const getCustomerListForMeeting = async (req, res) => {
   const queryObj = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
   const agent_id = queryObj.agent_id;
@@ -1114,27 +1226,58 @@ const getCustomerListForMeeting = (req, res) => {
       property_for = "Buy";
       console.log(property_for);
     }
-    ResidentialPropertyCustomer.find(
-      {
-        agent_id: agent_id,
-        "customer_locality.property_type": property_type,
-        "customer_locality.property_for": property_for
-        // : {
-        //   city: "Mumbai"
-        //   // property_type: property_type,
-        //   // property_for: property_for
-        // }
-      },
-      (err, data) => {
-        if (err) {
-          console.log(err);
-          return;
+
+    if (property_for.toLowerCase() === "rent") {
+
+      ResidentialPropertyCustomerRent.find(
+        {
+          agent_id: agent_id,
+          "customer_locality.property_type": property_type,
+          "customer_locality.property_for": property_for
+          // : {
+          //   city: "Mumbai"
+          //   // property_type: property_type,
+          //   // property_for: property_for
+          // }
+        },
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          console.log(JSON.stringify(data));
+          res.send(data);
+          res.end();
         }
-        console.log(JSON.stringify(data));
-        res.send(data);
-        res.end();
-      }
-    );
+      );
+    } else if (property_for.toLowerCase() === "buy") {
+
+      ResidentialPropertyCustomerBuy.find(
+        {
+          agent_id: agent_id,
+          "customer_locality.property_type": property_type,
+          "customer_locality.property_for": property_for
+          // : {
+          //   city: "Mumbai"
+          //   // property_type: property_type,
+          //   // property_for: property_for
+          // }
+        },
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          console.log(JSON.stringify(data));
+          res.send(data);
+          res.end();
+        }
+      );
+    }
+
+
+
+
   } else if (property_type === "Commercial") {
     console.log("3", property_type);
     if (property_for === "Sell") {
@@ -1751,54 +1894,70 @@ const addNewResidentialCustomer = (req, res) => {
     }
   }
 
-  ResidentialPropertyCustomer.collection.insertOne(
-    customerDetailsDict,
-    function (err, data) {
-      if (err) {
-        console.log(err);
-        res.send(JSON.stringify(null));
-        res.end();
-        return;
-      } else {
-        // console.log("addNewProperty" + JSON.stringify(data));
-        if (customerDetails.customer_locality.property_for === "Rent") {
-          ResidentialCustomerRentLocation.collection.insertMany(locations, function (err, data) {
-            if (err) {
-              console.log(err);
-              res.send(JSON.stringify(null));
-              res.end();
-              return;
-            } else {
-              console.log("addNewProperty" + JSON.stringify(data));
-              res.send(JSON.stringify(customerDetailsDict));
-              res.end();
-              return;
-            }
+  if (customerDetails.customer_locality.property_for.toLowerCase() === 'rent') {
 
-          })
-        } else if (customerDetails.customer_locality.property_for === "Buy") {
-          ResidentialCustomerBuyLocation.collection.insertMany(locations, function (err, data) {
-            if (err) {
-              console.log(err);
-              res.send(JSON.stringify(null));
-              res.end();
-              return;
-            } else {
-              console.log("addNewProperty" + JSON.stringify(data));
-              res.send(JSON.stringify(customerDetailsDict));
-              res.end();
-              return;
-            }
+    ResidentialPropertyCustomerRent.collection.insertOne(
+      customerDetailsDict,
+      function (err, data) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify(null));
+          res.end();
+          return;
+        } else {
+          // console.log("addNewProperty" + JSON.stringify(data));
+          if (customerDetails.customer_locality.property_for === "Rent") {
 
-          })
+            ResidentialCustomerRentLocation.collection.insertMany(locations, function (err, data) {
+              if (err) {
+                console.log(err);
+                res.send(JSON.stringify(null));
+                res.end();
+                return;
+              } else {
+                console.log("addNewProperty" + JSON.stringify(data));
+                res.send(JSON.stringify(customerDetailsDict));
+                res.end();
+                return;
+              }
+
+            })
+          }
         }
-
-        // res.send(JSON.stringify(customerDetailsDict));
-        // res.end();
-        // return;
       }
-    }
-  );
+    );
+
+  } else if (customerDetails.customer_locality.property_for.toLowerCase() === 'buy') {
+    ResidentialPropertyCustomerBuy.collection.insertOne(
+      customerDetailsDict,
+      function (err, data) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify(null));
+          res.end();
+          return;
+        } else {
+          if (customerDetails.customer_locality.property_for === "Buy") {
+            ResidentialCustomerBuyLocation.collection.insertMany(locations, function (err, data) {
+              if (err) {
+                console.log(err);
+                res.send(JSON.stringify(null));
+                res.end();
+                return;
+              } else {
+                console.log("addNewProperty" + JSON.stringify(data));
+                res.send(JSON.stringify(customerDetailsDict));
+                res.end();
+                return;
+              }
+
+            })
+          }
+        }
+      }
+    );
+  }
+
 };
 
 const addNewCommercialCustomer = (req, res) => {
@@ -1938,7 +2097,7 @@ const getCustomerAndMeetingDetails = (req, res) => {
         ResidentialPropertyRent.find({
           property_id: { $in: queryObj.category_ids }
         }).exec(),
-        ResidentialPropertyCustomer.findOne({
+        ResidentialPropertyCustomerRent.findOne({
           customer_id: queryObj.client_id
         }).exec()
       ]).then(results => {
@@ -1959,7 +2118,7 @@ const getCustomerAndMeetingDetails = (req, res) => {
         ResidentialPropertySell.find({
           property_id: { $in: queryObj.category_ids }
         }).exec(),
-        ResidentialPropertyCustomer.findOne({
+        ResidentialPropertyCustomerBuy.findOne({
           customer_id: queryObj.client_id
         }).exec()
       ]).then(results => {
