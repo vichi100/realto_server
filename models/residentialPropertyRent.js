@@ -8,7 +8,7 @@ const propertySchema = new mongoose.Schema({
   agent_id: String,
   property_type: String, // residential, commercial
   property_for: String, // rent ,sell
-  property_status: String, // 0- close, 1- open
+  property_status: { type: Number, default: 1 }, // 0- close, 1- open
   is_close_successfully: String, // yes, no
   match_count: { type: Number, default: 0 },
   owner_details: {

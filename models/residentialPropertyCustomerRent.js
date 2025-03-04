@@ -4,9 +4,9 @@ const mongoose = require("mongoose");
 const propertySchema = new mongoose.Schema({
   customer_id: String,
   agent_id: String,
-  // property_type: String,
-  // property_for: String, // rent ,sell
-  customer_status: String, // 0- close, 1- open
+  property_type: String,
+  property_for: String, // rent ,sell
+  customer_status: { type: Number, default: 1 }, // 0- close, 1- open
   is_close_successfully: String, // yes, no, open
   match_count: { type: Number, default: 0 },
   customer_details: {
