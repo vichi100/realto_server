@@ -6,6 +6,7 @@ const residentialPropertyRent = require('../models/residentialPropertyRent');
 const residentialCustomerRentLocation = require('../models/residentialCustomerRentLocation');
 const residentialRentPropertyMatch = require('../models/match/residentialRentPropertyMatch');
 const residentialRentCustomerMatch = require('../models/match/residentialRentCustomerMatch');
+const ResidentialPropertyCustomerRent = require('../models/residentialPropertyCustomerRent');
 const { json } = require('body-parser');
 
 // Connect to MongoDB
@@ -122,6 +123,76 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
           }
         }
       }
+
+      // Insert matched properties into residentialRentCustomerMatch
+      const existingCustomerMatch = await residentialRentCustomerMatch.findOne({ customer_id: customer.customer_id });
+
+      if (existingCustomerMatch) {
+        // Update existing customer match
+        const updatedMine = [...existingCustomerMatch.matched_property_id_mine];
+        const updatedOther = [...existingCustomerMatch.matched_property_id_other];
+
+        if (customer.agent_id === property.agent_id) {
+          if (!updatedMine.some(p => p.property_id === property.property_id)) {
+            updatedMine.push({
+              property_id: property.property_id,
+              distance: customer.distance,
+              matched_percentage: Math.abs(matchScore)
+            });
+          }
+        } else {
+          if (!updatedOther.some(p => p.property_id === property.property_id)) {
+            updatedOther.push({
+              property_id: property.property_id,
+              distance: customer.distance,
+              matched_percentage: Math.abs(matchScore)
+            });
+          }
+        }
+
+        await residentialRentCustomerMatch.updateOne(
+          { customer_id: customer.customer_id },
+          {
+            $set: {
+              matched_property_id_mine: updatedMine,
+              matched_property_id_other: updatedOther,
+              match_count: updatedMine.length + updatedOther.length,
+              update_date_time: new Date()
+            }
+          }
+        );
+
+        // Update match count in residentialPropertyCustomerRent schema document
+        await ResidentialPropertyCustomerRent.updateOne(
+          { customer_id: customer.customer_id },
+          { $set: { match_count: updatedMine.length + updatedOther.length } }
+        );
+      } else {
+        // Create new customer match
+        const finalCustomerObj = {
+          customer_id: customer.customer_id,
+          agent_id: customer.agent_id,
+          match_count: customer.agent_id === property.agent_id ? 1 : 0,
+          matched_property_id_mine: customer.agent_id === property.agent_id ? [{
+            property_id: property.property_id,
+            distance: customer.distance,
+            matched_percentage: Math.abs(matchScore)
+          }] : [],
+          matched_property_id_other: customer.agent_id !== property.agent_id ? [{
+            property_id: property.property_id,
+            distance: customer.distance,
+            matched_percentage: Math.abs(matchScore)
+          }] : [],
+          update_date_time: new Date()
+        };
+        await residentialRentCustomerMatch.create(finalCustomerObj);
+
+        // Update match count in residentialPropertyCustomerRent schema document
+        await ResidentialPropertyCustomerRent.updateOne(
+          { customer_id: customer.customer_id },
+          { $set: { match_count: finalCustomerObj.matched_property_id_mine.length + finalCustomerObj.matched_property_id_other.length } }
+        );
+      }
     }
 
     const existingMatch = await residentialRentPropertyMatch.findOne({ property_id: property.property_id });
@@ -173,66 +244,6 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
       { _id: property._id },
       { $set: { match_count: matchedCustomerMine.length + matchedCustomerOther.length } }
     );
-
-    // Insert matched properties into residentialRentCustomerMatch
-    for (const customer of nearbyCustomersArr) {
-      const existingCustomerMatch = await residentialRentCustomerMatch.findOne({ customer_id: customer.customer_id });
-
-      if (existingCustomerMatch) {
-        // Update existing customer match
-        const updatedMine = [...existingCustomerMatch.matched_property_id_mine];
-        const updatedOther = [...existingCustomerMatch.matched_property_id_other];
-
-        if (customer.agent_id === property.agent_id) {
-          if (!updatedMine.some(p => p.property_id === property.property_id)) {
-            updatedMine.push({
-              property_id: property.property_id,
-              distance: customer.distance,
-              matched_percentage: Math.abs(matchScore)
-            });
-          }
-        } else {
-          if (!updatedOther.some(p => p.property_id === property.property_id)) {
-            updatedOther.push({
-              property_id: property.property_id,
-              distance: customer.distance,
-              matched_percentage: Math.abs(matchScore)
-            });
-          }
-        }
-
-        await residentialRentCustomerMatch.updateOne(
-          { customer_id: customer.customer_id },
-          {
-            $set: {
-              matched_property_id_mine: updatedMine,
-              matched_property_id_other: updatedOther,
-              match_count: updatedMine.length + updatedOther.length,
-              update_date_time: new Date()
-            }
-          }
-        );
-      } else {
-        // Create new customer match
-        const finalCustomerObj = {
-          customer_id: customer.customer_id,
-          agent_id: customer.agent_id,
-          match_count: customer.agent_id === property.agent_id ? 1 : 0,
-          matched_property_id_mine: customer.agent_id === property.agent_id ? [{
-            property_id: property.property_id,
-            distance: customer.distance,
-            matched_percentage: Math.abs(matchScore)
-          }] : [],
-          matched_property_id_other: customer.agent_id !== property.agent_id ? [{
-            property_id: property.property_id,
-            distance: customer.distance,
-            matched_percentage: Math.abs(matchScore)
-          }] : [],
-          update_date_time: new Date()
-        };
-        await residentialRentCustomerMatch.create(finalCustomerObj);
-      }
-    }
   }
 
   console.log('Residential rent property match done!');

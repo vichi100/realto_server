@@ -16,7 +16,7 @@ mongoose.connect(MONGO_URI, {
   process.exit(1);
 });
 
-const agentId = 'h3ZeVaca1V1jOrJh7sT5K';
+const agentId = 'MRYAca_yereFwLwYd01xa';
 
 const generateRandomCoordinates = (baseCoordinates, radiusInKm) => {
   const radiusInDegrees = radiusInKm / 111; // 1 degree is approximately 111 km
@@ -45,6 +45,16 @@ const insertDummyData = async () => {
       },
       main_text: faker.address.streetName()
     }));
+    const house_type = 'Apartment';
+    const bhk_type = faker.random.arrayElement(['1BHK', '2BHK', '3BHK']);
+    const furnishing_status = faker.random.arrayElement(['Full', 'Semi', 'Empty']);
+    const parking_type = faker.random.arrayElement(['Car', 'Bike']);
+
+    const expected_rent =  faker.random.number({ min: 10000, max: 100000 }).toString();
+    const expected_deposit = faker.random.number({ min: 50000, max: 500000 }).toString();
+    const available_from = formatDate(faker.date.future());
+    const preferred_tenants = faker.random.arrayElement(['Family', 'Bachelors', 'Any']); 
+    const  non_veg_allowed = faker.random.boolean() ? 'Yes' : 'No' ;
 
     const customer = {
       customer_id: customerId,
@@ -65,18 +75,18 @@ const insertDummyData = async () => {
         pin: faker.address.zipCode('######')
       },
       customer_property_details: {
-        house_type: 'Apartment',
-        bhk_type: faker.random.arrayElement(['1BHK', '2BHK', '3BHK']),
-        furnishing_status: faker.random.arrayElement(['Full', 'Semi', 'Empty']),
-        parking_type: faker.random.arrayElement(['Car', 'Bike']),
+        house_type: house_type,
+        bhk_type: bhk_type,
+        furnishing_status: furnishing_status,
+        parking_type: furnishing_status,
         lift: faker.random.boolean() ? 'Yes' : 'No'
       },
       customer_rent_details: {
-        expected_rent: faker.random.number({ min: 10000, max: 100000 }).toString(),
-        expected_deposit: faker.random.number({ min: 50000, max: 500000 }).toString(),
-        available_from: formatDate(faker.date.future()),
-        preferred_tenants: faker.random.arrayElement(['Family', 'Bachelors', 'Any']),
-        non_veg_allowed: faker.random.boolean() ? 'Yes' : 'No'
+        expected_rent: expected_rent,
+        expected_deposit: expected_deposit,
+        available_from: available_from,
+        preferred_tenants: preferred_tenants,
+        non_veg_allowed: non_veg_allowed,
       },
       image_urls: ['vichi1'],
       create_date_time: new Date(),
@@ -90,15 +100,28 @@ const insertDummyData = async () => {
       ...location,
       customer_id: customerId,
       agent_id: agentId,
+      customer_property_details: {
+        house_type: house_type,
+        bhk_type: bhk_type,
+        furnishing_status: furnishing_status,
+        parking_type: furnishing_status,
+      },
+      customer_rent_details: {
+        expected_rent: expected_rent,
+        expected_deposit: expected_deposit,
+        available_from: available_from,
+        preferred_tenants: preferred_tenants,
+        non_veg_allowed: non_veg_allowed,
+      },
     }));
 
     await ResidentialCustomerRentLocation.insertMany(rentLocations);
-    console.log("ResidentialCustomerRentLocation"+ JSON.stringify(rentLocations, null, 2) );
+    console.log("ResidentialCustomerRentLocation" + JSON.stringify(rentLocations, null, 2));
   }
 
   try {
     await ResidentialPropertyCustomerRent.insertMany(customers);
-    console.log("ResidentialPropertyCustomer"+ JSON.stringify(customers, null, 2) );
+    console.log("ResidentialPropertyCustomer" + JSON.stringify(customers, null, 2));
     // console.log("5 dummy customers inserted successfully");
   } catch (error) {
     console.error("Error inserting dummy customers:", error);
