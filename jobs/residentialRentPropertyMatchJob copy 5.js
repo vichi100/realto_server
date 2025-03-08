@@ -50,6 +50,10 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
     const matchedCustomerOther = [];
     const uniqueCustomerMine = new Set();
     const uniqueCustomerOther = new Set();
+    const matchedPropertyMine = [];
+    const matchedPropertyOther = [];
+    const uniquePropertyMine = new Set();
+    const uniquePropertyOther = new Set();
     // here apply other condition to match like rent, deposit, bhk, furnishing_status, parking_type, lift, preferred_tenants, non_veg_allowed
     // order location > bhk > rent > deposit > preferred_tenants > furnishing_status > parking type > non_veg_allowed
     // location + bhk = 60% < must match>
@@ -130,6 +134,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
 
       // Insert matched properties into residentialRentCustomerMatch
       const existingCustomerMatch = await residentialRentCustomerMatch.findOne({ customer_id: customer.customer_id });
+      
 
       if (existingCustomerMatch) {
         // Update existing customer match
@@ -197,6 +202,10 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
           { $set: { match_count: finalCustomerObj.matched_property_id_mine.length + finalCustomerObj.matched_property_id_other.length } }
         );
       }
+
+      // now this customer in the property's customer list
+      const existingPropertyMatch = await residentialRentPropertyMatch.findOne({ property_id: property.property_id });
+
     }
 
     const existingMatch = await residentialRentPropertyMatch.findOne({ property_id: property.property_id });
@@ -234,11 +243,28 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
       const finalObj = {
         property_id: property.property_id,
         agent_id: property.agent_id,
-        match_count: matchedCustomerMine.length + matchedCustomerOther.length,
-        matched_customer_id_mine: matchedCustomerMine,
-        matched_customer_id_other: matchedCustomerOther,
+        match_count: customer.agent_id === property.agent_id ? 1 : 0,
+        matched_customer_id_mine: customer.agent_id === property.agent_id ? [{
+          customer_id: customer.customer_id,
+          distance: customer.distance,
+          matched_percentage: Math.abs(matchScore)
+        }] : [],
+        matched_customer_id_other: customer.agent_id !== property.agent_id ? [{
+          customer_id: customer.customer_id,
+          distance: customer.distance,
+          matched_percentage: Math.abs(matchScore)
+        }] : [],
         update_date_time: new Date()
       };
+
+      // const finalObj = {
+      //   property_id: property.property_id,
+      //   agent_id: property.agent_id,
+      //   match_count: matchedCustomerMine.length + matchedCustomerOther.length,
+      //   matched_customer_id_mine: matchedCustomerMine,
+      //   matched_customer_id_other: matchedCustomerOther,
+      //   update_date_time: new Date()
+      // };
       // console.log('residentialRentPropertyMatch: '+ JSON.stringify(finalObj, null, 2) );
       await residentialRentPropertyMatch.create(finalObj);
     }
