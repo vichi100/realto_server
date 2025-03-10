@@ -12,7 +12,6 @@ const propertySchema = new mongoose.Schema({
   customer_details: {
     name: String,
     mobile1: String,
-    mobile2: String,
     address: String,
     preferred_tenants: String,
     non_veg: String
@@ -34,7 +33,7 @@ const propertySchema = new mongoose.Schema({
 
   customer_buy_details: {
     expected_buy_price: String,
-    maintenance_charge: String,
+    maintenance_charge: { type: Number, default: 0 },
     available_from: String,
   },
 

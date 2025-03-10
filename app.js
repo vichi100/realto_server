@@ -425,8 +425,6 @@ const getUserDetails = (req, res) => {
           .insertOne(userObj)
           .then((result) => {
             console.log('1');
-
-            USER_MOBILE_DICT[mobileXX] = 'y';
             res.send(JSON.stringify(userObj));
             res.end();
             return;
@@ -1888,11 +1886,13 @@ const addNewResidentialCustomer = (req, res) => {
   const customerDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
   const customerId = nanoid();
+  let residentialCustomerRentLocationDictArray = [];
+  let residentialCustomerBuyLocationDictArray = [];
   // get location from location_area
   const locations = customerDetails.customer_locality.location_area.map((location) => ({
     ...location,
-    customer_id: customerId, // Reference the customer
-    agent_id: customerDetails.agent_id,
+    // customer_id: customerId, // Reference the customer
+    // agent_id: customerDetails.agent_id,
   }));
 
   const customerDetailsDict = {
@@ -1902,7 +1902,6 @@ const addNewResidentialCustomer = (req, res) => {
     customer_details: {
       name: customerDetails.customer_details.name,
       mobile1: customerDetails.customer_details.mobile1,
-      mobile2: customerDetails.customer_details.mobile2,
       address: customerDetails.customer_details.address
     },
     customer_locality: {
@@ -1910,7 +1909,7 @@ const addNewResidentialCustomer = (req, res) => {
       location_area: customerDetails.customer_locality.location_area,
       property_type: customerDetails.customer_locality.property_type,
       property_for: customerDetails.customer_locality.property_for,
-      pin: customerDetails.customer_locality.pin
+      preferred_tenants: customerDetails.customer_locality.preferred_tenants
     },
 
     customer_property_details: {
@@ -1934,10 +1933,34 @@ const addNewResidentialCustomer = (req, res) => {
         expected_deposit:
           customerDetails.customer_rent_details.expected_deposit,
         available_from: customerDetails.customer_rent_details.available_from,
-        preferred_tenants:
-          customerDetails.customer_rent_details.preferred_tenants,
-        non_veg_allowed: customerDetails.customer_rent_details.non_veg_allowed
+        
       };
+      
+      for(let location of locations){
+        const residentialCustomerRentLocationDict = {
+          customer_id: customerId,
+          location: location.location,
+          agent_id: customerDetails.agent_id,
+          customer_property_details: {
+            house_type: customerDetails.customer_property_details.house_type,
+            bhk_type: customerDetails.customer_property_details.bhk_type,
+            furnishing_status:
+              customerDetails.customer_property_details.furnishing_status,
+            parking_type: customerDetails.customer_property_details.parking_type,
+          },
+  
+          customer_rent_details: {
+            expected_rent: customerDetails.customer_rent_details.expected_rent,
+            expected_deposit:
+              customerDetails.customer_rent_details.expected_deposit,
+            available_from: customerDetails.customer_rent_details.available_from,
+            preferred_tenants: customerDetails.customer_locality.preferred_tenants
+          },
+        }
+        residentialCustomerRentLocationDictArray.push(residentialCustomerRentLocationDict);
+      }
+      // for each loaction there will be one entry
+      
     } else if (customerDetails.customer_locality.property_for === "Buy") {
       customerDetailsDict["customer_buy_details"] = {
         expected_buy_price:
@@ -1945,8 +1968,27 @@ const addNewResidentialCustomer = (req, res) => {
         available_from: customerDetails.customer_buy_details.available_from,
         negotiable: customerDetails.customer_buy_details.negotiable
       };
+      residentialCustomerBuyLocationDict = {
+        location: locations,
+        customer_property_details: {
+          house_type: customerDetails.customer_property_details.house_type,
+          bhk_type: customerDetails.customer_property_details.bhk_type,
+          furnishing_status:
+            customerDetails.customer_property_details.furnishing_status,
+          parking_type: customerDetails.customer_property_details.parking_type,
+        },
+        customer_buy_details: {
+          expected_buy_price:
+            customerDetails.customer_buy_details.expected_buy_price,
+          available_from: customerDetails.customer_buy_details.available_from,
+          negotiable: customerDetails.customer_buy_details.negotiable
+        },
+
+      }
     }
   }
+
+
 
   if (customerDetails.customer_locality.property_for.toLowerCase() === 'rent') {
 
@@ -1962,7 +2004,7 @@ const addNewResidentialCustomer = (req, res) => {
           // console.log("addNewProperty" + JSON.stringify(data));
           if (customerDetails.customer_locality.property_for === "Rent") {
 
-            ResidentialCustomerRentLocation.collection.insertMany(locations, function (err, data) {
+            ResidentialCustomerRentLocation.collection.insertMany(residentialCustomerRentLocationDictArray, function (err, data) {
               if (err) {
                 console.log(err);
                 res.send(JSON.stringify(null));
@@ -1992,7 +2034,7 @@ const addNewResidentialCustomer = (req, res) => {
           return;
         } else {
           if (customerDetails.customer_locality.property_for === "Buy") {
-            ResidentialCustomerBuyLocation.collection.insertMany(locations, function (err, data) {
+            ResidentialCustomerBuyLocation.collection.insertMany(residentialCustomerBuyLocationDict, function (err, data) {
               if (err) {
                 console.log(err);
                 res.send(JSON.stringify(null));

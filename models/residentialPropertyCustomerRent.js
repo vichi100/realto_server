@@ -12,16 +12,14 @@ const propertySchema = new mongoose.Schema({
   customer_details: {
     name: String,
     mobile1: String,
-    mobile2: String,
     address: String,
-    preferred_tenants: String,
-    non_veg: String
   },
   customer_locality: {
     city: String,
     location_area: [],
     property_type: String, // residential, commercial
     property_for: String, // rent ,sell
+    preferred_tenants: String,// "Family", "Bachelors"
   },
 
   customer_property_details: {
@@ -36,8 +34,6 @@ const propertySchema = new mongoose.Schema({
     expected_rent: String,
     expected_deposit: String,
     available_from: String,
-    preferred_tenants: String,
-    non_veg_allowed: String
   },
 
   reminders: [],

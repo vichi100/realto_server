@@ -16,8 +16,7 @@ const propertySchema = new mongoose.Schema({
     expected_rent: String,
     expected_deposit: String,
     available_from: String,
-    preferred_tenants: String,
-    non_veg_allowed: String
+    preferred_tenants: String
   },
 
   location: {

@@ -86,7 +86,7 @@ const insertDummyData = async () => {
         expected_deposit: expected_deposit,
         available_from: available_from,
         preferred_tenants: preferred_tenants,
-        non_veg_allowed: non_veg_allowed,
+        // non_veg_allowed: non_veg_allowed,
       },
       image_urls: ['vichi1'],
       create_date_time: new Date(),
@@ -111,7 +111,7 @@ const insertDummyData = async () => {
         expected_deposit: expected_deposit,
         available_from: available_from,
         preferred_tenants: preferred_tenants,
-        non_veg_allowed: non_veg_allowed,
+        // non_veg_allowed: non_veg_allowed,
       },
     }));
 
