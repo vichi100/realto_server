@@ -1968,23 +1968,31 @@ const addNewResidentialCustomer = (req, res) => {
         available_from: customerDetails.customer_buy_details.available_from,
         negotiable: customerDetails.customer_buy_details.negotiable
       };
-      residentialCustomerBuyLocationDict = {
-        location: locations,
-        customer_property_details: {
-          house_type: customerDetails.customer_property_details.house_type,
-          bhk_type: customerDetails.customer_property_details.bhk_type,
-          furnishing_status:
-            customerDetails.customer_property_details.furnishing_status,
-          parking_type: customerDetails.customer_property_details.parking_type,
-        },
-        customer_buy_details: {
-          expected_buy_price:
-            customerDetails.customer_buy_details.expected_buy_price,
-          available_from: customerDetails.customer_buy_details.available_from,
-          negotiable: customerDetails.customer_buy_details.negotiable
-        },
+      for(let location of locations){
+        const residentialCustomerBuyLocationDict = {
+          customer_id: customerId,
+          location: location.location,
+          agent_id: customerDetails.agent_id,
+          customer_property_details: {
+            house_type: customerDetails.customer_property_details.house_type,
+            bhk_type: customerDetails.customer_property_details.bhk_type,
+            furnishing_status:
+              customerDetails.customer_property_details.furnishing_status,
+            parking_type: customerDetails.customer_property_details.parking_type,
+          },
+          customer_buy_details: {
+            expected_buy_price:
+              customerDetails.customer_buy_details.expected_buy_price,
+            available_from: customerDetails.customer_buy_details.available_from,
+            negotiable: customerDetails.customer_buy_details.negotiable
+          },
+  
+        }
+
+        residentialCustomerBuyLocationDictArray.push(residentialCustomerBuyLocationDict);
 
       }
+      
     }
   }
 
@@ -2034,7 +2042,7 @@ const addNewResidentialCustomer = (req, res) => {
           return;
         } else {
           if (customerDetails.customer_locality.property_for === "Buy") {
-            ResidentialCustomerBuyLocation.collection.insertMany(residentialCustomerBuyLocationDict, function (err, data) {
+            ResidentialCustomerBuyLocation.collection.insertMany(residentialCustomerBuyLocationDictArray, function (err, data) {
               if (err) {
                 console.log(err);
                 res.send(JSON.stringify(null));
