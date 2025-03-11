@@ -31,13 +31,14 @@ const propertySchema = new mongoose.Schema({
     location_area: [],
     property_type: String,
     property_for: String, // rent ,sell
-    pin: String
+    // pin: String
   },
 
   customer_property_details: {
     building_type: String,
     parking_type: String,
-    property_used_for: String
+    property_used_for: String,
+    property_size: String
   },
 
   customer_rent_details: {
@@ -54,7 +55,7 @@ const propertySchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model("commercial_customer", propertySchema);
+module.exports = mongoose.model("commercial_customer_rent", propertySchema);
 
 
 

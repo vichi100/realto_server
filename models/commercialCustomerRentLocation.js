@@ -5,14 +5,12 @@ const propertySchema = new mongoose.Schema({
   customer_id: String,
   agent_id: String,
   customer_status: { type: Number, default: 1 },// 0- close, 1- open
-  customer_locality: {
-    property_type: String,
-    property_for: String, // rent ,sell
-  },
+  
   customer_property_details: {
     building_type: String,
+    property_used_for: String,
+    property_size: String,
     parking_type: String,
-    property_used_for: String
   },
 
   customer_rent_details: {

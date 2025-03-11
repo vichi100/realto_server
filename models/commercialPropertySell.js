@@ -65,4 +65,4 @@ const propertySchema = new mongoose.Schema({
 
 propertySchema.index({ location: "2dsphere" });
 
-module.exports = mongoose.model("commercial_property", propertySchema);
+module.exports = mongoose.model("commercial_property_sell", propertySchema);

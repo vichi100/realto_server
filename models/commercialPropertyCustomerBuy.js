@@ -37,7 +37,8 @@ const propertySchema = new mongoose.Schema({
   customer_property_details: {
     building_type: String,
     parking_type: String,
-    property_used_for: String
+    property_used_for: String,
+    property_size: String
   },
 
   customer_buy_details: {
@@ -56,7 +57,7 @@ const propertySchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model("commercial_customer", propertySchema);
+module.exports = mongoose.model("commercial_customer_buy", propertySchema);
 
 
 
