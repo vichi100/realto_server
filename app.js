@@ -40,6 +40,7 @@ const CommercialPropertyCustomerBuy = require("./models/commercialPropertyCustom
 const Message = require("./models/message");
 const commercialProperty = require("./models/commercialProperty");
 const { json } = require("body-parser");
+const commercialPropertyRent = require("./models/commercialPropertyRent");
 
 const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
 const IMAGE_PATH_PROD = "/root/realto/images";
@@ -1019,6 +1020,81 @@ const getReminderListByCustomerId = (req, res) => {
 
       })
 
+    }else if (propertyFor.toLowerCase() === "Sell".toLowerCase()) {
+      ResidentialPropertyCustomerBuy.find({ customer_id: customerId }, function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        } else {
+          // console.log("response datax4:  " + JSON.stringify(data));
+          const customerDataFromDB = JSON.parse(JSON.stringify(data));
+          const reminderArr = customerDataFromDB[0].reminders;
+          Reminder.find({ reminder_id: { $in: reminderArr } }, function (err, data) {
+            if (err) {
+              console.log(err);
+              return;
+            } else {
+              // console.log("response datax4:  " + JSON.stringify(data));
+              res.send(JSON.stringify(data));
+              res.end();
+              return;
+            }
+          })
+
+        }
+
+      })
+
+    }
+  }if (propertyType.toLowerCase() === "Commercial".toLowerCase()) {
+    if (propertyFor.toLowerCase() === "Rent".toLowerCase()) {
+      CommercialPropertyCustomerRent.find({ customer_id: customerId }, function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        } else {
+          // console.log("response datax4:  " + JSON.stringify(data));
+          const customerDataFromDB = JSON.parse(JSON.stringify(data));
+          const reminderArr = customerDataFromDB[0].reminders;
+          Reminder.find({ reminder_id: { $in: reminderArr } }, function (err, data) {
+            if (err) {
+              console.log(err);
+              return;
+            } else {
+              // console.log("response datax4:  " + JSON.stringify(data));
+              res.send(JSON.stringify(data));
+              res.end();
+              return;
+            }
+          })
+
+        }
+
+      })
+    }else if (propertyFor.toLowerCase() === "Buy".toLowerCase()) {
+      CommercialPropertyCustomerBuy.find({ customer_id: customerId }, function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        } else {
+          // console.log("response datax4:  " + JSON.stringify(data));
+          const customerDataFromDB = JSON.parse(JSON.stringify(data));
+          const reminderArr = customerDataFromDB[0].reminders;
+          Reminder.find({ reminder_id: { $in: reminderArr } }, function (err, data) {
+            if (err) {
+              console.log(err);
+              return;
+            } else {
+              // console.log("response datax4:  " + JSON.stringify(data));
+              res.send(JSON.stringify(data));
+              res.end();
+              return;
+            }
+          })
+
+        }
+
+      })
     }
   }
 
@@ -1104,8 +1180,10 @@ const addNewReminder = (req, res) => {
                 }
               }
             );
-        } else if (reminderDetails.category_type === "Commercial") {
-          CommercialProperty.updateOne(
+        } 
+      }else if (reminderDetails.category_type === "Commercial") {
+        if (reminderDetails.category_for === "Rent") {
+          CommercialPropertyRent.updateOne(
             { property_id: reminderDetails.category_ids[0] },
             { $addToSet: { reminders: reminderId } },
             function (err, data) {
@@ -1115,13 +1193,77 @@ const addNewReminder = (req, res) => {
                 res.end();
                 return;
               } else {
-                res.send(JSON.stringify({ reminderId: reminderId }));
-                res.end();
-                return;
+                CommercialPropertyCustomerRent.updateOne(
+                  { customer_id: reminderDetails.client_id },
+                  { $addToSet: { reminders: reminderId } },
+                  function (err, data) {
+                    if (err) {
+                      console.log(err);
+                      res.send(JSON.stringify("fail"));
+                      res.end();
+                      return;
+                    } else {
+                      console.log("reminderId: ", reminderId);
+                      res.send(JSON.stringify({ reminderId: reminderId }));
+                      res.end();
+                      return;
+                    }
+                  }
+                );
               }
             }
           );
+        }else if (reminderDetails.category_for === "Sell") {
+          CommercialPropertySell.updateOne
+            (
+              { property_id: reminderDetails.category_ids[0] },
+              { $addToSet: { reminders: reminderId } },
+              function (err, data) {
+                if (err) {
+                  console.log(err);
+                  res.send(JSON.stringify("fail"));
+                  res.end();
+                  return;
+                } else {
+                  CommercialPropertyCustomerBuy.updateOne
+                    (
+                      { customer_id: reminderDetails.client_id },
+                      { $addToSet: { reminders: reminderId } },
+                      function (err, data) {
+                        if (err) {
+                          console.log(err);
+                          res.send(JSON.stringify("fail"));
+                          res.end();
+                          return;
+                        } else {
+                          console.log("reminderId: ", reminderId);
+                          res.send(JSON.stringify({ reminderId: reminderId }));
+                          res.end();
+                          return;
+                        }
+                      }
+                    );
+                }
+              }
+            );
         }
+          
+        // CommercialProperty.updateOne(
+        //   { property_id: reminderDetails.category_ids[0] },
+        //   { $addToSet: { reminders: reminderId } },
+        //   function (err, data) {
+        //     if (err) {
+        //       console.log(err);
+        //       res.send(JSON.stringify("fail"));
+        //       res.end();
+        //       return;
+        //     } else {
+        //       res.send(JSON.stringify({ reminderId: reminderId }));
+        //       res.end();
+        //       return;
+        //     }
+        //   }
+        // );
       }
     }
   });
@@ -1603,6 +1745,25 @@ const addNewCommercialProperty = (req, res) => {
         expected_deposit: propertyDetails.rent_details.expected_deposit,
         available_from: propertyDetails.rent_details.available_from
       };
+
+      CommercialPropertyRent.collection.insertOne(propertyDetailsDict, function (
+        err,
+        data
+      ) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify(null));
+          res.end();
+          return;
+        } else {
+          // console.log("addNewProperty" + JSON.stringify(data));
+          res.send(JSON.stringify(propertyDetailsDict));
+          res.end();
+          return;
+        }
+      });
+
+
     } else if (propertyDetails.property_for === "Sell") {
       propertyDetailsDict["sell_details"] = {
         expected_sell_price: propertyDetails.sell_details.expected_sell_price,
@@ -1610,25 +1771,27 @@ const addNewCommercialProperty = (req, res) => {
         available_from: propertyDetails.sell_details.available_from,
         negotiable: propertyDetails.sell_details.negotiable
       };
+
+      CommercialPropertySell.collection.insertOne(propertyDetailsDict, function (
+        err,
+        data
+      ) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify(null));
+          res.end();
+          return;
+        } else {
+          // console.log("addNewProperty" + JSON.stringify(data));
+          res.send(JSON.stringify(propertyDetailsDict));
+          res.end();
+          return;
+        }
+      });
     }
   }
 
-  CommercialProperty.collection.insertOne(propertyDetailsDict, function (
-    err,
-    data
-  ) {
-    if (err) {
-      console.log(err);
-      res.send(JSON.stringify(null));
-      res.end();
-      return;
-    } else {
-      // console.log("addNewProperty" + JSON.stringify(data));
-      res.send(JSON.stringify(propertyDetailsDict));
-      res.end();
-      return;
-    }
-  });
+  
 };
 
 const addNewResidentialRentProperty = (req, res) => {
