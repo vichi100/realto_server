@@ -17,22 +17,33 @@ var fs = require('fs');
 const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
 
 // const ResidentialProperty = require("./models/residentialProperty");
-const ResidentialPropertyRent = require("./models/residentialPropertyRent");
-const ResidentialPropertySell = require('./models/residentialPropertySell');
+
 // const CommercialProperty = require("./models/commercialProperty");
 const CommercialPropertyRent = require("./models/commercialPropertyRent");
 const CommercialPropertySell = require("./models/commercialPropertySell");
+
 const CommercialCustomerBuyLocation = require("./models/commercialCustomerBuyLocation");
 const CommercialCustomerRentLocation = require("./models/commercialCustomerRentLocation");
+
+const commercialBuypropertyMatch = require('./models/match/commercialBuypropertyMatch');
+const CommercialBuyCustomerMatch = require('./models/match/commercialBuyCustomerMatch');
+
+const CommercialRentPropertyMatch = require('./models/match/commercialRentPropertyMatch');
+const CommercialRentCustomerMatch = require('./models/match/commercialRentCustomerMatch');
+
+const ResidentialPropertyRent = require("./models/residentialPropertyRent");
+const ResidentialPropertySell = require('./models/residentialPropertySell');
+
 const ResidentialCustomerBuyLocation = require("./models/residentialCustomerBuyLocation");
 const ResidentialCustomerRentLocation = require("./models/residentialCustomerRentLocation");
+
 const ResidentialRentPropertyMatch = require('./models/match/residentialRentPropertyMatch');
 const ResidentialRentCustomerMatch = require('./models/match/residentialRentCustomerMatch');
 
-// const CommercialRentPropertyMatch = require('./models/match/commercialRentPropertyMatch');
-// const CommercialRentCustomerMatch = require('./models/match/commercialRentCustomerMatch');
-const CommercialRentPropertyMatch = require('./models/match/commercialRentPropertyMatch');
-const CommercialRentCustomerMatch = require('./models/match/commercialRentCustomerMatch');
+const ResidentialBuyPropertyMatch = require('./models/match/residentialBuyPropertyMatch');
+const ResidentialBuyCustomerMatch = require('./models/match/residentialBuyCustomerMatch');
+
+
 
 const Reminder = require("./models/reminder");
 const Agent = require("./models/agent");
@@ -270,25 +281,61 @@ app.post("/residentialCustomerList", function (req, res) {
   getResidentialCustomerList(req, res);
 });
 
-app.post("/matchedResidentialCustomerList", function (req, res) {
-  console.log("matchedResidentialCustomerList");
-  getMatchedResidentialCustomerList(req, res);
+//******** Match  Start */
+
+
+// This one is for Rent
+app.post("/matchedResidentialCustomerRentList", function (req, res) {
+  console.log("matchedResidentialCustomerRentList");
+  getmatchedResidentialCustomerRentList(req, res);
 });
 
-app.post("/matchedResidentialProptiesList", function (req, res) {
-  console.log("matchedResidentialProptiesList");
-  getMatchedResidentialProptiesList(req, res);
+// This one is for Rent matchedResidentialProptiesRentList
+app.post("/matchedResidentialProptiesRentList", function (req, res) {
+  console.log("matchedResidentialProptiesRentList");
+  getMatchedResidentialProptiesRentList(req, res);
 });
 
-app.post("/matchedCommercialCustomerList", function (req, res) {
-  console.log("matchedCommercialCustomerList");
-  getMatchedCommercialCustomerList(req, res);
+app.post("/matchedResidentialProptiesBuyList", function (req, res) {
+  console.log("matchedResidentialProptiesBuyList");
+  matchedResidentialProptiesBuyList(req, res);
 });
 
-app.post("/matchedCommercialProptiesList", function (req, res) {
-  console.log("matchedCommercialProptiesList");
-  getMatchedCommercialProptiesList(req, res);
+app.post("/matchedResidentialCustomerBuyList", function (req, res) {
+  console.log("matchedResidentialCustomerBuyList");// this are customer who wanna buy
+  getMatchedResidentialCustomerBuyList(req, res);
 });
+
+
+
+
+
+
+// This one is for Commercial Customer Rent
+app.post("/matchedCommercialProptiesRentList", function (req, res) {
+  console.log("matchedCommercialProptiesRentList");
+  getMatchedCommercialProptiesRentList(req, res);
+});
+
+// This one is for Commercial Customer Sell
+app.post("/matchedCommercialProptiesBuyList", function (req, res) {
+  console.log("matchedCommercialProptiesBuyList");
+  getMatchedCommercialProptiesBuyList(req, res);
+});
+
+// This one is for Commercial Customer Rent
+app.post("/matchedCommercialCustomerRentList", function (req, res) {
+  console.log("matchedCommercialCustomerRentList");
+  getMatchedCommercialCustomerRentList(req, res);
+});
+
+// This one is for Commercial Customer Sell
+app.post("/matchedCommercialCustomerSellList", function (req, res) {
+  console.log("matchedCommercialCustomerSellList");
+  getMatchedCommercialCustomerSellList(req, res);
+});
+
+//******** Match  End */
 
 app.post("/getPropertyDetailsByIdToShare", function (req, res) {
   console.log("getPropertyDetailsByIdToShare Listings");
@@ -1361,7 +1408,7 @@ get matched_customer_id_other from matched property
 get customer details using matched_customer_id_other from residentialPropertyCustomerRent
 send both customer details
 */
-const getMatchedResidentialCustomerList = async (req, res) => {
+const getmatchedResidentialCustomerRentList = async (req, res) => {
   try {
     const propertyDetails = JSON.parse(JSON.stringify(req.body));
     const property_id = propertyDetails.property_id;
@@ -1379,18 +1426,18 @@ const getMatchedResidentialCustomerList = async (req, res) => {
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } });
-    const matchedCustomerBuyDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
+    // const matchedCustomerBuyDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
 
-    const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine, ...matchedCustomerBuyDetailsMine];
+    const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine];
 
     // 4) Get matched_customer_id_other from matched property
     const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } });
-    const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    // const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
-    const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther, ...matchedCustomerBuyDetailsOther];
+    const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1403,7 +1450,54 @@ const getMatchedResidentialCustomerList = async (req, res) => {
   }
 };
 
-const getMatchedCommercialCustomerList = async (req, res) => {
+
+
+
+const getMatchedResidentialCustomerBuyList = async (req, res) => {
+  try {
+    const propertyDetails = JSON.parse(JSON.stringify(req.body));
+    const property_id = propertyDetails.property_id;
+
+    // 1) Get matched property using property_id from residentialRentPropertyMatch
+    const matchedProperty = await ResidentialBuyPropertyMatch.findOne({ property_id: property_id });
+
+    if (!matchedProperty) {
+      res.status(404).send("No matched property found");
+      return;
+    }
+
+    // 2) Get matched_customer_id_mine from matched property
+    const matchedCustomerMineIds = matchedProperty.matched_customer_id_mine.map(customer => customer.customer_id);
+
+    // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
+    const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
+    // const matchedCustomerBuyDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
+
+    const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine];
+
+    // 4) Get matched_customer_id_other from matched property
+    const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
+
+    // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
+    const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    // const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
+
+    const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
+    // 6) Send both customer details
+    res.send({
+      matchedCustomerDetailsMine,
+      matchedCustomerDetailsOther
+    });
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
+
+const getMatchedCommercialCustomerRentList = async (req, res) => {
   try {
     const propertyDetails = JSON.parse(JSON.stringify(req.body));
     const property_id = propertyDetails.property_id;
@@ -1421,18 +1515,20 @@ const getMatchedCommercialCustomerList = async (req, res) => {
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsMine = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } });
-    const matchedCustomerBuyDetailsMine = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
+    // const matchedCustomerBuyDetailsMine = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
 
-    const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine, ...matchedCustomerBuyDetailsMine];
+    // const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine, ...matchedCustomerBuyDetailsMine];
+    const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine];
 
     // 4) Get matched_customer_id_other from matched property
     const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsOther = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } });
-    const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    // const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
-    const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther, ...matchedCustomerBuyDetailsOther];
+    // const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther, ...matchedCustomerBuyDetailsOther];
+    const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1445,12 +1541,195 @@ const getMatchedCommercialCustomerList = async (req, res) => {
   }
 };
 
+const getMatchedCommercialCustomerSellList = async (req, res) => {
 
 
+  try {
+    const propertyDetails = JSON.parse(JSON.stringify(req.body));
+    const property_id = propertyDetails.property_id;
+
+    // 1) Get matched property using property_id from residentialRentPropertyMatch
+    const matchedProperty = await commercialBuypropertyMatch.findOne({ property_id: property_id });
+
+    if (!matchedProperty) {
+      res.status(404).send("No matched property found");
+      return;
+    }
+
+    // 2) Get matched_customer_id_mine from matched property
+    const matchedCustomerMineIds = matchedProperty.matched_customer_id_mine.map(customer => customer.customer_id);
+
+    // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
+    // const matchedCustomerRentDetailsMine = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } });
+    const matchedCustomerBuyDetailsMine = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
+
+    const matchedCustomerDetailsMine = [...matchedCustomerBuyDetailsMine];
+
+    // 4) Get matched_customer_id_other from matched property
+    const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
+
+    // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
+    // const matchedCustomerRentDetailsOther = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
+
+    const matchedCustomerDetailsOther = [...matchedCustomerBuyDetailsOther];
+    // 6) Send both customer details
+    res.send({
+      matchedCustomerDetailsMine,
+      matchedCustomerDetailsOther
+    });
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+
+}
+
+
+const getMatchedCommercialProptiesBuyList = async (req, res) => {
+
+
+  try {
+    const customerDetails = JSON.parse(JSON.stringify(req.body));
+    const customer_id = customerDetails.customer_id;
+
+    // 1) Get matched property using property_id from residentialRentPropertyMatch
+    const matchedPCustomer = await CommercialBuyCustomerMatch.findOne({ customer_id: customer_id });
+
+    if (!matchedPCustomer) {
+      res.status(404).send("No matched property found");
+      return;
+    }
+
+    // 2) Get matched_customer_id_mine from matched property
+    const matchedPropertyMineIds = matchedPCustomer.matched_property_id_mine.map(property => property.property_id);
+
+    // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
+    const matchedPropertyRentDetailsMine = await CommercialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
+    // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
+
+    const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine];
+
+    // 4) Get matched_customer_id_other from matched property
+    const matchedPropertyOtherIds = matchedPCustomer.matched_property_id_other.map(property => property.property_id);
+
+    // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
+    const matchedPropertyRentDetailsOther = await CommercialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
+    // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
+
+    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    // 6) Send both customer details
+    res.send({
+      matchedPropertyDetailsMine,
+      matchedPropertyDetailsOther
+    });
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+
+}
+
+
+
+const getMatchedCommercialProptiesRentList = async (req, res) => {
+
+
+  try {
+    const customerDetails = JSON.parse(JSON.stringify(req.body));
+    const customer_id = customerDetails.customer_id;
+
+    // 1) Get matched property using property_id from residentialRentPropertyMatch
+    const matchedPCustomer = await CommercialRentCustomerMatch.findOne({ customer_id: customer_id });
+
+    if (!matchedPCustomer) {
+      res.status(404).send("No matched property found");
+      return;
+    }
+
+    // 2) Get matched_customer_id_mine from matched property
+    const matchedPropertyMineIds = matchedPCustomer.matched_property_id_mine.map(property => property.property_id);
+
+    // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
+    const matchedPropertyRentDetailsMine = await CommercialPropertyRent.find({ property_id: { $in: matchedPropertyMineIds } });
+    // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
+
+    const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine];
+
+    // 4) Get matched_customer_id_other from matched property
+    const matchedPropertyOtherIds = matchedPCustomer.matched_property_id_other.map(property => property.property_id);
+
+    // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
+    const matchedPropertyRentDetailsOther = await CommercialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } });
+    // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
+
+    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    // 6) Send both customer details
+    res.send({
+      matchedPropertyDetailsMine,
+      matchedPropertyDetailsOther
+    });
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+
+}
+
+
+
+const matchedResidentialProptiesBuyList = async (req, res) => {
+
+
+  try {
+    const customerDetails = JSON.parse(JSON.stringify(req.body));
+    const customer_id = customerDetails.customer_id;
+
+    // 1) Get matched property using property_id from residentialRentPropertyMatch
+    const matchedPCustomer = await ResidentialBuyCustomerMatch.findOne({ customer_id: customer_id });
+
+    if (!matchedPCustomer) {
+      res.status(404).send("No matched property found");
+      return;
+    }
+
+    // 2) Get matched_customer_id_mine from matched property
+    const matchedPropertyMineIds = matchedPCustomer.matched_property_id_mine.map(property => property.property_id);
+
+    // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
+    const matchedPropertyRentDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
+    // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
+
+    const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine];
+
+    // 4) Get matched_customer_id_other from matched property
+    const matchedPropertyOtherIds = matchedPCustomer.matched_property_id_other.map(property => property.property_id);
+
+    // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
+    const matchedPropertyRentDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
+    // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
+
+    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
+    // 6) Send both customer details
+    res.send({
+      matchedPropertyDetailsMine,
+      matchedPropertyDetailsOther
+    });
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+
+}
 
 // here
 
-const getMatchedResidentialProptiesList = async (req, res) => {
+const getMatchedResidentialProptiesRentList = async (req, res) => {
 
 
   try {
@@ -1470,18 +1749,19 @@ const getMatchedResidentialProptiesList = async (req, res) => {
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsMine = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyMineIds } });
-    const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
+    // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
 
-    const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine, ...matchedPropertyBuyDetailsMine];
+    const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine];
 
     // 4) Get matched_customer_id_other from matched property
     const matchedPropertyOtherIds = matchedPCustomer.matched_property_id_other.map(property => property.property_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsOther = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } });
-    const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
+    // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
-    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
+    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
     // 6) Send both customer details
     res.send({
       matchedPropertyDetailsMine,
@@ -1540,6 +1820,12 @@ const getMatchedCommercialProptiesList = async (req, res) => {
   }
 
 }
+
+
+
+
+
+
 
 
 

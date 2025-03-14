@@ -4,12 +4,12 @@ const propertySchema = new mongoose.Schema({
   customer_id: String,
   agent_id: String,
   matched_count: Number,
-  matched_customer_id_mine: [{
+  matched_property_id_mine: [{
     matched_percentage: Number,
     property_id: String,
     distance: Number
   }],
-  matched_customer_id_other: [{
+  matched_property_id_other: [{
     matched_percentage: Number,
     property_id: String,
     distance: Number

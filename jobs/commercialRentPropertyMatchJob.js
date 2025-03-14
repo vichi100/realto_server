@@ -38,19 +38,19 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
           spherical: true
         }
       },
-      {
-        $match: {
-          "customer_property_details.bhk_type": property.property_details.bhk_type,
-          // "customer_rent_details.available_from": { $gte: minDate, $lte: maxDate }
-        }
-      }
+      // {
+      //   $match: {
+      //     "customer_property_details.bhk_type": property.property_details.bhk_type,
+      //     // "customer_rent_details.available_from": { $gte: minDate, $lte: maxDate }
+      //   }
+      // }
     ]);
 
     const matchedCustomerMine = [];
     const matchedCustomerOther = [];
     const uniqueCustomerMine = new Set();
     const uniqueCustomerOther = new Set();
-    // here apply other condition to match like rent, deposit, bhk, furnishing_status, parking_type, lift, preferred_tenants, non_veg_allowed
+    // here apply other condition to match like rent, deposit, bhk, furnishing_status, parking_type, lift, preferred_tenants, non_veg allowed
     // order location > bhk > rent > deposit > preferred_tenants > furnishing_status > parking type > non_veg_allowed
     // location + bhk = 60% < must match>
     // location + bhk + rent range  = 70-80% ( range will be 20%)
@@ -76,14 +76,25 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
         matchScore += 10 * (1 - depositDiff / depositRange);
       }
 
-      // Check preferred tenants
-      if (property.rent_details.preferred_tenants === customer.customer_rent_details.preferred_tenants) {
-        matchScore += 5;
+      // Check furnishing status
+      const idealFor = property.property_details.ideal_for
+      for(let idealIs of idealFor){
+        if (idealIs === customer.customer_property_details.property_used_for) {
+          matchScore += 1;
+          break;
+        }
+
       }
+      
 
       // Check furnishing status
-      if (property.property_details.furnishing_status === customer.customer_property_details.furnishing_status) {
+      if (property.property_details.property_used_for === customer.customer_property_details.property_used_for) {
         matchScore += 2;
+      }
+
+      // Check parking type
+      if (property.property_details.building_type === customer.customer_property_details.building_type) {
+        matchScore += 1;
       }
 
       // Check parking type
@@ -91,15 +102,25 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
         matchScore += 1;
       }
 
-      // Check non-veg allowed
-      if (property.rent_details.non_veg_allowed === customer.customer_rent_details.non_veg_allowed) {
-        matchScore += 1;
+      // Check parking type
+      // 1) match this + 30% of property_size
+      // 2) match this  - 20% of property_size
+      // 3) add % of 2 accoringly
+      const propertySize = property.property_details.property_size;
+      const customerSize = customer.customer_property_details.property_size;
+      const sizeDiff = Math.abs(propertySize - customerSize);
+      const sizeRangePlus = propertySize * 0.3;
+      const sizeRangeMinus = propertySize * 0.2;
+      if (sizeDiff <= sizeRangePlus) {
+        matchScore += 1 * (1 - sizeDiff / sizeRangePlus);
+      } else if (sizeDiff <= sizeRangeMinus) {
+        matchScore += 1 * (1 - sizeDiff / sizeRangeMinus);
       }
 
       // Check available_from date range
       const customerAvailableFromDate = new Date(customer.customer_rent_details.available_from);
       const dateDiff = Math.abs(availableFromDate - customerAvailableFromDate);
-      const dateRange = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+      const dateRange = 90 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
       if (dateDiff <= dateRange) {
         matchScore += 1 * (1 - dateDiff / dateRange);
       }
