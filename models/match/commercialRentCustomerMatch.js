@@ -3,14 +3,16 @@ const mongoose = require("mongoose");
 const propertySchema = new mongoose.Schema({
   customer_id: String,
   agent_id: String,
-  matched_count: Number,
-  matched_customer_id_mine: [{
+  match_count: { type: Number, default: 0 },
+  matched_property_id_mine: [{
     matched_percentage: Number,
-    customer_id: String
+    property_id: String,
+    distance: Number
   }],
-  matched_customer_id_other: [{
+  matched_property_id_other: [{
     matched_percentage: Number,
-    customer_id: String
+    property_id: String,
+    distance: Number
   }],
   update_date_time: {
     type: Date
