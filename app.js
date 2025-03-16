@@ -1050,16 +1050,16 @@ const getReminderList = (req, res) => {
       ]
     }
     , function (err, data) {
-    if (err) {
-      console.log(err);
-      return;
-    } else {
-      // console.log("response datax4:  " + JSON.stringify(data));
-      res.send(JSON.stringify(data));
-      res.end();
-      return;
-    }
-  }).sort({ user_id: -1 });
+      if (err) {
+        console.log(err);
+        return;
+      } else {
+        // console.log("response datax4:  " + JSON.stringify(data));
+        res.send(JSON.stringify(data));
+        res.end();
+        return;
+      }
+    }).sort({ user_id: -1 });
 };
 
 
@@ -1187,11 +1187,11 @@ const addNewReminder = (req, res) => {
   const reminderId = nanoid();
   reminderDetails["reminder_id"] = reminderId;
   console.log("reminderDetails: " + JSON.stringify(reminderDetails));
-  
-  if(reminderDetails.user_id === reminderDetails.user_id_secondary){
+
+  if (reminderDetails.user_id === reminderDetails.user_id_secondary) {
     reminderDetails["is_mine_propert_or_customer"] = "mine";
-  }else{
-    reminderDetails["is_mine_propert_or_customer"]= "others";
+  } else {
+    reminderDetails["is_mine_propert_or_customer"] = "others";
   }
   Reminder.collection.insertOne(reminderDetails, function (err, data) {
     if (err) {
@@ -1462,6 +1462,7 @@ const getmatchedResidentialCustomerRentList = async (req, res) => {
     // const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
+    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1507,6 +1508,7 @@ const getMatchedResidentialCustomerBuyList = async (req, res) => {
     // const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
+    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1553,6 +1555,7 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
 
     // const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther, ...matchedCustomerBuyDetailsOther];
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
+    await  replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1597,6 +1600,7 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
     const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
     const matchedCustomerDetailsOther = [...matchedCustomerBuyDetailsOther];
+    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1608,6 +1612,23 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 
+}
+
+
+
+// This is for Customers of other agents
+const replaceCustomerDetailsWithAgentDetails = async (matchedCustomerDetailsOther)=>{
+  for (let matchedCustomerDetailsOtherX of matchedCustomerDetailsOther) {
+    const otherCustomerAgentId = matchedCustomerDetailsOtherX.agent_id;
+    const otherCustomerAgentIdDetails = await User.find({ id: otherCustomerAgentId }).lean().exec();
+    
+    otherCustomerAgentIdDetails["customer_details"] = {
+      name: otherCustomerAgentIdDetails.name? 'Agent' : otherCustomerAgentIdDetails.name,
+      mobile1: otherCustomerAgentIdDetails.mobile,
+      mobile2: '',
+      address: 'Please Contact Agent and refer to Customer Id: ' + matchedCustomerDetailsOtherX.customer_id,
+    }
+  }
 }
 
 
@@ -1643,6 +1664,7 @@ const getMatchedCommercialProptiesBuyList = async (req, res) => {
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
     const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedPropertyDetailsMine,
@@ -1690,6 +1712,7 @@ const getMatchedCommercialProptiesRentList = async (req, res) => {
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
     const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedPropertyDetailsMine,
@@ -1737,6 +1760,7 @@ const matchedResidentialProptiesBuyList = async (req, res) => {
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
     const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
     // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
     // 6) Send both customer details
     res.send({
@@ -1784,8 +1808,10 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
     const matchedPropertyRentDetailsOther = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
-    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
     // if we are sending property deatils of other agents then we need to reppace owner deatils with agent deatils
+    await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+
     // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
     // 6) Send both customer details
     res.send({
@@ -1800,16 +1826,30 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
 
 }
 
-const replaceOwnerDetailsWithAgentDetails = async (propertyDetails) => {
-  const agent_id = propertyDetails.agent_id;
-  const agentDetails = await User.findOne
-    (
-      { id: agent_id }, { name: 1, mobile: 1, company_name: 1, city: 1, address:1 }  // projection
-    ).lean().exec();
-
-  propertyDetails.agent_details = agentDetails;
-  return propertyDetails;
+// This is for Properties of other agents
+const replaceOwnerDetailsWithAgentDetails = async (matchedPropertyDetailsOther) => {
+  for (let matchedPropertyDetailsOtherX of matchedPropertyDetailsOther) {
+    const otherPropertyAgentId = matchedPropertyDetailsOtherX.agent_id;
+    const otherPropertyAgentIdDetails = await User.find({ id: otherPropertyAgentId }).lean().exec();
+    matchedPropertyDetailsOtherX["property_address"] = {
+      city: matchedPropertyDetailsOtherX.property_address.city,
+      main_text: matchedPropertyDetailsOtherX.property_address.main_text,
+      formatted_address: matchedPropertyDetailsOtherX.property_address.formatted_address,
+      flat_number: '',
+      building_name: '',
+      landmark_or_street: matchedPropertyDetailsOtherX.property_address.landmark_or_street,
+    }
+    matchedPropertyDetailsOtherX["owner_details"] = {
+      name: otherPropertyAgentIdDetails.name? 'Agent' : otherPropertyAgentIdDetails.name,
+      mobile1: otherPropertyAgentIdDetails.mobile,
+      mobile2: '',
+      address: 'Please Contact Agent and refer to Property Id: ' + matchedPropertyDetailsOtherX.property_id,
+    }
+  }
+  return matchedPropertyDetailsOther;
 }
+
+
 
 
 const getMatchedCommercialProptiesList = async (req, res) => {
