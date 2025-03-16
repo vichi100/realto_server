@@ -1234,7 +1234,7 @@ const addNewReminder = (req, res) => {
             }
           );
 
-        } else if (reminderDetails.category_for === "Sell") {
+        } else if (reminderDetails.category_for === "Buy") {
           ResidentialPropertySell.updateOne
             (
               { property_id: reminderDetails.category_ids[0] },

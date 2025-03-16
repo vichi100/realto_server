@@ -44,15 +44,4 @@ const reminderSchema = new Schema({
   }
 });
 
-const Reminder = mongoose.model("reminders", reminderSchema);
-
-Reminder.find({
-  $or: [
-    { user_id: agentIdDict.agent_id },
-    { user_id_secondary: agentIdDict.agent_id }
-  ]
-}, function (err, data) {
-  // ...existing code...
-});
-
-module.exports = Reminder;
+module.exports = mongoose.model("reminders", reminderSchema);
