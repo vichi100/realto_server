@@ -46,10 +46,10 @@ const formatDate = (date) => {
 };
 
 const insertDummyData = async () => {
-  const baseCoordinates = [72.8084232, 19.1392024];
+  const baseCoordinates = [72.81703279999999, 19.1246969];
   const properties = [];
 
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 1; i++) {
     const property = {
       property_id: nanoid(),
       agent_id: agentId,
@@ -74,11 +74,10 @@ const insertDummyData = async () => {
         flat_number: faker.random.number({ min: 1, max: 1000 }).toString(),
         building_name: faker.company.companyName(),
         landmark_or_street: faker.address.streetName(),
-        pin: faker.address.zipCode('######')
       },
       property_details: {
         house_type: 'Apartment',
-        bhk_type: faker.random.arrayElement(['1BHK', '2BHK', '3BHK']),
+        bhk_type: '2BHK', //faker.random.arrayElement(['1BHK', '2BHK', '3BHK']),
         washroom_numbers: faker.random.number({ min: 1, max: 3 }).toString(),
         furnishing_status: faker.random.arrayElement(['Full', 'Semi', 'Empty']),
         parking_type: faker.random.arrayElement(['Car', 'Bike']),
@@ -90,8 +89,8 @@ const insertDummyData = async () => {
         property_size: faker.random.number({ min: 500, max: 2000 }).toString()
       },
       rent_details: {
-        expected_rent: faker.random.number({ min: 10000, max: 100000 }).toString(),
-        expected_deposit: faker.random.number({ min: 50000, max: 500000 }).toString(),
+        expected_rent: 25000,//faker.random.number({ min: 10000, max: 100000 }).toString(),
+        expected_deposit: 250000,//faker.random.number({ min: 50000, max: 500000 }).toString(),
         available_from: formatDate(faker.date.future()),
         preferred_tenants: faker.random.arrayElement(['Family', 'Bachelors', 'Any']),
         non_veg_allowed: faker.random.boolean() ? 'Yes' : 'No'

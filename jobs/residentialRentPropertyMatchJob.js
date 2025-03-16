@@ -14,9 +14,13 @@ mongoose.connect('mongodb://realto:realto123@207.180.239.115:27017/realtodb');
 
 schedule.scheduleJob('*/10 * * * * *', async () => {
   console.log('Updating Residential rent property match...');
-  const residentialRentPropertyArr = await residentialPropertyRent.find();
+  const residentialRentPropertyArr = await residentialPropertyRent.find().lean().exec();
   
-  for (const property of residentialRentPropertyArr) {
+  for (let property of residentialRentPropertyArr) {
+    console.log('agent_id: ', property.agent_id);
+    if(property.agent_id === 'MRYAca_yereFwLwYd01xa'){
+      console.log('property: ', JSON.stringify(property, null, 2));
+    }
     const propertyLocation = property.location;
     const availableFromDate = new Date(property.rent_details.available_from);
     const minDate = new Date(availableFromDate);
@@ -34,7 +38,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
         $geoNear: {
           near: { type: "Point", coordinates: propertyLocation.coordinates },
           distanceField: "distance",
-          maxDistance: 5000, // 5km in meters
+          maxDistance: 10000, // 5km in meters
           spherical: true
         }
       },

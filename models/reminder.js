@@ -5,10 +5,12 @@ const reminderSchema = new Schema({
     type: String
   },
   user_id: String, // agent_id
+  user_id_secondary: String, // in case of other agent_id
   category_ids: [], // property_id or buyer_id
   category: String, // property, customer
   category_type: String, // commercial, residential
   category_for: String, // buy, sell rent
+  is_mine_propert_or_customer: String, // mine, other
   expo_token: {
     type: String
   },
@@ -42,4 +44,15 @@ const reminderSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model("reminders", reminderSchema);
+const Reminder = mongoose.model("reminders", reminderSchema);
+
+Reminder.find({
+  $or: [
+    { user_id: agentIdDict.agent_id },
+    { user_id_secondary: agentIdDict.agent_id }
+  ]
+}, function (err, data) {
+  // ...existing code...
+});
+
+module.exports = Reminder;

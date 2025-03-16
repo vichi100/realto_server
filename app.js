@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const path = require("path"); //used for file path
 var uuid = require("uuid");
 const fileUpload = require('express-fileupload');
-const { nanoid } = require('nanoid');
+const { nanoid, customAlphabet } = require('nanoid');
 const axios = require('axios');
 const sharp = require('sharp');
 var fs = require('fs');
@@ -62,6 +62,8 @@ const commercialPropertyRent = require("./models/commercialPropertyRent");
 const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
 const IMAGE_PATH_PROD = "/root/realto/images";
 const IMAGE_PATH_URL = IMAGE_PATH_DEV;
+
+const matchRoutes = require('./routes/matchRoutes');
 
 const app = express();
 // app.use(busboy());
@@ -120,6 +122,15 @@ mongoose
   .catch(err => console.log(err));
 
 // end: Connect to DB
+
+const uniqueId = () => {
+  const nanoid = customAlphabet('1234567890', 5); // Generates a 5-digit random number
+  const uniqueNumber = Date.now().toString() + nanoid();
+  console.log(uniqueNumber); // Example: 171051387612387
+  return uniqueNumber;
+}
+
+app.post('/matchedResidentialCustomerRentList', matchRoutes);
 
 app.post('/getGlobalSearchResult', function (req, res) {
   console.log('getGlobalSearchResult');
@@ -285,10 +296,10 @@ app.post("/residentialCustomerList", function (req, res) {
 
 
 // This one is for Rent
-app.post("/matchedResidentialCustomerRentList", function (req, res) {
-  console.log("matchedResidentialCustomerRentList");
-  getmatchedResidentialCustomerRentList(req, res);
-});
+// app.post("/matchedResidentialCustomerRentList", function (req, res) {
+//   console.log("matchedResidentialCustomerRentList");
+//   getmatchedResidentialCustomerRentList(req, res);
+// });
 
 // This one is for Rent matchedResidentialProptiesRentList
 app.post("/matchedResidentialProptiesRentList", function (req, res) {
@@ -1031,7 +1042,14 @@ const getReminderList = (req, res) => {
   const agentIdDict = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
 
-  Reminder.find({ user_id: agentIdDict.agent_id }, function (err, data) {
+  Reminder.find(
+    {
+      $or: [
+        { user_id: agentIdDict.agent_id },
+        { user_id_secondary: agentIdDict.agent_id }
+      ]
+    }
+    , function (err, data) {
     if (err) {
       console.log(err);
       return;
@@ -1083,7 +1101,7 @@ const getReminderListByCustomerId = (req, res) => {
 
       })
 
-    }else if (propertyFor.toLowerCase() === "Sell".toLowerCase()) {
+    } else if (propertyFor.toLowerCase() === "Sell".toLowerCase()) {
       ResidentialPropertyCustomerBuy.find({ customer_id: customerId }, function (err, data) {
         if (err) {
           console.log(err);
@@ -1109,7 +1127,7 @@ const getReminderListByCustomerId = (req, res) => {
       })
 
     }
-  }if (propertyType.toLowerCase() === "Commercial".toLowerCase()) {
+  } if (propertyType.toLowerCase() === "Commercial".toLowerCase()) {
     if (propertyFor.toLowerCase() === "Rent".toLowerCase()) {
       CommercialPropertyCustomerRent.find({ customer_id: customerId }, function (err, data) {
         if (err) {
@@ -1134,7 +1152,7 @@ const getReminderListByCustomerId = (req, res) => {
         }
 
       })
-    }else if (propertyFor.toLowerCase() === "Buy".toLowerCase()) {
+    } else if (propertyFor.toLowerCase() === "Buy".toLowerCase()) {
       CommercialPropertyCustomerBuy.find({ customer_id: customerId }, function (err, data) {
         if (err) {
           console.log(err);
@@ -1169,6 +1187,12 @@ const addNewReminder = (req, res) => {
   const reminderId = nanoid();
   reminderDetails["reminder_id"] = reminderId;
   console.log("reminderDetails: " + JSON.stringify(reminderDetails));
+  
+  if(reminderDetails.user_id === reminderDetails.user_id_secondary){
+    reminderDetails["is_mine_propert_or_customer"] = "mine";
+  }else{
+    reminderDetails["is_mine_propert_or_customer"]= "others";
+  }
   Reminder.collection.insertOne(reminderDetails, function (err, data) {
     if (err) {
       console.log(err);
@@ -1243,8 +1267,8 @@ const addNewReminder = (req, res) => {
                 }
               }
             );
-        } 
-      }else if (reminderDetails.category_type === "Commercial") {
+        }
+      } else if (reminderDetails.category_type === "Commercial") {
         if (reminderDetails.category_for === "Rent") {
           CommercialPropertyRent.updateOne(
             { property_id: reminderDetails.category_ids[0] },
@@ -1276,7 +1300,7 @@ const addNewReminder = (req, res) => {
               }
             }
           );
-        }else if (reminderDetails.category_for === "Sell") {
+        } else if (reminderDetails.category_for === "Sell") {
           CommercialPropertySell.updateOne
             (
               { property_id: reminderDetails.category_ids[0] },
@@ -1310,7 +1334,7 @@ const addNewReminder = (req, res) => {
               }
             );
         }
-          
+
         // CommercialProperty.updateOne(
         //   { property_id: reminderDetails.category_ids[0] },
         //   { $addToSet: { reminders: reminderId } },
@@ -1737,7 +1761,7 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
     const customer_id = customerDetails.customer_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
-    const matchedPCustomer = await ResidentialRentCustomerMatch.findOne({ customer_id: customer_id });
+    const matchedPCustomer = await ResidentialRentCustomerMatch.findOne({ customer_id: customer_id }).lean().exec();
 
     if (!matchedPCustomer) {
       res.status(404).send("No matched property found");
@@ -1748,7 +1772,7 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
     const matchedPropertyMineIds = matchedPCustomer.matched_property_id_mine.map(property => property.property_id);
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
-    const matchedPropertyRentDetailsMine = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyMineIds } });
+    const matchedPropertyRentDetailsMine = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyMineIds } }).lean().exec();
     // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
 
     const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine];
@@ -1757,10 +1781,11 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
     const matchedPropertyOtherIds = matchedPCustomer.matched_property_id_other.map(property => property.property_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
-    const matchedPropertyRentDetailsOther = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } });
+    const matchedPropertyRentDetailsOther = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
     const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    // if we are sending property deatils of other agents then we need to reppace owner deatils with agent deatils
     // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
     // 6) Send both customer details
     res.send({
@@ -1773,6 +1798,17 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 
+}
+
+const replaceOwnerDetailsWithAgentDetails = async (propertyDetails) => {
+  const agent_id = propertyDetails.agent_id;
+  const agentDetails = await User.findOne
+    (
+      { id: agent_id }, { name: 1, mobile: 1, company_name: 1, city: 1, address:1 }  // projection
+    ).lean().exec();
+
+  propertyDetails.agent_details = agentDetails;
+  return propertyDetails;
 }
 
 
@@ -2185,7 +2221,7 @@ const addNewCommercialProperty = (req, res) => {
     }
   }
 
-  
+
 };
 
 const addNewResidentialRentProperty = (req, res) => {
@@ -2918,7 +2954,7 @@ const getCustomerAndMeetingDetails = (req, res) => {
         CommercialPropertyRent.find({
           property_id: { $in: queryObj.category_ids }
         }).exec(),
-        
+
         CommercialPropertyCustomerRent.findOne({
           customer_id: queryObj.client_id
         }).exec()
@@ -2941,7 +2977,7 @@ const getCustomerAndMeetingDetails = (req, res) => {
         CommercialPropertySell.find({
           property_id: { $in: queryObj.category_ids }
         }).exec(),
-        
+
         CommercialPropertyCustomerBuy.findOne({
           customer_id: queryObj.client_id
         }).exec()
@@ -2959,7 +2995,7 @@ const getCustomerAndMeetingDetails = (req, res) => {
         return;
       });
     }
-    
+
   }
 };
 

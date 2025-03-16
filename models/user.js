@@ -7,7 +7,7 @@ const userSchema = new Schema({
   expo_token: String,
   name: String,
   company_name: String,
-  mobile: String,
+  mobile1: String,
   address: String,
   city: String,
   access_rights: String,
