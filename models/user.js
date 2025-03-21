@@ -12,7 +12,7 @@ const userSchema = new Schema({
   city: String,
   access_rights: String,
   employees: [], // if employee then it will be empty,
-  works_for: [],
+  works_for: String,// Agent id for which the employee works
   liked_properties: [],
   liked_customers: [],
   email: String,

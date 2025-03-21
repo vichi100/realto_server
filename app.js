@@ -130,7 +130,7 @@ const uniqueId = () => {
   return uniqueNumber;
 }
 
-app.post('/matchedResidentialCustomerRentList', matchRoutes);
+// app.post('/matchedResidentialCustomerRentList', matchRoutes);
 
 app.post('/getGlobalSearchResult', function (req, res) {
   console.log('getGlobalSearchResult');
@@ -236,6 +236,7 @@ app.post("/updateUserProfile", function (req, res) {
   updateUserProfile(req, res);
 });
 
+// masking - Done
 app.post("/getReminderList", function (req, res) {
   console.log("getReminderList");
   getReminderList(req, res);
@@ -296,10 +297,10 @@ app.post("/residentialCustomerList", function (req, res) {
 
 
 // This one is for Rent
-// app.post("/matchedResidentialCustomerRentList", function (req, res) {
-//   console.log("matchedResidentialCustomerRentList");
-//   getmatchedResidentialCustomerRentList(req, res);
-// });
+app.post("/matchedResidentialCustomerRentList", function (req, res) {
+  console.log("matchedResidentialCustomerRentList");
+  getmatchedResidentialCustomerRentList(req, res);
+});
 
 // This one is for Rent matchedResidentialProptiesRentList
 app.post("/matchedResidentialProptiesRentList", function (req, res) {
@@ -496,7 +497,7 @@ const getUserDetails = (req, res) => {
           id: idx,
           expo_token: '',
           user_type: "agent",
-          works_for: [idx],
+          works_for: idx,
           name: null,
           country: obj.country,
           country_code: countryCode,
@@ -673,7 +674,7 @@ const checkLoginRole = (req, res) => {
           address: data.address,
           city: data.city,
           access_rights: data.access_rights,
-          works_for: [data.id], // self user_id
+          works_for: data.id, // self user_id
           user_status: data.user_status
         };
         console.log("sending resp");
@@ -703,7 +704,7 @@ const insertNewUserAsAgent = (res, mobileNumber, userType, accessRights) => {
     city: null,
     access_rights: accessRights,
     employees: [], // if employee then it will be empty
-    works_for: [userId],
+    works_for: userId,
     create_date_time: new Date(Date.now()),
     update_date_time: new Date(Date.now())
   };
@@ -725,7 +726,7 @@ const insertNewUserAsAgent = (res, mobileNumber, userType, accessRights) => {
         address: null,
         city: null,
         access_rights: accessRights,
-        works_for: [userId] // self user_id
+        works_for: userId // self user_id
       };
       res.send(JSON.stringify({ user_details: userDetails }));
       res.end();
@@ -831,7 +832,7 @@ const addEmployee = (req, res) => {
           city: employeeDetails.city,
           access_rights: employeeDetails.access_rights,
           employees: [], // if employee then it will be empty,
-          works_for: [employeeDetails.user_id],
+          works_for: employeeDetails.user_id,
           user_status: "active",
           create_date_time: new Date(Date.now()),
           update_date_time: new Date(Date.now())
@@ -1010,6 +1011,7 @@ const updateEmployeeEditRights = (req, res) => {
       }
     );
 };
+
 const updateUserProfile = (req, res) => {
   const profileDetails = JSON.parse(JSON.stringify(req.body));
   User.collection
@@ -1037,147 +1039,86 @@ const updateUserProfile = (req, res) => {
     );
 };
 
-const getReminderList = (req, res) => {
-  console.log("getReminderList 1: ")
+const getReminderList = async (req, res) => {
+  console.log("getReminderList 1: ") //req_user_id
   const agentIdDict = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
 
-  Reminder.find(
-    {
-      $or: [
-        { user_id: agentIdDict.agent_id },
-        { user_id_secondary: agentIdDict.agent_id }
-      ]
+  const remiderArray = await Reminder.find({
+    $or: [
+      { user_id: agentIdDict.req_user_id },
+      { user_id_secondary: agentIdDict.req_user_id }
+    ]
+  }).sort({ user_id: -1 }).lean().exec();
+
+  for (let reminder of remiderArray) {
+    if (agentIdDict.req_user_id !== reminder.user_id) {
+      const user = await User.find({ id: reminder.user_id }).lean().exec();
+      reminder.client_name = user.name ? user.name : "Agent";
+      reminder.client_mobile = user.mobile;
     }
-    , function (err, data) {
-      if (err) {
-        console.log(err);
-        return;
-      } else {
-        // console.log("response datax4:  " + JSON.stringify(data));
-        res.send(JSON.stringify(data));
-        res.end();
-        return;
-      }
-    }).sort({ user_id: -1 });
+  }
+
+
+  res.send(JSON.stringify(remiderArray));
+  res.end();
+  return;
 };
 
 
-const getReminderListByCustomerId = (req, res) => {
+const getReminderListByCustomerId = async (req, res) => {
   console.log("getReminderListByCustomerId 1: ")
   // customer_id: customerData.customer_id,
   //   property_type: customerData.customer_locality.property_type,// Residential, commercial
   //   property_for: customerData.customer_locality.property_for,// Rent, sell
   const customerDataDict = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = customerDataDict.req_user_id;
   const customerId = customerDataDict.customer_id;
   const propertyType = customerDataDict.property_type;
   const propertyFor = customerDataDict.property_for;
   // first find cusomer and get reminder of the customer
   console.log(JSON.stringify(req.body));
+  let finalReminderDataArr = [];
+  let reminderArr;
 
   if (propertyType.toLowerCase() === "Residential".toLowerCase()) {
     if (propertyFor.toLowerCase() === "Rent".toLowerCase()) {
-      ResidentialPropertyCustomerRent.find({ customer_id: customerId }, function (err, data) {
-        if (err) {
-          console.log(err);
-          return;
-        } else {
-          // console.log("response datax4:  " + JSON.stringify(data));
-          const customerDataFromDB = JSON.parse(JSON.stringify(data));
-          const reminderArr = customerDataFromDB[0].reminders;
-          Reminder.find({ reminder_id: { $in: reminderArr } }, function (err, data) {
-            if (err) {
-              console.log(err);
-              return;
-            } else {
-              // console.log("response datax4:  " + JSON.stringify(data));
-              res.send(JSON.stringify(data));
-              res.end();
-              return;
-            }
-          })
+      const customer = await ResidentialPropertyCustomerRent.find({ customer_id: customerId }).lean().exec();
+      reminderArr = customer[0].reminders;
 
-        }
-
-      })
 
     } else if (propertyFor.toLowerCase() === "Sell".toLowerCase()) {
-      ResidentialPropertyCustomerBuy.find({ customer_id: customerId }, function (err, data) {
-        if (err) {
-          console.log(err);
-          return;
-        } else {
-          // console.log("response datax4:  " + JSON.stringify(data));
-          const customerDataFromDB = JSON.parse(JSON.stringify(data));
-          const reminderArr = customerDataFromDB[0].reminders;
-          Reminder.find({ reminder_id: { $in: reminderArr } }, function (err, data) {
-            if (err) {
-              console.log(err);
-              return;
-            } else {
-              // console.log("response datax4:  " + JSON.stringify(data));
-              res.send(JSON.stringify(data));
-              res.end();
-              return;
-            }
-          })
 
-        }
-
-      })
-
+      const customer = await ResidentialPropertyCustomerBuy.find({ customer_id: customerId }).lean().exec();
+      reminderArr = customer[0].reminders;
     }
   } if (propertyType.toLowerCase() === "Commercial".toLowerCase()) {
     if (propertyFor.toLowerCase() === "Rent".toLowerCase()) {
-      CommercialPropertyCustomerRent.find({ customer_id: customerId }, function (err, data) {
-        if (err) {
-          console.log(err);
-          return;
-        } else {
-          // console.log("response datax4:  " + JSON.stringify(data));
-          const customerDataFromDB = JSON.parse(JSON.stringify(data));
-          const reminderArr = customerDataFromDB[0].reminders;
-          Reminder.find({ reminder_id: { $in: reminderArr } }, function (err, data) {
-            if (err) {
-              console.log(err);
-              return;
-            } else {
-              // console.log("response datax4:  " + JSON.stringify(data));
-              res.send(JSON.stringify(data));
-              res.end();
-              return;
-            }
-          })
 
-        }
-
-      })
+      const customer = await CommercialPropertyCustomerRent.find({ customer_id: customerId }).lean().exec();
+      reminderArr = customer[0].reminders;
     } else if (propertyFor.toLowerCase() === "Buy".toLowerCase()) {
-      CommercialPropertyCustomerBuy.find({ customer_id: customerId }, function (err, data) {
-        if (err) {
-          console.log(err);
-          return;
-        } else {
-          // console.log("response datax4:  " + JSON.stringify(data));
-          const customerDataFromDB = JSON.parse(JSON.stringify(data));
-          const reminderArr = customerDataFromDB[0].reminders;
-          Reminder.find({ reminder_id: { $in: reminderArr } }, function (err, data) {
-            if (err) {
-              console.log(err);
-              return;
-            } else {
-              // console.log("response datax4:  " + JSON.stringify(data));
-              res.send(JSON.stringify(data));
-              res.end();
-              return;
-            }
-          })
+      const customer = await CommercialPropertyCustomerBuy.find({ customer_id: customerId }).lean().exec();
+      reminderArr = customer[0].reminders;
 
-        }
-
-      })
     }
   }
+
+  const reminderDataArr = await Reminder.find({ reminder_id: { $in: reminderArr } }).lean().exec();
+  for (let reminder of reminderDataArr) {
+    if (reminder.user_id === reqUserId) {
+      finalReminderDataArr.push(reminder);
+    } else if (reminder.user_id_secondary === reqUserId) {
+      const otherCustomerAgentIdDetails = await User.find({ id: reminder.user_id }).lean().exec();
+      reminder.client_name = otherCustomerAgentIdDetails.name === null ? "Agent" : otherCustomerAgentIdDetails.name + ', Agent';
+      reminder.client_mobile = otherCustomerAgentIdDetails.mobile;
+      finalReminderDataArr.push(reminder);
+    }
+
+  }
+
+  res.send(JSON.stringify(finalReminderDataArr));
+  res.end();
+  return;
 
 
 };
@@ -1555,7 +1496,7 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
 
     // const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther, ...matchedCustomerBuyDetailsOther];
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
-    await  replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
+    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1617,14 +1558,14 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
 
 
 // This is for Customers of other agents
-const replaceCustomerDetailsWithAgentDetails = async (matchedCustomerDetailsOther)=>{
+const replaceCustomerDetailsWithAgentDetails = async (matchedCustomerDetailsOther) => {
   for (let matchedCustomerDetailsOtherX of matchedCustomerDetailsOther) {
     const otherCustomerAgentId = matchedCustomerDetailsOtherX.agent_id;
     const otherCustomerAgentIdDetails = await User.find({ id: otherCustomerAgentId }).lean().exec();
-    
-    otherCustomerAgentIdDetails["customer_details"] = {
-      name: otherCustomerAgentIdDetails.name? 'Agent' : otherCustomerAgentIdDetails.name,
-      mobile1: otherCustomerAgentIdDetails.mobile,
+
+    matchedCustomerDetailsOtherX["customer_details"] = {
+      name: otherCustomerAgentIdDetails[0].name === null ? 'Agent' : otherCustomerAgentIdDetails[0].name + ', Agent',
+      mobile1: otherCustomerAgentIdDetails[0].mobile,
       mobile2: '',
       address: 'Please Contact Agent and refer to Customer Id: ' + matchedCustomerDetailsOtherX.customer_id,
     }
@@ -1840,7 +1781,7 @@ const replaceOwnerDetailsWithAgentDetails = async (matchedPropertyDetailsOther) 
       landmark_or_street: matchedPropertyDetailsOtherX.property_address.landmark_or_street,
     }
     matchedPropertyDetailsOtherX["owner_details"] = {
-      name: otherPropertyAgentIdDetails.name? 'Agent' : otherPropertyAgentIdDetails.name,
+      name: otherPropertyAgentIdDetails.name ? 'Agent' : otherPropertyAgentIdDetails.name,
       mobile1: otherPropertyAgentIdDetails.mobile,
       mobile2: '',
       address: 'Please Contact Agent and refer to Property Id: ' + matchedPropertyDetailsOtherX.property_id,
@@ -2068,22 +2009,42 @@ const getPropertyListingForMeeting = (req, res) => {
     if (property_for === "Buy") {
       property_for = "Sell";
     }
-    CommercialProperty.find(
-      {
-        agent_id: agent_id,
-        property_type: property_type,
-        property_for: property_for
-      },
-      (err, data) => {
-        if (err) {
-          console.log(err);
-          return;
+    if (property_for === "Rent") {
+      CommercialPropertyRent.find(
+        {
+          agent_id: agent_id,
+          property_type: property_type,
+          property_for: property_for
+        },
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          // console.log(JSON.stringify(data));
+          res.send(data);
+          res.end();
         }
-        // console.log(JSON.stringify(data));
-        res.send(data);
-        res.end();
-      }
-    );
+      );
+    } else if (property_for === "Sell") {
+      CommercialPropertySell.find(
+        {
+          agent_id: agent_id,
+          property_type: property_type,
+          property_for: property_for
+        },
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          // console.log(JSON.stringify(data));
+          res.send(data);
+          res.end();
+        }
+      );
+    }
+
   }
 };
 
@@ -2931,10 +2892,45 @@ const addNewCommercialCustomer = (req, res) => {
   }
 };
 
+// modify property adress and owner deatils with agent details
+const modifyPropertyOwnerAndAddressDetails = async (propertyDetail) => {
+  propertyDetail["property_address"] = {
+    city: propertyDetail.property_address.city,
+    main_text: propertyDetail.property_address.main_text,
+    formatted_address: propertyDetail.property_address.formatted_address,
+    flat_number: '',
+    building_name: '',
+    landmark_or_street: propertyDetail.property_address.landmark_or_street,
+  }
+  const otherPropertyAgentIdDetails = await User.find({ id: otherPropertyAgentId }).lean().exec();
+  propertyDetail["owner_details"] = {
+    name: otherPropertyAgentIdDetails.name ? otherPropertyAgentIdDetails.name : 'Agent',
+    mobile1: otherPropertyAgentIdDetails.mobile,
+    mobile2: otherPropertyAgentIdDetails.mobile,
+    address: 'Please contact agent for more details with property id: ' + propertyDetail.property_id
+  }
+}
+
+// modifyCustomerDetails with agent details
+const modifyCustomerDetails = async (customerDetails) => {
+  const otherCustomerAgentIdDetails = await User.find({ id: otherCustomerAgentId }).lean().exec();
+  customerDetails["customer_details"] = {
+    name: otherCustomerAgentIdDetails.name ? otherPropertyAgentIdDetails.name : 'Agent',
+    mobile1: otherCustomerAgentIdDetails.mobile,
+    mobile2: otherCustomerAgentIdDetails.mobile,
+    address: 'Please contact agent for more details with customer id: ' + customerDetails.customer_id
+  }
+
+
+}
+
+
+
 
 const getCustomerAndMeetingDetails = (req, res) => {
   console.log("getCustomerAndMeetingDetails: " + JSON.stringify(req.body));
   const queryObj = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = queryObj.req_user_id;
   // client_id: reminderObj.client_id,
   //   category_ids: reminderObj.category_ids,
   //     category: reminderObj.category,
@@ -2957,6 +2953,13 @@ const getCustomerAndMeetingDetails = (req, res) => {
         const customerDetails = results[1];
         console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
         console.log("customerDetails:  ", JSON.stringify(customerDetails));
+        if (reqUserId !== propertyDetail.agent_id) {
+          modifyPropertyOwnerAndAddressDetails(propertyDetail)
+        }
+        if (reqUserId !== customerDetails.agent_id) {
+          modifyCustomerDetails(customerDetails)
+        }
+
         const resObj = {
           property_details: propertyDetail,
           customer_details: customerDetails
@@ -2978,6 +2981,12 @@ const getCustomerAndMeetingDetails = (req, res) => {
         const customerDetails = results[1];
         console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
         console.log("customerDetails:  ", JSON.stringify(customerDetails));
+        if (reqUserId !== propertyDetail.agent_id) {
+          modifyPropertyOwnerAndAddressDetails(propertyDetail)
+        }
+        if (reqUserId !== customerDetails.agent_id) {
+          modifyCustomerDetails(customerDetails)
+        }
         const resObj = {
           property_details: propertyDetail,
           customer_details: customerDetails
@@ -3003,6 +3012,12 @@ const getCustomerAndMeetingDetails = (req, res) => {
         const customerDetails = results[1];
         console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
         console.log("customerDetails:  ", JSON.stringify(customerDetails));
+        if (reqUserId !== propertyDetail.agent_id) {
+          modifyPropertyOwnerAndAddressDetails(propertyDetail)
+        }
+        if (reqUserId !== customerDetails.agent_id) {
+          modifyCustomerDetails(customerDetails)
+        }
         const resObj = {
           property_details: propertyDetail,
           customer_details: customerDetails
@@ -3026,6 +3041,12 @@ const getCustomerAndMeetingDetails = (req, res) => {
         const customerDetails = results[1];
         console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
         console.log("customerDetails:  ", JSON.stringify(customerDetails));
+        if (reqUserId !== propertyDetail.agent_id) {
+          modifyPropertyOwnerAndAddressDetails(propertyDetail)
+        }
+        if (reqUserId !== customerDetails.agent_id) {
+          modifyCustomerDetails(customerDetails)
+        }
         const resObj = {
           property_details: propertyDetail,
           customer_details: customerDetails
