@@ -4,13 +4,13 @@ const reminderSchema = new Schema({
   reminder_id: {
     type: String
   },
-  user_id: String, // agent_id
-  user_id_secondary: String, // in case of other agent_id
+  user_id: String, // agent_id (This one who is creating reminder)
+  user_id_secondary: String, // in case of other agent_id (This one who is other agent id who owns the property or customer)
   category_ids: [], // property_id or buyer_id
   category: String, // property, customer
   category_type: String, // commercial, residential
   category_for: String, // buy, sell rent
-  is_mine_propert_or_customer: String, // mine, other
+  agent_id_of_client: String, 
   expo_token: {
     type: String
   },
@@ -45,3 +45,11 @@ const reminderSchema = new Schema({
 });
 
 module.exports = mongoose.model("reminders", reminderSchema);
+
+
+// ### Remider create logic
+// 1) I m creating reminder for my property with my customer then I should be able to see both proerty and customer original deatils
+// 2) I m creating reminder for my property but with Other customer then I should be able to see my property details but I should not
+//    be able to customer original details but should see customer Agent details
+// 3) I m creating reminder for my customer but with other property then I should be able to see my customer original deatils but not able to see
+//    property original addess deatils and owner details , owner details should be replace with agent details

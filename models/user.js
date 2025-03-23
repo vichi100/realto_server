@@ -10,13 +10,13 @@ const userSchema = new Schema({
   mobile1: String,
   address: String,
   city: String,
-  access_rights: String,
+  access_rights: String, // employee, agent
   employees: [], // if employee then it will be empty,
   works_for: String,// Agent id for which the employee works
   liked_properties: [],
   liked_customers: [],
   email: String,
-  user_status: String, //"active", suspend, blocked
+  user_status: String, //"active", suspend, blocked, removed
   create_date_time: {
     type: Date
   },
