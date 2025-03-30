@@ -130,7 +130,26 @@ vichirajan@192 ~ %
 └────────── Minute (0-59)
 
 
-
+generateOTP
+{"mobile":"9833097596","otp":"999999"}
+getUserDetails
+{"mobile":"+919833097596","country_code":"+91"}
+getUserDetails# Failed to fetch documents : MongoError: pool destroyed
+generateOTP
+{"mobile":"9833097596","otp":"999999"}
+getUserDetails
+{"mobile":"+919833097596","country_code":"+91"}
+getUserDetails# Failed to fetch documents : MongoError: pool destroyed
+generateOTP
+{"mobile":"9833097596","otp":"999999"}
+getUserDetails
+{"mobile":"+919833097596","country_code":"+91"}
+getUserDetails# Failed to fetch documents : MongoError: pool destroyed
+generateOTP
+{"mobile":"9833097596","otp":"999999"}
+getUserDetails
+{"mobile":"+919833097596","country_code":"+91"}
+getUserDetails# F
 
 
 

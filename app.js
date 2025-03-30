@@ -128,8 +128,10 @@ mongoose
 // end: Connect to DB
 
 const uniqueId = () => {
-  const nanoid = customAlphabet('1234567890', 5); // Generates a 5-digit random number
-  const uniqueNumber = Date.now().toString() + nanoid();
+  const nanoid1 = customAlphabet('1234567890', 5); // Generates a 5-digit random number
+  const nanoid2 = customAlphabet('1234567890', 3);
+  const nanoid3 = customAlphabet('1234567890', 2);
+  const uniqueNumber = Date.now().toString() + nanoid1() + nanoid2() + nanoid3();
   console.log(uniqueNumber); // Example: 171051387612387
   return uniqueNumber;
 }
@@ -365,10 +367,12 @@ app.post("/getCustomerDetailsByIdToShare", function (req, res) {
 
 
 app.post("/addNewResidentialCustomer", function (req, res) {
+  console.log("addNewResidentialCustomer");
   addNewResidentialCustomer(req, res);
 });
 
 app.post("/addNewCommercialCustomer", function (req, res) {
+  console.log("addNewCommercialCustomer");
   addNewCommercialCustomer(req, res);
 });
 
@@ -376,25 +380,29 @@ app.post("/addNewCommercialCustomer", function (req, res) {
 
 // This is for Properties of other agents
 const replaceOwnerDetailsWithAgentDetails = async (matchedPropertyDetailsOther) => {// Array as argument
+  const finalObjAfterMasking = [];
   for (let matchedPropertyDetailsOtherX of matchedPropertyDetailsOther) {
     const otherPropertyAgentId = matchedPropertyDetailsOtherX.agent_id;
-    const otherPropertyAgentIdDetails = await User.find({ id: otherPropertyAgentId }).lean().exec();
-    matchedPropertyDetailsOtherX["property_address"] = {
-      city: matchedPropertyDetailsOtherX.property_address.city,
-      main_text: matchedPropertyDetailsOtherX.property_address.main_text,
-      formatted_address: matchedPropertyDetailsOtherX.property_address.formatted_address,
-      flat_number: '',
-      building_name: '',
-      landmark_or_street: matchedPropertyDetailsOtherX.property_address.landmark_or_street,
-    }
-    matchedPropertyDetailsOtherX["owner_details"] = {
-      name: otherPropertyAgentIdDetails.name ? 'Agent' : otherPropertyAgentIdDetails.name,
-      mobile1: otherPropertyAgentIdDetails.mobile,
-      mobile2: '',
-      address: 'Please Contact Agent and refer to Property Id: ' + matchedPropertyDetailsOtherX.property_id,
+    const otherPropertyAgentIdDetails = await User.findOne({ id: otherPropertyAgentId }).lean().exec();
+    if (otherPropertyAgentIdDetails !== null) {
+      matchedPropertyDetailsOtherX["property_address"] = {
+        city: matchedPropertyDetailsOtherX.property_address.city,
+        main_text: matchedPropertyDetailsOtherX.property_address.main_text,
+        formatted_address: matchedPropertyDetailsOtherX.property_address.formatted_address,
+        flat_number: '',
+        building_name: '',
+        landmark_or_street: matchedPropertyDetailsOtherX.property_address.landmark_or_street,
+      }
+      matchedPropertyDetailsOtherX["owner_details"] = {
+        name: otherPropertyAgentIdDetails.name ? 'Agent' : otherPropertyAgentIdDetails.name,
+        mobile1: otherPropertyAgentIdDetails.mobile,
+        mobile2: '',
+        address: 'Please Contact Agent and refer to Property Id: ' + matchedPropertyDetailsOtherX.property_id,
+      }
+      finalObjAfterMasking.push(matchedPropertyDetailsOtherX);
     }
   }
-  return matchedPropertyDetailsOther;
+  return finalObjAfterMasking;
 }
 
 
@@ -527,56 +535,59 @@ const generateOTP = (req, res) => {
     });
 };
 
-const getUserDetails = (req, res) => {
-  const obj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
-  const mobileXX = obj.mobile;
-  const idx = nanoid()
-  const countryCode = obj.country_code;
-  User.findOne({ mobile: obj.mobile })
-    .then((result) => {
-      if (result) {
-        res.send(JSON.stringify(result));
-        res.end();
-        return;
-      } else {
-        const userObj = {
-          id: idx,
-          expo_token: '',
-          user_type: "agent",
-          works_for: idx,
-          name: null,
-          country: obj.country,
-          country_code: countryCode,
-          mobile: obj.mobile,
-          create_date_time: new Date(Date.now()),
-          update_date_time: new Date(Date.now())
-        };
-        User.collection
-          .insertOne(userObj)
-          .then((result) => {
-            console.log('1');
-            res.send(JSON.stringify(userObj));
-            res.end();
-            return;
 
-          })
-          .catch((err) => {
-            console.error(`getUserDetails# Failed to insert documents : ${err}`);
-            res.send(JSON.stringify(null));
-            res.end();
-            return;
-          });
-      }
-    })
-    .catch((err) => {
-      console.error(`getUserDetails# Failed to fetch documents : ${err}`);
-      res.send(JSON.stringify(null));
+
+const getUserDetails = async (req, res) => {
+  try {
+    const obj = JSON.parse(JSON.stringify(req.body));
+    console.log(JSON.stringify(req.body));
+    const mobileXX = obj.mobile;
+    const idx = uniqueId();
+    const countryCode = obj.country_code;
+    const user = await User.findOne({ mobile: obj.mobile }).lean().exec();
+    if (user) {
+
+      res.send(JSON.stringify(user));
       res.end();
       return;
-    });
-};
 
+
+    } else {
+      const userObj = {
+        id: idx,
+        expo_token: '',
+        user_type: "agent",
+        works_for: idx,
+        name: null,
+        country: obj.country,
+        country_code: countryCode,
+        mobile: obj.mobile,
+        create_date_time: new Date(Date.now()),
+        update_date_time: new Date(Date.now())
+      };
+      try {
+        const newUser = await User.create(userObj);
+        console.log('New User Created', newUser);
+        res.send(JSON.stringify(userObj));
+        res.end();
+        return;
+      } catch (error) {
+        console.error(`getUserDetails# Failed to insert documents : ${err}`);
+        res.send(JSON.stringify(null));
+        res.end();
+        return;
+      }
+
+    }
+  }
+  catch (err) {
+    console.error(`getUserDetails# Failed to fetch documents : ${err}`);
+    res.send(JSON.stringify(null));
+    res.end();
+    return;
+
+  }
+};
 
 
 
@@ -688,11 +699,11 @@ const searchResidentResult = (query) => {
 
 // get reminder list by customer id
 const getCustomerReminderList = async (req, res) => {
-  console.log("getCustomerReminderList: "+JSON.stringify(req.body));
+  console.log("getCustomerReminderList: " + JSON.stringify(req.body));
   const reqData = JSON.parse(JSON.stringify(req.body));
   const customerId = reqData.customer_id;
   const reqUserId = reqData.req_user_id;
-  const remiderList = await Reminder.find({ customer_id: customerId }).sort({ property_id: -1 }).lean().exec();
+  const remiderList = await Reminder.find({ client_id: customerId }).sort({ property_id: -1 }).lean().exec();
   for (let reminder of remiderList) {
     if (reqUserId !== reminder.user_id) {
       const user = await User.find({ id: reminder.user_id }).lean().exec();
@@ -796,7 +807,7 @@ const checkLoginRole = (req, res) => {
 };
 
 const insertNewUserAsAgent = (res, mobileNumber, userType, accessRights) => {
-  const userId = nanoid();
+  const userId = uniqueId();
   const userObj = {
     user_type: userType, // employee or agent
     id: userId,
@@ -924,7 +935,7 @@ const addEmployee = (req, res) => {
       console.log("response datax3:  " + JSON.stringify(data));
       if (data && data.length === 0) {
         // create a new employee n update agent employee list
-        const newUserId = nanoid();
+        const newUserId = uniqueId();
         const empObj = {
           user_type: "employee", // employee or agent
           id: newUserId,
@@ -1190,7 +1201,7 @@ const getReminderListByCustomerId = async (req, res) => {
       reminderArr = customer[0].reminders;
 
 
-    } else if (propertyFor.toLowerCase() === "Sell".toLowerCase()) {
+    } else if (propertyFor.toLowerCase() === "Sell".toLowerCase() || propertyFor.toLowerCase() === "Buy".toLowerCase()) {
 
       const customer = await ResidentialPropertyCustomerBuy.find({ customer_id: customerId }).lean().exec();
       reminderArr = customer[0].reminders;
@@ -1227,178 +1238,57 @@ const getReminderListByCustomerId = async (req, res) => {
 
 };
 
-const addNewReminder = (req, res) => {
+
+
+const addNewReminder = async (req, res) => {
   const reminderDetails = JSON.parse(JSON.stringify(req.body));
-  const reminderId = nanoid();
+  const reminderId = uniqueId();
   reminderDetails["reminder_id"] = reminderId;
   console.log("reminderDetails: " + JSON.stringify(reminderDetails));
 
-  if (reminderDetails.user_id === reminderDetails.user_id_secondary) {
-    reminderDetails["is_mine_propert_or_customer"] = "mine";
-  } else {
-    reminderDetails["is_mine_propert_or_customer"] = "others";
-  }
-  Reminder.collection.insertOne(reminderDetails, function (err, data) {
-    if (err) {
-      console.log(err);
-      res.send(JSON.stringify("fail"));
-      res.end();
-      return;
-    } else {
-      // console.log("addNewProperty" + JSON.stringify(data));
-      if (reminderDetails.category_type === "Residential") {
-        if (reminderDetails.category_for === "Rent") {
-          ResidentialPropertyRent.updateOne(
-            { property_id: reminderDetails.category_ids[0] },
-            { $addToSet: { reminders: reminderId } },
-            function (err, data) {
-              if (err) {
-                console.log(err);
-                res.send(JSON.stringify("fail"));
-                res.end();
-                return;
-              } else {
-                ResidentialPropertyCustomerRent.updateOne(
-                  { customer_id: reminderDetails.client_id },
-                  { $addToSet: { reminders: reminderId } },
-                  function (err, data) {
-                    if (err) {
-                      console.log(err);
-                      res.send(JSON.stringify("fail"));
-                      res.end();
-                      return;
-                    } else {
-                      console.log("reminderId: ", reminderId);
-                      res.send(JSON.stringify({ reminderId: reminderId }));
-                      res.end();
-                      return;
-                    }
-                  }
-                );
-              }
-            }
-          );
+  await Reminder.create(reminderDetails);
+  if (reminderDetails.category_type === "Residential") {
+    if (reminderDetails.category_for === "Rent") {
+      await ResidentialPropertyRent.updateOne
+        ({ property_id: reminderDetails.category_ids[0] }, { $addToSet: { reminders: reminderId } }).exec();
 
-        } else if (reminderDetails.category_for === "Buy") {
-          ResidentialPropertySell.updateOne
-            (
-              { property_id: reminderDetails.category_ids[0] },
-              { $addToSet: { reminders: reminderId } },
-              function (err, data) {
-                if (err) {
-                  console.log(err);
-                  res.send(JSON.stringify("fail"));
-                  res.end();
-                  return;
-                } else {
-                  ResidentialPropertyCustomerBuy.updateOne
-                    (
-                      { client_id: reminderDetails.client_id },
-                      { $addToSet: { reminders: reminderId } },
-                      function (err, data) {
-                        if (err) {
-                          console.log(err);
-                          res.send(JSON.stringify("fail"));
-                          res.end();
-                          return;
-                        } else {
-                          console.log("reminderId: ", reminderId);
-                          res.send(JSON.stringify({ reminderId: reminderId }));
-                          res.end();
-                          return;
-                        }
-                      }
-                    );
-                }
-              }
-            );
-        }
-      } else if (reminderDetails.category_type === "Commercial") {
-        if (reminderDetails.category_for === "Rent") {
-          CommercialPropertyRent.updateOne(
-            { property_id: reminderDetails.category_ids[0] },
-            { $addToSet: { reminders: reminderId } },
-            function (err, data) {
-              if (err) {
-                console.log(err);
-                res.send(JSON.stringify("fail"));
-                res.end();
-                return;
-              } else {
-                CommercialPropertyCustomerRent.updateOne(
-                  { customer_id: reminderDetails.client_id },
-                  { $addToSet: { reminders: reminderId } },
-                  function (err, data) {
-                    if (err) {
-                      console.log(err);
-                      res.send(JSON.stringify("fail"));
-                      res.end();
-                      return;
-                    } else {
-                      console.log("reminderId: ", reminderId);
-                      res.send(JSON.stringify({ reminderId: reminderId }));
-                      res.end();
-                      return;
-                    }
-                  }
-                );
-              }
-            }
-          );
-        } else if (reminderDetails.category_for === "Sell") {
-          CommercialPropertySell.updateOne
-            (
-              { property_id: reminderDetails.category_ids[0] },
-              { $addToSet: { reminders: reminderId } },
-              function (err, data) {
-                if (err) {
-                  console.log(err);
-                  res.send(JSON.stringify("fail"));
-                  res.end();
-                  return;
-                } else {
-                  CommercialPropertyCustomerBuy.updateOne
-                    (
-                      { customer_id: reminderDetails.client_id },
-                      { $addToSet: { reminders: reminderId } },
-                      function (err, data) {
-                        if (err) {
-                          console.log(err);
-                          res.send(JSON.stringify("fail"));
-                          res.end();
-                          return;
-                        } else {
-                          console.log("reminderId: ", reminderId);
-                          res.send(JSON.stringify({ reminderId: reminderId }));
-                          res.end();
-                          return;
-                        }
-                      }
-                    );
-                }
-              }
-            );
-        }
+      await ResidentialPropertyCustomerRent.
+        updateOne({ customer_id: reminderDetails.client_id }, { $addToSet: { reminders: reminderId } }).exec();
 
-        // CommercialProperty.updateOne(
-        //   { property_id: reminderDetails.category_ids[0] },
-        //   { $addToSet: { reminders: reminderId } },
-        //   function (err, data) {
-        //     if (err) {
-        //       console.log(err);
-        //       res.send(JSON.stringify("fail"));
-        //       res.end();
-        //       return;
-        //     } else {
-        //       res.send(JSON.stringify({ reminderId: reminderId }));
-        //       res.end();
-        //       return;
-        //     }
-        //   }
-        // );
-      }
+
+    } else if (reminderDetails.category_for === "Buy" || reminderDetails.category_for === "Sell") {
+      await ResidentialPropertySell.updateOne
+        ({ property_id: reminderDetails.category_ids[0] }, { $addToSet: { reminders: reminderId } }).exec();
+
+      await ResidentialPropertyCustomerBuy.updateOne
+        ({ customer_id: reminderDetails.client_id }, { $addToSet: { reminders: reminderId } }).exec();
+
+
     }
-  });
+  } else if (reminderDetails.category_type === "Commercial") {
+    if (reminderDetails.category_for === "Rent") {
+      await CommercialPropertyRent.updateOne
+        ({ property_id: reminderDetails.category_ids[0] }, { $addToSet: { reminders: reminderId } }).exec();
+
+      await CommercialPropertyCustomerRent.updateOne
+        ({ customer_id: reminderDetails.client_id }, { $addToSet: { reminders: reminderId } }).exec();
+
+    } else if (reminderDetails.category_for === "Sell" || reminderDetails.category_for === "Buy") {
+      await CommercialPropertySell.updateOne
+        ({ property_id: reminderDetails.category_ids[0] }, { $addToSet: { reminders: reminderId } }).exec();
+
+      await CommercialPropertyCustomerBuy.updateOne
+        ({ customer_id: reminderDetails.client_id }, { $addToSet: { reminders: reminderId } }).exec();
+
+    }
+
+  }
+
+  console.log("reminderId: ", reminderId);
+  res.send(JSON.stringify({ reminderId: reminderId }));
+  res.end();
+  return;
+
 };
 
 const getCommercialCustomerListings = async (req, res) => {
@@ -1406,8 +1296,8 @@ const getCommercialCustomerListings = async (req, res) => {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
     // console.log(JSON.stringify(req.body));
     const agent_id = agentDetails.agent_id;
-    const commercialPropertyCustomerRent = await CommercialPropertyCustomerRent.find({ agent_id: agent_id });
-    const commercialPropertyCustomerBuy = await CommercialPropertyCustomerBuy.find({ agent_id: agent_id });
+    const commercialPropertyCustomerRent = await CommercialPropertyCustomerRent.find({ agent_id: agent_id }).lean().exec();
+    const commercialPropertyCustomerBuy = await CommercialPropertyCustomerBuy.find({ agent_id: agent_id }).lean().exec();
 
     const data = [...commercialPropertyCustomerRent, ...commercialPropertyCustomerBuy];
 
@@ -1429,8 +1319,8 @@ const getCommercialPropertyListings = async (req, res) => {
     const agent_id = agentDetails.agent_id;
 
     // Use await to wait for the database query to complete
-    const commercialPropertyRentData = await CommercialPropertyRent.find({ agent_id: agent_id }).exec();
-    const commercialPropertySellData = await CommercialPropertySell.find({ agent_id: agent_id }).exec();
+    const commercialPropertyRentData = await CommercialPropertyRent.find({ agent_id: agent_id }).lean().exec();
+    const commercialPropertySellData = await CommercialPropertySell.find({ agent_id: agent_id }).lean().exec();
 
     // Merge the two arrays
     const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
@@ -1454,8 +1344,8 @@ const getResidentialCustomerList = async (req, res) => {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
     // console.log(JSON.stringify(req.body));
     const agent_id = agentDetails.agent_id;
-    const residentialPropertyCustomerRent = await ResidentialPropertyCustomerRent.find({ agent_id: agent_id });
-    const residentialPropertyCustomerBuy = await ResidentialPropertyCustomerBuy.find({ agent_id: agent_id });
+    const residentialPropertyCustomerRent = await ResidentialPropertyCustomerRent.find({ agent_id: agent_id }).lean().exec();
+    const residentialPropertyCustomerBuy = await ResidentialPropertyCustomerBuy.find({ agent_id: agent_id }).lean().exec();
 
     const data = [...residentialPropertyCustomerRent, ...residentialPropertyCustomerBuy];
 
@@ -1483,7 +1373,7 @@ const getmatchedResidentialCustomerRentList = async (req, res) => {
     const property_id = propertyDetails.property_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
-    const matchedProperty = await ResidentialRentPropertyMatch.findOne({ property_id: property_id });
+    const matchedProperty = await ResidentialRentPropertyMatch.findOne({ property_id: property_id }).lean().exec();
 
     if (!matchedProperty) {
       res.status(404).send("No matched property found");
@@ -1494,7 +1384,7 @@ const getmatchedResidentialCustomerRentList = async (req, res) => {
     const matchedCustomerMineIds = matchedProperty.matched_customer_id_mine.map(customer => customer.customer_id);
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
-    const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } });
+    const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } }).lean().exec();
     // const matchedCustomerBuyDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
 
     const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine];
@@ -1503,7 +1393,7 @@ const getmatchedResidentialCustomerRentList = async (req, res) => {
     const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
-    const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } }).lean().exec();
     // const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
@@ -1529,7 +1419,7 @@ const getMatchedResidentialCustomerBuyList = async (req, res) => {
     const property_id = propertyDetails.property_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
-    const matchedProperty = await ResidentialBuyPropertyMatch.findOne({ property_id: property_id });
+    const matchedProperty = await ResidentialBuyPropertyMatch.findOne({ property_id: property_id }).lean().exec();
 
     if (!matchedProperty) {
       res.status(404).send("No matched property found");
@@ -1540,7 +1430,7 @@ const getMatchedResidentialCustomerBuyList = async (req, res) => {
     const matchedCustomerMineIds = matchedProperty.matched_customer_id_mine.map(customer => customer.customer_id);
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
-    const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
+    const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } }).lean().exec();
     // const matchedCustomerBuyDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
 
     const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine];
@@ -1549,7 +1439,7 @@ const getMatchedResidentialCustomerBuyList = async (req, res) => {
     const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
-    const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } }).lean().exec();
     // const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
@@ -1574,7 +1464,7 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
     const property_id = propertyDetails.property_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
-    const matchedProperty = await CommercialRentPropertyMatch.findOne({ property_id: property_id });
+    const matchedProperty = await CommercialRentPropertyMatch.findOne({ property_id: property_id }).lean().exec();
 
     if (!matchedProperty) {
       res.status(404).send("No matched property found");
@@ -1585,7 +1475,7 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
     const matchedCustomerMineIds = matchedProperty.matched_customer_id_mine.map(customer => customer.customer_id);
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
-    const matchedCustomerRentDetailsMine = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } });
+    const matchedCustomerRentDetailsMine = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } }).lean().exec();
     // const matchedCustomerBuyDetailsMine = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
 
     // const matchedCustomerDetailsMine = [...matchedCustomerRentDetailsMine, ...matchedCustomerBuyDetailsMine];
@@ -1595,7 +1485,7 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
     const matchedCustomerOtherIds = matchedProperty.matched_customer_id_other.map(customer => customer.customer_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
-    const matchedCustomerRentDetailsOther = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    const matchedCustomerRentDetailsOther = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } }).lean().exec();
     // const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
 
     // const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther, ...matchedCustomerBuyDetailsOther];
@@ -1621,7 +1511,7 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
     const property_id = propertyDetails.property_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
-    const matchedProperty = await CommercialBuyPropertyMatch.findOne({ property_id: property_id });
+    const matchedProperty = await CommercialBuyPropertyMatch.findOne({ property_id: property_id }).lean().exec();
 
     if (!matchedProperty) {
       res.status(404).send("No matched property found");
@@ -1633,7 +1523,7 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     // const matchedCustomerRentDetailsMine = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } });
-    const matchedCustomerBuyDetailsMine = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
+    const matchedCustomerBuyDetailsMine = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } }).lean().exec();
 
     const matchedCustomerDetailsMine = [...matchedCustomerBuyDetailsMine];
 
@@ -1642,7 +1532,7 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     // const matchedCustomerRentDetailsOther = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } });
-    const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
+    const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } }).lean().exec();
 
     const matchedCustomerDetailsOther = [...matchedCustomerBuyDetailsOther];
     await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
@@ -1672,7 +1562,7 @@ const getMatchedCommercialProptiesBuyList = async (req, res) => {
     const customer_id = customerDetails.customer_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
-    const matchedPCustomer = await CommercialBuyCustomerMatch.findOne({ customer_id: customer_id });
+    const matchedPCustomer = await CommercialBuyCustomerMatch.findOne({ customer_id: customer_id }).lean().exec();
 
     if (!matchedPCustomer) {
       res.status(404).send("No matched property found");
@@ -1683,20 +1573,20 @@ const getMatchedCommercialProptiesBuyList = async (req, res) => {
     const matchedPropertyMineIds = matchedPCustomer.matched_property_id_mine.map(property => property.property_id);
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
-    const matchedPropertyRentDetailsMine = await CommercialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
+    const matchedPropertyRentDetailsMine = await CommercialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } }).lean().exec();
     // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
 
     const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine];
 
-    // 4) Get matched_customer_id_other from matched property
+    // 4) Get matched_customer_id_other from matched property, this will contain others others property id as well
     const matchedPropertyOtherIds = matchedPCustomer.matched_property_id_other.map(property => property.property_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
-    const matchedPropertyRentDetailsOther = await CommercialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
+    const matchedPropertyRentDetailsOther = await CommercialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
-    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
-    await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+    let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedPropertyDetailsMine,
@@ -1731,7 +1621,7 @@ const getMatchedCommercialProptiesRentList = async (req, res) => {
     const matchedPropertyMineIds = matchedPCustomer.matched_property_id_mine.map(property => property.property_id);
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
-    const matchedPropertyRentDetailsMine = await CommercialPropertyRent.find({ property_id: { $in: matchedPropertyMineIds } });
+    const matchedPropertyRentDetailsMine = await CommercialPropertyRent.find({ property_id: { $in: matchedPropertyMineIds } }).lean().exec();
     // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
 
     const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine];
@@ -1740,11 +1630,11 @@ const getMatchedCommercialProptiesRentList = async (req, res) => {
     const matchedPropertyOtherIds = matchedPCustomer.matched_property_id_other.map(property => property.property_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
-    const matchedPropertyRentDetailsOther = await CommercialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } });
+    const matchedPropertyRentDetailsOther = await CommercialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
-    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
-    await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+    let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
     // 6) Send both customer details
     res.send({
       matchedPropertyDetailsMine,
@@ -1779,7 +1669,7 @@ const matchedResidentialProptiesBuyList = async (req, res) => {
     const matchedPropertyMineIds = matchedPCustomer.matched_property_id_mine.map(property => property.property_id);
 
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
-    const matchedPropertyRentDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
+    const matchedPropertyRentDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } }).lean().exec();
     // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
 
     const matchedPropertyDetailsMine = [...matchedPropertyRentDetailsMine];
@@ -1788,11 +1678,11 @@ const matchedResidentialProptiesBuyList = async (req, res) => {
     const matchedPropertyOtherIds = matchedPCustomer.matched_property_id_other.map(property => property.property_id);
 
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
-    const matchedPropertyRentDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
+    const matchedPropertyRentDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
-    const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
-    await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+    let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
+    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
     // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
     // 6) Send both customer details
     res.send({
@@ -1842,7 +1732,7 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
 
     let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
     // if we are sending property deatils of other agents then we need to reppace owner deatils with agent deatils
-    await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
 
     // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
     // 6) Send both customer details
@@ -1911,7 +1801,7 @@ const getMatchedCommercialProptiesList = async (req, res) => {
 
 
 
-
+//1) if property agaent id and req_user_id is diffrent then show customer list only of req_user_id
 
 const getCustomerListForMeeting = async (req, res) => {
   const queryObj = JSON.parse(JSON.stringify(req.body));
@@ -1920,6 +1810,7 @@ const getCustomerListForMeeting = async (req, res) => {
   const agent_id = queryObj.agent_id;
   const property_type = queryObj.property_type;
   const propertyId = queryObj.property_id;
+  const propertyAgentId = queryObj.property_agent_id;
   let property_for = queryObj.property_for;
   console.log("xxx", property_type);
   let CustomerModel;
@@ -1945,7 +1836,7 @@ const getCustomerListForMeeting = async (req, res) => {
       MatchModel = CommercialRentPropertyMatch;
     } else if (property_for.toLowerCase() === "buy") {
       CustomerModel = CommercialPropertyCustomerBuy;
-      MatchModel = CommercialBuyPropertyMatch; 
+      MatchModel = CommercialBuyPropertyMatch;
     }
   }
 
@@ -1956,330 +1847,41 @@ const getCustomerListForMeeting = async (req, res) => {
   }).lean().exec();
   // find other agent customers which are matched with this property
   const matchedData = await MatchModel.findOne({ property_id: propertyId, }).lean().exec();
-  const otherAgentCustomerDictList = matchedData.matched_customer_id_other;
-  const otherAgentCustomerList = [];
-  for (let otherAgentCustomerDict of otherAgentCustomerDictList) {
-    otherAgentCustomerList.push(otherAgentCustomerDict.customer_id);
-  }
-  const otherCustomerList = await CustomerModel.find({ customer_id: { $in: otherAgentCustomerList } }).lean().exec();
-  for (let otherCustomer of otherCustomerList) {
-    const otherAgent = await User.findOne({ id: otherCustomer.agent_id }).lean().exec();
-    otherCustomer.customer_details.name = otherAgent.name ? otherAgent.name : "Agent";
-    otherCustomer.customer_details.mobile1 = otherAgent.mobile;
+  let otherCustomerList = []
+  if (matchedData) {
+    const otherAgentCustomerDictList = matchedData.matched_customer_id_other;
+    const otherAgentCustomerList = [];
+    for (let otherAgentCustomerDict of otherAgentCustomerDictList) {
+      otherAgentCustomerList.push(otherAgentCustomerDict.customer_id);
+    }
+    
+    if (reqUserId === propertyAgentId) {
+      otherCustomerList = await CustomerModel.find({ customer_id: { $in: otherAgentCustomerList } }).lean().exec();
+      for (let otherCustomer of otherCustomerList) {
+        const otherAgent = await User.findOne({ id: otherCustomer.agent_id }).lean().exec();
+        otherCustomer.customer_details.name = otherAgent.name ? otherAgent.name : "Agent";
+        otherCustomer.customer_details.mobile1 = otherAgent.mobile;
+      }
+    }
   }
   const finalData = [...myCustomerList, ...otherCustomerList];
   console.log(JSON.stringify(finalData));
   res.send(finalData);
   res.end();
-  
+
 };
 
-
-const getCustomerListForMeetingX = async (req, res) => {
-  const queryObj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
-  const reqUserId = queryObj.req_user_id;
-  const agent_id = queryObj.agent_id;
-  const property_type = queryObj.property_type;
-  const propertyId = queryObj.property_id;
-  let property_for = queryObj.property_for;
-  console.log("xxx", property_type);
-  let CustomerModel;
-  let MatchModel;
-
-  if (property_type === "Residential") {
-    if (property_for === "Sell") {
-      property_for = "Buy";
-    }
-    if (property_for.toLowerCase() === "rent") {
-      CustomerModel = ResidentialPropertyCustomerRent;
-      MatchModel = ResidentialRentPropertyMatch;
-    } else if (property_for.toLowerCase() === "buy") {
-      CustomerModel = ResidentialPropertyCustomerBuy;
-      MatchModel = ResidentialBuyPropertyMatch;
-    }
-  } else if (property_type === "Commercial") {
-    if (property_for === "Sell") {
-      property_for = "Buy";
-    }
-    if (property_for.toLowerCase() === "rent") {
-      CustomerModel = CommercialPropertyCustomerRent;
-      MatchModel = CommercialRentPropertyMatch;
-    } else if (property_for.toLowerCase() === "buy") {
-      CustomerModel = CommercialPropertyCustomerBuy;
-      MatchModel = CommercialBuyPropertyMatch; 
-    }
-  }
-
-
-  if (property_type === "Residential") {
-    console.log("1", JSON.stringify(queryObj.property_type));
-    if (property_for === "Sell") {
-      property_for = "Buy";
-      console.log(property_for);
-    }
-
-    if (property_for.toLowerCase() === "rent") {
-      // find my customers and other agent customers which are matched with this property
-      const myCustomerList = await CustomerModel.find({
-        agent_id: agent_id,
-        "customer_locality.property_type": property_type,
-        "customer_locality.property_for": property_for
-      }).lean().exec();
-      // find other agent customers which are matched with this property
-      const matchedData = await MatchModel.findOne({ property_id: propertyId, }).lean().exec();
-      const otherAgentCustomerDictList = matchedData.matched_customer_id_other;
-      const otherAgentCustomerList = [];
-      for (let otherAgentCustomerDict of otherAgentCustomerDictList) {
-        otherAgentCustomerList.push(otherAgentCustomerDict.customer_id);
-      }
-      const otherCustomerList = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: otherAgentCustomerList } }).lean().exec();
-      for (let otherCustomer of otherCustomerList) {
-        const otherAgent = await User.findOne({ id: otherCustomer.agent_id }).lean().exec();
-        otherCustomer.customer_details.name = otherAgent.name ? otherAgent.name : "Agent";
-        otherCustomer.customer_details.mobile1 = otherAgent.mobile;
-      }
-      const finalData = [...myCustomerList, ...otherCustomerList];
-      console.log(JSON.stringify(finalData));
-      res.send(finalData);
-      res.end();
-    } else if (property_for.toLowerCase() === "buy") {
-
-      const myCustomerList = await CustomerModel.find({
-        agent_id: agent_id,
-        "customer_locality.property_type": property_type,
-        "customer_locality.property_for": property_for
-      }).lean().exec();
-      // find other agent customers which are matched with this property
-      const matchedData = await MatchModel.findOne({ property_id: propertyId, }).lean().exec();
-      const otherAgentCustomerDictList = matchedData.matched_customer_id_other;
-      const otherAgentCustomerList = [];
-      for (let otherAgentCustomerDict of otherAgentCustomerDictList) {
-        otherAgentCustomerList.push(otherAgentCustomerDict.customer_id);
-      }
-      const otherCustomerList = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: otherAgentCustomerList } }).lean().exec();
-      for (let otherCustomer of otherCustomerList) {
-        const otherAgent = await User.findOne({ id: otherCustomer.agent_id }).lean().exec();
-        otherCustomer.customer_details.name = otherAgent.name ? otherAgent.name : "Agent";
-        otherCustomer.customer_details.mobile1 = otherAgent.mobile;
-      }
-      const finalData = [...myCustomerList, ...otherCustomerList];
-      console.log(JSON.stringify(finalData));
-      res.send(finalData);
-      res.end();
-    }
-
-
-
-
-  } else if (property_type === "Commercial") {
-    console.log("3", property_type);
-    if (property_for === "Sell") {
-      property_for = "Buy";
-    }
-
-    if (property_for.toLowerCase() === "rent") {
-      CommercialPropertyCustomerRent.find(
-        {
-          agent_id: agent_id,
-          "customer_locality.property_type": property_type,
-          "customer_locality.property_for": property_for
-        },
-        (err, data) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          console.log(JSON.stringify(data));
-          res.send(data);
-          res.end();
-        }
-      );
-
-    } else if (property_for.toLowerCase() === "buy") {
-      CommercialPropertyCustomerBuy.find(
-        {
-          agent_id: agent_id,
-          "customer_locality.property_type": property_type,
-          "customer_locality.property_for": property_for
-        },
-        (err, data) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          console.log(JSON.stringify(data));
-          res.send(data);
-          res.end();
-        }
-      );
-    }
-
-  }
-};
-
-const getPropertyListingForMeetingX = async (req, res) => {
-  const agentDetails = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
-  const agent_id = agentDetails.agent_id;
-  const property_type = agentDetails.property_type;
-  const customerId = agentDetails.customer_id;
-  let property_for = agentDetails.property_for;
-
-  if (property_type === "Residential") {
-    if (property_for === "Buy") {
-      property_for = "Sell";
-    }
-    if (property_for === "Rent") {
-      const myPropertyRentList = await ResidentialPropertyRent.find({ agent_id: agent_id, property_type: property_type, property_for: property_for }).lean().exec();
-      // find the list of properties which are matched with this customer but from other agents
-      const matchedData = await ResidentialRentCustomerMatch.findOne({ customer_id: customerId }).lean().exec();
-      const otherAgentPropertyDictList = matchedData.matched_property_id_other;
-      const otherAgentPropertyList = [];
-      for (let otherAgentPropertyDict of otherAgentPropertyDictList) {
-        otherAgentPropertyList.push(otherAgentPropertyDict.property_id);
-      }
-      const otherPropertyList = await ResidentialPropertyRent.find({ property_id: { $in: otherAgentPropertyList } }).lean().exec();
-      const otherPropertyListAfterMasking = [];
-      for (let otherProperty of otherPropertyList) {
-        const otherAgent = await User.findOne({ id: otherProperty.agent_id }).lean().exec();
-        // remove those agent properties which are deleted.
-        if(otherAgent){
-          otherProperty.property_address = {
-            city: otherProperty.property_address.city,
-            main_text: otherProperty.property_address.main_text,
-            formatted_address: otherProperty.property_address.formatted_address,
-            flat_number: "",
-            building_name: "",
-            landmark_or_street: otherProperty.property_address.landmark_or_street,
-          }
-          otherProperty.owner_details = {
-            name: otherAgent.name ? otherAgent.name : "Agent",
-            mobile1: otherAgent.mobile,
-            mobile2: otherAgent.mobile,
-            address: "Please contact agent and refer property id " + otherProperty.property_id
-          }
-          otherPropertyListAfterMasking.push(otherProperty);
-        }
-        
-      }
-      const finalData = [...myPropertyRentList, ...otherPropertyListAfterMasking];
-      res.send(JSON.stringify(finalData));
-      res.end();
-    } else if (property_for === "Sell") {
-
-      const myPropertyRentList = await ResidentialPropertySell.find({ agent_id: agent_id, property_type: property_type, property_for: property_for }).lean().exec();
-      // find the list of properties which are matched with this customer but from other agents 
-      const matchedData = await ResidentialBuyCustomerMatch.findOne({ customer_id: customerId }).lean().exec();
-      const otherAgentPropertyDictList = matchedData.matched_property_id_other;
-      const otherAgentPropertyList = [];
-      for (let otherAgentPropertyDict of otherAgentPropertyDictList) {
-        otherAgentPropertyList.push(otherAgentPropertyDict.property_id);
-      }
-      const otherPropertyList = await ResidentialPropertySell.find({ property_id: { $in: otherAgentPropertyList } }).lean().exec();
-      const otherPropertyListAfterMasking = [];
-      for (let otherProperty of otherPropertyList) {
-        const otherAgent = await User.findOne({ id: otherProperty.agent_id }).lean().exec();
-        // remove those agent properties which are deleted.
-        if(otherAgent){
-          otherProperty.property_address = {
-            city: otherProperty.property_address.city,
-            main_text: otherProperty.property_address.main_text,
-            formatted_address: otherProperty.property_address.formatted_address,
-            flat_number: "",
-            building_name: "",
-            landmark_or_street: otherProperty.property_address.landmark_or_street,
-          }
-          otherProperty.owner_details = {
-            name: otherAgent.name ? otherAgent.name : "Agent",
-            mobile1: otherAgent.mobile,
-            mobile2: otherAgent.mobile,
-            address: "Please contact agent and refer property id " + otherProperty.property_id
-          }
-          otherPropertyListAfterMasking.push(otherProperty);
-        }
-        
-      }
-      const finalData = [...myPropertyRentList, ...otherPropertyListAfterMasking];
-      res.send(JSON.stringify(finalData));
-      res.end();
-
-
-
-
-
-
-
-      // ResidentialPropertySell.find(
-      //   {
-      //     agent_id: agent_id,
-      //     property_type: property_type,
-      //     property_for: property_for
-      //   },
-      //   (err, data) => {
-      //     if (err) {
-      //       console.log(err);
-      //       return;
-      //     }
-      //     // console.log(JSON.stringify(data));
-      //     res.send(data);
-      //     res.end();
-      //   }
-      // );
-    }
-
-
-  } else if (property_type === "Commercial") {
-    if (property_for === "Buy") {
-      property_for = "Sell";
-    }
-    if (property_for === "Rent") {
-      CommercialPropertyRent.find(
-        {
-          agent_id: agent_id,
-          property_type: property_type,
-          property_for: property_for
-        },
-        (err, data) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          // console.log(JSON.stringify(data));
-          res.send(data);
-          res.end();
-        }
-      );
-    } else if (property_for === "Sell") {
-      CommercialPropertySell.find(
-        {
-          agent_id: agent_id,
-          property_type: property_type,
-          property_for: property_for
-        },
-        (err, data) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          // console.log(JSON.stringify(data));
-          res.send(data);
-          res.end();
-        }
-      );
-    }
-
-  }
-};
 
 
 
 const getPropertyListingForMeeting = async (req, res) => {
   const agentDetails = JSON.parse(JSON.stringify(req.body));
-  console.log("getPropertyListingForMeeting: "+JSON.stringify(req.body));
+  console.log("getPropertyListingForMeeting: " + JSON.stringify(req.body));
   const agent_id = agentDetails.agent_id;
   const property_type = agentDetails.property_type;
   const customerId = agentDetails.customer_id;
+  const customerAgentId = agentDetails.customer_agent_id;
+  const reqUserId = agentDetails.req_user_id;
   let property_for = agentDetails.property_for;
 
   let CustomerModel;
@@ -2305,47 +1907,55 @@ const getPropertyListingForMeeting = async (req, res) => {
       MatchModel = CommercialRentCustomerMatch;
     } else if (property_for === "Sell") {
       CustomerModel = CommercialPropertySell;
-      MatchModel = CommercialBuyCustomerMatch; 
+      MatchModel = CommercialBuyCustomerMatch;
     }
   }
 
   const myPropertyRentList = await CustomerModel.find({ agent_id: agent_id, property_type: property_type, property_for: property_for }).lean().exec();
   // find the list of properties which are matched with this customer but from other agents
+  // There is possiblity that matched job is not run yet then we need to give users those properties which are matched with this customer from his own list
   const matchedData = await MatchModel.findOne({ customer_id: customerId }).lean().exec();
-  const otherAgentPropertyDictList = matchedData.matched_property_id_other;
-  const otherAgentPropertyList = [];
-  for (let otherAgentPropertyDict of otherAgentPropertyDictList) {
-    otherAgentPropertyList.push(otherAgentPropertyDict.property_id);
-  }
-  const otherPropertyList = await CustomerModel.find({ property_id: { $in: otherAgentPropertyList } }).lean().exec();
   const otherPropertyListAfterMasking = [];
-  for (let otherProperty of otherPropertyList) {
-    const otherAgent = await User.findOne({ id: otherProperty.agent_id }).lean().exec();
-    // remove those agent properties which are deleted.
-    if(otherAgent){
-      otherProperty.property_address = {
-        city: otherProperty.property_address.city,
-        main_text: otherProperty.property_address.main_text,
-        formatted_address: otherProperty.property_address.formatted_address,
-        flat_number: "",
-        building_name: "",
-        landmark_or_street: otherProperty.property_address.landmark_or_street,
-      }
-      otherProperty.owner_details = {
-        name: otherAgent.name ? otherAgent.name : "Agent",
-        mobile1: otherAgent.mobile,
-        mobile2: otherAgent.mobile,
-        address: "Please contact agent and refer property id " + otherProperty.property_id
-      }
-      otherPropertyListAfterMasking.push(otherProperty);
+  if (matchedData) {
+    const otherAgentPropertyDictList = matchedData.matched_property_id_other;
+    const otherAgentPropertyList = [];
+    for (let otherAgentPropertyDict of otherAgentPropertyDictList) {
+      otherAgentPropertyList.push(otherAgentPropertyDict.property_id);
     }
-    
+
+
+    if (reqUserId === customerAgentId) {
+      const otherPropertyList = await CustomerModel.find({ property_id: { $in: otherAgentPropertyList } }).lean().exec();
+      for (let otherProperty of otherPropertyList) {
+        const otherAgent = await User.findOne({ id: otherProperty.agent_id }).lean().exec();
+        // remove those agent properties which are deleted.
+        if (otherAgent) {
+          otherProperty.property_address = {
+            city: otherProperty.property_address.city,
+            main_text: otherProperty.property_address.main_text,
+            formatted_address: otherProperty.property_address.formatted_address,
+            flat_number: "",
+            building_name: "",
+            landmark_or_street: otherProperty.property_address.landmark_or_street,
+          }
+          otherProperty.owner_details = {
+            name: otherAgent.name ? otherAgent.name : "Agent",
+            mobile1: otherAgent.mobile,
+            mobile2: otherAgent.mobile,
+            address: "Please contact agent and refer property id " + otherProperty.property_id
+          }
+          otherPropertyListAfterMasking.push(otherProperty);
+        }
+
+      }
+    }
+
   }
   const finalData = [...myPropertyRentList, ...otherPropertyListAfterMasking];
   res.send(JSON.stringify(finalData));
   res.end();
 
-  
+
 };
 
 const getResidentialPropertyListings = async (req, res) => {
@@ -2372,7 +1982,7 @@ const getResidentialPropertyListings = async (req, res) => {
   }
 };
 
-const addNewCommercialProperty = (req, res) => {
+const addNewCommercialProperty = async (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
   const obj = JSON.parse(JSON.stringify(req.body));
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
@@ -2412,7 +2022,7 @@ const addNewCommercialProperty = (req, res) => {
   // storing files- END
 
   // console.log("Prop details2: " + propertyDetails);
-  const propertyId = nanoid();
+  const propertyId = uniqueId();
   const locationArea = propertyDetails.property_address.location_area
   const gLocation = locationArea.location;
 
@@ -2461,23 +2071,8 @@ const addNewCommercialProperty = (req, res) => {
         available_from: propertyDetails.rent_details.available_from
       };
 
-      CommercialPropertyRent.collection.insertOne(propertyDetailsDict, function (
-        err,
-        data
-      ) {
-        if (err) {
-          console.log(err);
-          res.send(JSON.stringify(null));
-          res.end();
-          return;
-        } else {
-          // console.log("addNewProperty" + JSON.stringify(data));
-          res.send(JSON.stringify(propertyDetailsDict));
-          res.end();
-          return;
-        }
-      });
-
+      const savedProperty = await CommercialPropertyRent.create(propertyDetailsDict);
+      console.log("Property saved with create, and default:", savedProperty);
 
     } else if (propertyDetails.property_for === "Sell") {
       propertyDetailsDict["sell_details"] = {
@@ -2487,29 +2082,19 @@ const addNewCommercialProperty = (req, res) => {
         negotiable: propertyDetails.sell_details.negotiable
       };
 
-      CommercialPropertySell.collection.insertOne(propertyDetailsDict, function (
-        err,
-        data
-      ) {
-        if (err) {
-          console.log(err);
-          res.send(JSON.stringify(null));
-          res.end();
-          return;
-        } else {
-          // console.log("addNewProperty" + JSON.stringify(data));
-          res.send(JSON.stringify(propertyDetailsDict));
-          res.end();
-          return;
-        }
-      });
+      const savedProperty = await CommercialPropertySell.create(propertyDetailsDict);
+      console.log("Property saved with create, and default:", savedProperty);
     }
+
+    res.send(JSON.stringify(propertyDetailsDict));
+    res.end();
+    return;
   }
 
 
 };
 
-const addNewResidentialRentProperty = (req, res) => {
+const addNewResidentialRentProperty = async (req, res) => {
 
   const obj = JSON.parse(JSON.stringify(req.body));
   console.log("propertyFinalDetails: ", JSON.parse(obj.propertyFinalDetails))
@@ -2547,7 +2132,7 @@ const addNewResidentialRentProperty = (req, res) => {
   // storing files- END
   const locationArea = propertyDetails.property_address.location_area
   const gLocation = locationArea.location;
-  const propertyId = nanoid();
+  const propertyId = uniqueId();
 
   const propertyDetailsDict = {
     property_id: propertyId,
@@ -2608,22 +2193,8 @@ const addNewResidentialRentProperty = (req, res) => {
         non_veg_allowed: propertyDetails.rent_details.non_veg_allowed
       };
 
-      ResidentialPropertyRent.collection.insertOne(propertyDetailsDict, function (
-        err,
-        data
-      ) {
-        if (err) {
-          console.log(err);
-          res.send(JSON.stringify(null));
-          res.end();
-          return;
-        } else {
-          // console.log("addNewProperty" + JSON.stringify(data));
-          res.send(JSON.stringify(propertyDetailsDict));
-          res.end();
-          return;
-        }
-      });
+      const savedProperty = await ResidentialPropertyRent.create(propertyDetailsDict);
+      console.log("Property saved with create, and default:", savedProperty);
 
     } else if (propertyDetails.property_for === "Sell") {
       propertyDetailsDict["sell_details"] = {
@@ -2633,23 +2204,13 @@ const addNewResidentialRentProperty = (req, res) => {
         negotiable: propertyDetails.sell_details.negotiable
       };
 
-      ResidentialPropertySell.collection.insertOne(propertyDetailsDict, function (
-        err,
-        data
-      ) {
-        if (err) {
-          console.log(err);
-          res.send(JSON.stringify(null));
-          res.end();
-          return;
-        } else {
-          // console.log("addNewProperty" + JSON.stringify(data));
-          res.send(JSON.stringify(propertyDetailsDict));
-          res.end();
-          return;
-        }
-      });
+      const savedProperty = await ResidentialPropertySell.create(propertyDetailsDict);
+      console.log("Property saved with create, and default:", savedProperty);
+
     }
+    res.send(JSON.stringify(propertyDetailsDict));
+    res.end();
+    return;
   }
 
 
@@ -2677,48 +2238,7 @@ const getDirectoryPath = (agent_id) => {
 
 }
 
-const getTotalListingSummaryX = (req, res) => {
-  console.log("Prop details1: " + JSON.stringify(req.body));
-  const agentObj = JSON.parse(JSON.stringify(req.body));
 
-  Promise.all([
-    ResidentialProperty.aggregate([
-      { $match: { agent_id: agentObj.agent_id } },
-      { $group: { _id: "$property_for", count: { $sum: 1 } } }
-    ]).exec(),
-    CommercialProperty.aggregate([
-      { $match: { agent_id: agentObj.agent_id } },
-      { $group: { _id: "$property_for", count: { $sum: 1 } } }
-    ]).exec()
-  ]).then(results => {
-    const residentialPropsObjArray = results[0];
-    const commercialPropObjArray = results[1];
-    residentialPropsObj = {};
-    commercialPropObj = {};
-    residentialPropsObjArray.map(item => {
-      if (item._id === "Sell") {
-        residentialPropsObj["sell"] = item.count;
-      }
-      if (item._id === "Rent") {
-        residentialPropsObj["rent"] = item.count;
-      }
-    });
-
-    commercialPropObjArray.map(item => {
-      if (item._id === "Sell") {
-        commercialPropObj["sell"] = item.count;
-      }
-      if (item._id === "Rent") {
-        commercialPropObj["rent"] = item.count;
-      }
-    });
-    // const sum = results[2]
-    console.log(JSON.stringify({ residentialPropsObjArray }));
-    console.log(JSON.stringify({ commercialPropObjArray }));
-    console.log(JSON.stringify({ residentialPropsObj, commercialPropObj }));
-    // res.status(200).json({ list, count, sum });
-  });
-};
 
 const getTotalListingSummary = (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
@@ -2809,11 +2329,13 @@ const getTotalListingSummary = (req, res) => {
   });
 };
 
-const addNewResidentialCustomer = (req, res) => {
+
+
+const addNewResidentialCustomer = async (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
   const customerDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
-  const customerId = nanoid();
+  const customerId = uniqueId();
   let residentialCustomerRentLocationDictArray = [];
   let residentialCustomerBuyLocationDictArray = [];
   // get location from location_area
@@ -2928,75 +2450,27 @@ const addNewResidentialCustomer = (req, res) => {
 
   if (customerDetails.customer_locality.property_for.toLowerCase() === 'rent') {
 
-    ResidentialPropertyCustomerRent.collection.insertOne(
-      customerDetailsDict,
-      function (err, data) {
-        if (err) {
-          console.log(err);
-          res.send(JSON.stringify(null));
-          res.end();
-          return;
-        } else {
-          // console.log("addNewProperty" + JSON.stringify(data));
-          if (customerDetails.customer_locality.property_for === "Rent") {
-
-            ResidentialCustomerRentLocation.collection.insertMany(residentialCustomerRentLocationDictArray, function (err, data) {
-              if (err) {
-                console.log(err);
-                res.send(JSON.stringify(null));
-                res.end();
-                return;
-              } else {
-                console.log("addNewProperty" + JSON.stringify(data));
-                res.send(JSON.stringify(customerDetailsDict));
-                res.end();
-                return;
-              }
-
-            })
-          }
-        }
-      }
-    );
+    const savedProperty = await ResidentialPropertyCustomerRent.create(customerDetailsDict);
+    const createdDocuments = await ResidentialCustomerRentLocation.create(residentialCustomerRentLocationDictArray);
+    console.log("ResidentialPropertyCustomerRent created successfully:", createdDocuments);
 
   } else if (customerDetails.customer_locality.property_for.toLowerCase() === 'buy') {
-    ResidentialPropertyCustomerBuy.collection.insertOne(
-      customerDetailsDict,
-      function (err, data) {
-        if (err) {
-          console.log(err);
-          res.send(JSON.stringify(null));
-          res.end();
-          return;
-        } else {
-          if (customerDetails.customer_locality.property_for === "Buy") {
-            ResidentialCustomerBuyLocation.collection.insertMany(residentialCustomerBuyLocationDictArray, function (err, data) {
-              if (err) {
-                console.log(err);
-                res.send(JSON.stringify(null));
-                res.end();
-                return;
-              } else {
-                console.log("addNewProperty" + JSON.stringify(data));
-                res.send(JSON.stringify(customerDetailsDict));
-                res.end();
-                return;
-              }
 
-            })
-          }
-        }
-      }
-    );
+    const savedProperty = await ResidentialPropertyCustomerBuy.create(customerDetailsDict);
+    const createdDocuments = await ResidentialCustomerBuyLocation.create(residentialCustomerBuyLocationDictArray);
+
   }
+  res.send(JSON.stringify(customerDetailsDict));
+  res.end();
+  return;
 
 };
 
-const addNewCommercialCustomer = (req, res) => {
+const addNewCommercialCustomer = async (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
   const customerDetails = JSON.parse(JSON.stringify(req.body));
   // console.log("Prop details2: " + propertyDetails);
-  const customerId = nanoid();
+  const customerId = uniqueId();
   // get location from location_area
   // const locationArray = [];
   // customerDetails.customer_locality.location_area.forEach((locationData, i) => {
@@ -3117,63 +2591,19 @@ const addNewCommercialCustomer = (req, res) => {
   }
 
   if (customerDetails.customer_locality.property_for.toLowerCase() === 'rent') {
-    CommercialPropertyCustomerRent.collection.insertOne(customerDetailsDict, function (
-      err,
-      data
-    ) {
-      if (err) {
-        console.log(err);
-        res.send(JSON.stringify(null));
-        res.end();
-        return;
-      } else {
-        CommercialCustomerRentLocation.collection.insertMany(commercialCustomerRentLocationDictArray, function (err, data) {
-          if (err) {
-            console.log(err);
-            res.send(JSON.stringify(null));
-            res.end();
-            return;
-          } else {
-            console.log("addNewProperty" + JSON.stringify(data));
-            res.send(JSON.stringify(customerDetailsDict));
-            res.end();
-            return;
-          }
 
-        });
-      }
-    });
+    const savedProperty = await CommercialPropertyCustomerRent.create(customerDetailsDict);
+    const createdDocuments = await CommercialCustomerRentLocation.create(commercialCustomerRentLocationDictArray);
+
   } else if (customerDetails.customer_locality.property_for.toLowerCase() === 'buy') {
-
-    CommercialPropertyCustomerBuy.collection.insertOne(customerDetailsDict, function (
-      err,
-      data
-    ) {
-      if (err) {
-        console.log(err);
-        res.send(JSON.stringify(null));
-        res.end();
-        return;
-      } else {
-        CommercialCustomerBuyLocation.collection.insertMany(commercialCustomerBuyLocationDictArray, function (err, data) {
-          if (err) {
-            console.log(err);
-            res.send(JSON.stringify(null));
-            res.end();
-            return;
-          } else {
-            console.log("addNewProperty" + JSON.stringify(data));
-            res.send(JSON.stringify(customerDetailsDict));
-            res.end();
-            return;
-          }
-
-        });
-      }
-    });
-
+    const savedProperty = await CommercialPropertyCustomerBuy.create(customerDetailsDict);
+    const createdDocuments = await CommercialCustomerBuyLocation.create(commercialCustomerBuyLocationDictArray);
 
   }
+
+  res.send(JSON.stringify(customerDetailsDict));
+  res.end();
+  return;
 };
 
 // modify property adress and owner deatils with agent details
@@ -3283,93 +2713,151 @@ const getCustomerAndMeetingDetails = async (req, res) => {
       //   res.end();
       //   return;
       // });
-    } else if (queryObj.category_for === "Sell") {
-      Promise.all([
-        ResidentialPropertySell.find({
-          property_id: { $in: queryObj.category_ids }
-        }).exec(),
-        ResidentialPropertyCustomerBuy.findOne({
-          customer_id: queryObj.client_id
-        }).exec()
-      ]).then(results => {
-        const propertyDetail = results[0];
-        const customerDetails = results[1];
-        console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
-        console.log("customerDetails:  ", JSON.stringify(customerDetails));
-        // if (reqUserId !== propertyDetail.agent_id) {
-        modifyPropertyOwnerAndAddressDetails(propertyDetail)
-        // }
-        // if (reqUserId !== customerDetails.agent_id) {
-        modifyCustomerDetails(customerDetails)
-        // }
-        const resObj = {
-          property_details: propertyDetail,
-          customer_details: customerDetails
-        };
-        res.send(resObj);
-        res.end();
-        return;
-      });
+    } else if (queryObj.category_for === "Sell" || queryObj.category_for === "Buy") {
+
+      const propertyDetail = await ResidentialPropertySell.find({
+        property_id: { $in: queryObj.category_ids }
+      }).lean().exec();
+      const customerDetails = await ResidentialPropertyCustomerBuy.findOne({
+        customer_id: queryObj.client_id
+      }).lean().exec();
+
+      await modifyPropertyOwnerAndAddressDetails(reqUserId, propertyDetail);
+      await modifyCustomerDetails(reqUserId, customerDetails);
+      const resObj = {
+        property_details: propertyDetail,
+        customer_details: customerDetails
+      };
+      res.send(resObj);
+      res.end();
+      return;
+
+
+      // Promise.all([
+      //   ResidentialPropertySell.find({
+      //     property_id: { $in: queryObj.category_ids }
+      //   }).lean().exec(),
+      //   ResidentialPropertyCustomerBuy.findOne({
+      //     customer_id: queryObj.client_id
+      //   }).lean().exec()
+      // ]).then(results => {
+      //   const propertyDetail = results[0];
+      //   const customerDetails = results[1];
+      //   console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
+      //   console.log("customerDetails:  ", JSON.stringify(customerDetails));
+      //   // if (reqUserId !== propertyDetail.agent_id) {
+      //   modifyPropertyOwnerAndAddressDetails(reqUserId, propertyDetail)
+      //   // }
+      //   // if (reqUserId !== customerDetails.agent_id) {
+      //   modifyCustomerDetails(reqUserId, customerDetails)
+      //   // }
+      //   const resObj = {
+      //     property_details: propertyDetail,
+      //     customer_details: customerDetails
+      //   };
+      //   res.send(resObj);
+      //   res.end();
+      //   return;
+      // });
     }
 
   } else if (queryObj.category_type === "Commercial") {
     if (queryObj.category_for === "Rent") {
-      Promise.all([
-        CommercialPropertyRent.find({
-          property_id: { $in: queryObj.category_ids }
-        }).exec(),
 
-        CommercialPropertyCustomerRent.findOne({
-          customer_id: queryObj.client_id
-        }).exec()
-      ]).then(results => {
-        const propertyDetail = results[0];
-        const customerDetails = results[1];
-        console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
-        console.log("customerDetails:  ", JSON.stringify(customerDetails));
-        // if (reqUserId !== propertyDetail.agent_id) {
-        modifyPropertyOwnerAndAddressDetails(propertyDetail)
-        // }
-        // if (reqUserId !== customerDetails.agent_id) {
-        modifyCustomerDetails(customerDetails)
-        // }
-        const resObj = {
-          property_details: propertyDetail,
-          customer_details: customerDetails
-        };
-        res.send(resObj);
-        res.end();
-        return;
-      });
+      const propertyDetail = await CommercialPropertyRent.find({
+        property_id: { $in: queryObj.category_ids }
+      }).lean().exec();
 
-    } else if (queryObj.category_for === "Sell") {
-      Promise.all([
-        CommercialPropertySell.find({
-          property_id: { $in: queryObj.category_ids }
-        }).exec(),
+      const customerDetails = await CommercialPropertyCustomerRent.findOne({
+        customer_id: queryObj.client_id
+      }).lean().exec();
 
-        CommercialPropertyCustomerBuy.findOne({
-          customer_id: queryObj.client_id
-        }).exec()
-      ]).then(results => {
-        const propertyDetail = results[0];
-        const customerDetails = results[1];
-        console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
-        console.log("customerDetails:  ", JSON.stringify(customerDetails));
-        // if (reqUserId !== propertyDetail.agent_id) {
-        modifyPropertyOwnerAndAddressDetails(propertyDetail)
-        // }
-        // if (reqUserId !== customerDetails.agent_id) {
-        modifyCustomerDetails(customerDetails)
-        // }
-        const resObj = {
-          property_details: propertyDetail,
-          customer_details: customerDetails
-        };
-        res.send(resObj);
-        res.end();
-        return;
-      });
+      await modifyPropertyOwnerAndAddressDetails(reqUserId, propertyDetail);
+      await modifyCustomerDetails(reqUserId, customerDetails);
+      const resObj = {
+        property_details: propertyDetail,
+        customer_details: customerDetails
+      };
+      res.send(resObj);
+      res.end();
+      return;
+
+      // Promise.all([
+      //   CommercialPropertyRent.find({
+      //     property_id: { $in: queryObj.category_ids }
+      //   }).lean().exec(),
+
+      //   CommercialPropertyCustomerRent.findOne({
+      //     customer_id: queryObj.client_id
+      //   }).lean().exec()
+      // ]).then(results => {
+      //   const propertyDetail = results[0];
+      //   const customerDetails = results[1];
+      //   console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
+      //   console.log("customerDetails:  ", JSON.stringify(customerDetails));
+      //   // if (reqUserId !== propertyDetail.agent_id) {
+      //   modifyPropertyOwnerAndAddressDetails(reqUserId, propertyDetail)
+      //   // }
+      //   // if (reqUserId !== customerDetails.agent_id) {
+      //   modifyCustomerDetails(reqUserId, customerDetails)
+      //   // }
+      //   const resObj = {
+      //     property_details: propertyDetail,
+      //     customer_details: customerDetails
+      //   };
+      //   res.send(resObj);
+      //   res.end();
+      //   return;
+      // });
+
+    } else if (queryObj.category_for === "Sell" || queryObj.category_for === "Buy") {
+
+      const propertyDetail = await CommercialPropertySell.find({
+        property_id: { $in: queryObj.category_ids }
+      }).lean().exec();
+
+      const customerDetails = await CommercialPropertyCustomerBuy.findOne({
+        customer_id: queryObj.client_id
+      }).lean().exec();
+
+      await modifyPropertyOwnerAndAddressDetails(reqUserId, propertyDetail);
+      await modifyCustomerDetails(reqUserId, customerDetails);
+      const resObj = {
+        property_details: propertyDetail,
+        customer_details: customerDetails
+      };
+      res.send(resObj);
+      res.end();
+      return;
+
+
+      // Promise.all([
+      //   CommercialPropertySell.find({
+      //     property_id: { $in: queryObj.category_ids }
+      //   }).lean().exec(),
+
+      //   CommercialPropertyCustomerBuy.findOne({
+      //     customer_id: queryObj.client_id
+      //   }).lean().exec()
+      // ]).then(results => {
+      //   const propertyDetail = results[0];
+      //   const customerDetails = results[1];
+      //   console.log("propertyDetail:  ", JSON.stringify(propertyDetail));
+      //   console.log("customerDetails:  ", JSON.stringify(customerDetails));
+      //   // if (reqUserId !== propertyDetail.agent_id) {
+      //   modifyPropertyOwnerAndAddressDetails(reqUserId, propertyDetail)
+      //   // }
+      //   // if (reqUserId !== customerDetails.agent_id) {
+      //   modifyCustomerDetails(reqUserId, customerDetails)
+      //   // }
+      //   const resObj = {
+      //     property_details: propertyDetail,
+      //     customer_details: customerDetails
+      //   };
+      //   res.send(resObj);
+      //   res.end();
+      //   return;
+      // });
     }
 
   }
@@ -3420,7 +2908,7 @@ const getAllGlobalListingByLocations = (req, res) => {
 
 const sendMessage = (req, res) => {
   const messageDetails = JSON.parse(JSON.stringify(req.body));
-  const messageId = nanoid();
+  const messageId = uniqueId();
   const create_date_time = new Date(Date.now());
   const update_date_time = new Date(Date.now());
   messageDetails["message_id"] = messageId;

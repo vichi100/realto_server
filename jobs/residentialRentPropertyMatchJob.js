@@ -249,7 +249,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
 
     // Update match count in residentialPropertyRent schema document
     await residentialPropertyRent.updateOne(
-      { _id: property._id },
+      { property_id: property.property_id },
       { $set: { match_count: matchedCustomerMine.length + matchedCustomerOther.length } }
     );
   }

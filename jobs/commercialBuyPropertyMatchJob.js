@@ -4,7 +4,7 @@ const schedule = require('node-schedule');
 const mongoose = require('mongoose');
 const commercialPropertySell = require('../models/commercialPropertySell');
 const commercialCustomerBuyLocation = require('../models/commercialCustomerBuyLocation');
-const commercialBuyPropertyMatch = require('../models/match/commercialBuyCustomerMatch');
+const commercialBuyPropertyMatch = require('../models/match/commercialBuyPropertyMatch');
 const commercialBuyCustomerMatch = require('../models/match/commercialBuyCustomerMatch');
 const commercialPropertyCustomerBuy = require('../models/commercialPropertyCustomerBuy');
 const { json } = require('body-parser');
@@ -14,11 +14,12 @@ mongoose.connect('mongodb://realto:realto123@207.180.239.115:27017/realtodb');
 
 schedule.scheduleJob('*/10 * * * * *', async () => {
   console.log('Updating Commercial Buy/Sell property match ...');
-  const residentialRentPropertyArr = await commercialPropertySell.find();
+  const residentialRentPropertyArr = await commercialPropertySell.find().lean().exec();
   
-  for (const property of residentialRentPropertyArr) {
+  for (let property of residentialRentPropertyArr) {
     const xy = JSON.stringify(property)
-    console.log("property:  "+JSON.stringify(property));
+    console.log("property:  "+JSON.stringify(property.
+      property_id, null, 2));
     const propertyLocation = property.location;
     const availableFromDate = new Date(property.sell_details.available_from);
     const minDate = new Date(availableFromDate);
@@ -155,7 +156,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
       }
 
       // Insert matched properties into commercialBuyCustomerMatch
-      const existingCustomerMatch = await commercialBuyCustomerMatch.findOne({ customer_id: customer.customer_id });
+      const existingCustomerMatch = await commercialBuyCustomerMatch.findOne({ customer_id: customer.customer_id }).lean().exec();
 
       if (existingCustomerMatch) {
         // Update existing customer match
@@ -225,7 +226,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
       }
     }
 
-    const existingMatch = await commercialBuyPropertyMatch.findOne({ property_id: property.property_id });
+    const existingMatch = await commercialBuyPropertyMatch.findOne({ property_id: property.property_id   }).lean().exec();
 
     if (existingMatch) {
       // Update existing match
@@ -265,13 +266,13 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
         matched_customer_id_other: matchedCustomerOther,
         update_date_time: new Date()
       };
-      // console.log('commercialBuyPropertyMatch: '+ JSON.stringify(finalObj, null, 2) );
+      console.log('Creating new Obj: '+ JSON.stringify(finalObj.property_id, null, 2) );
       await commercialBuyPropertyMatch.create(finalObj);
     }
 
     // Update match count in commercialPropertySell schema document
     await commercialPropertySell.updateOne(
-      { _id: property._id },
+      { property_id: property.property_id },
       { $set: { match_count: matchedCustomerMine.length + matchedCustomerOther.length } }
     );
   }

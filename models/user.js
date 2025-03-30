@@ -7,7 +7,7 @@ const userSchema = new Schema({
   expo_token: String,
   name: String,
   company_name: String,
-  mobile1: String,
+  mobile: String,
   address: String,
   city: String,
   access_rights: String, // employee, agent
@@ -16,7 +16,7 @@ const userSchema = new Schema({
   liked_properties: [],
   liked_customers: [],
   email: String,
-  user_status: String, //"active", suspend, blocked, removed
+  user_status: { type: String, default: "active" },  //"active", suspend, blocked, removed
   create_date_time: {
     type: Date
   },
