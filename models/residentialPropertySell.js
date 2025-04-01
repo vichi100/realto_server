@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const residentialProperty = require("./residentialProperty");
-const { faker } = require("@faker-js/faker");
 // var ObjectId = Schema.ObjectId;
 
 const propertySchema = new mongoose.Schema({

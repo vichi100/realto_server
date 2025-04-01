@@ -39,7 +39,28 @@ collections.forEach(collection => {
     // db[collection].drop();
 });
 
+### delete remiders from all Collections ######
 
+show collections
+
+
+const collections = db.getCollectionNames();
+
+collections.forEach(collection => {
+ db[collection].updateMany(
+  { reminders: { $exists: true } }, // Match documents where 'reminders' exists
+  { $set: { reminders: [] } }     
+)   
+});
+
+db.reminders.deleteMany({})
+
+### delete remiders from specific Collection ######
+
+db.residential_property_rents.updateMany(
+  {}, // Empty filter means "update all documents"
+  { $set: { reminders: [] } } // Set reminders to [] for all matched docs
+)
 
 ### How to kill Process which is using a port ###
 

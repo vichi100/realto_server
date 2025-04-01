@@ -4,13 +4,12 @@ const reminderSchema = new Schema({
   reminder_id: {
     type: String
   },
-  user_id: String, // agent_id (This one who is creating reminder)
-  user_id_secondary: String, // in case of other agent_id (This one who is other agent id who owns the property or customer)
+  meeting_creator_id: String, // this will be req_use_id
+  agent_id_of_client: String, 
   category_ids: [], // property_id or buyer_id
   category: String, // property, customer
   category_type: String, // commercial, residential
   category_for: String, // buy, sell rent
-  agent_id_of_client: String, 
   expo_token: {
     type: String
   },
