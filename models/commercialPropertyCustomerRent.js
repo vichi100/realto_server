@@ -45,6 +45,7 @@ const propertySchema = new mongoose.Schema({
   customer_rent_details: {
     expected_rent: String,
     expected_deposit: String,
+    available_from: String,
   },
 
   reminders: [],

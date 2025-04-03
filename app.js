@@ -377,7 +377,7 @@ app.post("/addNewCommercialCustomer", function (req, res) {
 ////Start : Util Methods
 
 // This is for Properties of other agents
-const replaceOwnerDetailsWithAgentDetails = async (reqUserId, matchedPropertyDetailsOther) => {// Array as argument
+const replaceOwnerDetailsWithAgentDetails = async (matchedPropertyDetailsOther, reqUserId) => {// Array as argument
   const finalObjAfterMasking = [];
   for (let matchedPropertyDetailsOtherX of matchedPropertyDetailsOther) {
     const otherPropertyAgentId = matchedPropertyDetailsOtherX.agent_id;
@@ -408,11 +408,11 @@ const replaceOwnerDetailsWithAgentDetails = async (reqUserId, matchedPropertyDet
 const replaceCustomerDetailsWithAgentDetails = async (matchedCustomerDetailsOther) => {// Array as argument
   for (let matchedCustomerDetailsOtherX of matchedCustomerDetailsOther) {
     const otherCustomerAgentId = matchedCustomerDetailsOtherX.agent_id;
-    const otherCustomerAgentIdDetails = await User.find({ id: otherCustomerAgentId }).lean().exec();
+    const otherCustomerAgentIdDetails = await User.findOne({ id: otherCustomerAgentId }).lean().exec();
 
     matchedCustomerDetailsOtherX["customer_details"] = {
-      name: otherCustomerAgentIdDetails[0].name === null ? 'Agent' : otherCustomerAgentIdDetails[0].name + ', Agent',
-      mobile1: otherCustomerAgentIdDetails[0].mobile,
+      name: otherCustomerAgentIdDetails.name === null ? 'Agent' : otherCustomerAgentIdDetails.name + ', Agent',
+      mobile1: otherCustomerAgentIdDetails.mobile,
       mobile2: '',
       address: 'Please Contact Agent and refer to Customer Id: ' + matchedCustomerDetailsOtherX.customer_id,
     }
@@ -721,8 +721,8 @@ const getPropReminderList = async (req, res) => {
   const reqUserId = reqData.req_user_id;
   const remiderList = await Reminder.find({ category_ids: { $in: [propertyId] } }).sort({ property_id: -1 }).lean().exec();
   for (let reminder of remiderList) {
-    if (reqUserId !== reminder.user_id) {
-      const user = await User.find({ id: reminder.user_id }).lean().exec();
+    if (reqUserId !== reminder.agent_id_of_client) {
+      const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
       reminder.client_name = user.name ? user.name : "Agent";
       reminder.client_mobile = user.mobile;
     }
@@ -1149,7 +1149,7 @@ const getReminderList = async (req, res) => {
 
   for (let reminder of remiderArray) {
     if (agentIdDict.req_user_id !== reminder.user_id) {
-      const user = await User.find({ id: reminder.user_id }).lean().exec();
+      const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
       reminder.client_name = user.name ? user.name : "Agent";
       reminder.client_mobile = user.mobile;
     }
@@ -1205,7 +1205,7 @@ const getReminderListByCustomerId = async (req, res) => {
     if (reminder.user_id === reqUserId) {
       finalReminderDataArr.push(reminder);
     } else if (reminder.user_id_secondary === reqUserId) {
-      const otherCustomerAgentIdDetails = await User.find({ id: reminder.user_id }).lean().exec();
+      const otherCustomerAgentIdDetails = await User.findOne({ id: reminder.user_id }).lean().exec();
       reminder.client_name = otherCustomerAgentIdDetails.name === null ? "Agent" : otherCustomerAgentIdDetails.name + ', Agent';
       reminder.client_mobile = otherCustomerAgentIdDetails.mobile;
       finalReminderDataArr.push(reminder);
@@ -1624,6 +1624,7 @@ const matchedResidentialProptiesBuyList = async (req, res) => {
   try {
     const customerDetails = JSON.parse(JSON.stringify(req.body));
     const customer_id = customerDetails.customer_id;
+    const reqUserId = customerDetails.req_user_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
     const matchedPCustomer = await ResidentialBuyCustomerMatch.findOne({ customer_id: customer_id });
@@ -1650,7 +1651,7 @@ const matchedResidentialProptiesBuyList = async (req, res) => {
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
 
     let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
-    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther, reqUserId);
     // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
     // 6) Send both customer details
     res.send({
@@ -2615,7 +2616,7 @@ const modifyPropertyOwnerAndAddressDetails = async (reqUserId, propertyDetail) =
   if (Array.isArray(propertyDetail)) {
     for (let i = 0; i < propertyDetail.length; i++) {
       if (reqUserId !== propertyDetail[i].agent_id) {
-        const otherPropertyAgentIdDetails = await User.find({ id: propertyDetail[i].agent_id }).lean().exec();
+        const otherPropertyAgentIdDetails = await User.findOne({ id: propertyDetail[i].agent_id }).lean().exec();
         propertyDetail[i]["owner_details"] = {
           name: otherPropertyAgentIdDetails.name ? otherPropertyAgentIdDetails.name : 'Agent',
           mobile1: otherPropertyAgentIdDetails.mobile,
@@ -2642,7 +2643,7 @@ const modifyPropertyOwnerAndAddressDetails = async (reqUserId, propertyDetail) =
         building_name: '',
         landmark_or_street: propertyDetail.property_address.landmark_or_street,
       }
-      const otherPropertyAgentIdDetails = await User.find({ id: otherPropertyAgentId }).lean().exec();
+      const otherPropertyAgentIdDetails = await User.findOne({ id: otherPropertyAgentId }).lean().exec();
       propertyDetail["owner_details"] = {
         name: otherPropertyAgentIdDetails.name ? otherPropertyAgentIdDetails.name : 'Agent',
         mobile1: otherPropertyAgentIdDetails.mobile,

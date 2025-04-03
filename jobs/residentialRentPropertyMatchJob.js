@@ -114,7 +114,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
             const obj = {
               customer_id: customer.customer_id,
               distance: customer.distance,
-              matched_percentage:  Math.abs(matchScore)
+              matched_percentage:  Math.ceil(matchScore)
             };
             matchedCustomerMine.push(obj);
             uniqueCustomerMine.add(customer.customer_id);
@@ -124,7 +124,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
             const obj = {
               customer_id: customer.customer_id,
               distance: customer.distance,
-              matched_percentage:  Math.abs(matchScore)
+              matched_percentage:  Math.ceil(matchScore)
             };
             matchedCustomerOther.push(obj);
             uniqueCustomerOther.add(customer.customer_id);
@@ -145,7 +145,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
             updatedMine.push({
               property_id: property.property_id,
               distance: customer.distance,
-              matched_percentage: Math.abs(matchScore)
+              matched_percentage: Math.ceil(matchScore)
             });
           }
         } else {
@@ -153,7 +153,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
             updatedOther.push({
               property_id: property.property_id,
               distance: customer.distance,
-              matched_percentage: Math.abs(matchScore)
+              matched_percentage: Math.ceil(matchScore)
             });
           }
         }
@@ -184,12 +184,12 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
           matched_property_id_mine: customer.agent_id === property.agent_id ? [{
             property_id: property.property_id,
             distance: customer.distance,
-            matched_percentage: Math.abs(matchScore)
+            matched_percentage: Math.ceil(matchScore)
           }] : [],
           matched_property_id_other: customer.agent_id !== property.agent_id ? [{
             property_id: property.property_id,
             distance: customer.distance,
-            matched_percentage: Math.abs(matchScore)
+            matched_percentage: Math.ceil(matchScore)
           }] : [],
           update_date_time: new Date()
         };
