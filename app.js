@@ -69,6 +69,12 @@ const matchRoutes = require('./routes/matchRoutes');
 
 const app = express();
 // app.use(busboy());
+const cors = require('cors');
+app.use(cors({
+  origin: 'http://localhost:8081', // Allow requests from this origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  credentials: true // Include credentials if needed
+}));
 
 // app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(IMAGE_PATH_URL));
@@ -381,6 +387,10 @@ const replaceOwnerDetailsWithAgentDetails = async (matchedPropertyDetailsOther, 
   const finalObjAfterMasking = [];
   for (let matchedPropertyDetailsOtherX of matchedPropertyDetailsOther) {
     const otherPropertyAgentId = matchedPropertyDetailsOtherX.agent_id;
+    if (otherPropertyAgentId === reqUserId) {
+      finalObjAfterMasking.push(matchedPropertyDetailsOtherX);
+      continue;
+    }
     const otherPropertyAgentIdDetails = await User.findOne({ id: otherPropertyAgentId }).lean().exec();
     if (otherPropertyAgentIdDetails !== null) {
       matchedPropertyDetailsOtherX["property_address"] = {
@@ -405,18 +415,21 @@ const replaceOwnerDetailsWithAgentDetails = async (matchedPropertyDetailsOther, 
 
 
 // This is for Customers of other agents
-const replaceCustomerDetailsWithAgentDetails = async (matchedCustomerDetailsOther) => {// Array as argument
+const replaceCustomerDetailsWithAgentDetails = async (matchedCustomerDetailsOther, reqUserId) => {// Array as argument
   for (let matchedCustomerDetailsOtherX of matchedCustomerDetailsOther) {
     const otherCustomerAgentId = matchedCustomerDetailsOtherX.agent_id;
-    const otherCustomerAgentIdDetails = await User.findOne({ id: otherCustomerAgentId }).lean().exec();
+    if (otherCustomerAgentId !== reqUserId) {
+      const otherCustomerAgentIdDetails = await User.findOne({ id: otherCustomerAgentId }).lean().exec();
 
-    matchedCustomerDetailsOtherX["customer_details"] = {
-      name: otherCustomerAgentIdDetails.name === null ? 'Agent' : otherCustomerAgentIdDetails.name + ', Agent',
-      mobile1: otherCustomerAgentIdDetails.mobile,
-      mobile2: '',
-      address: 'Please Contact Agent and refer to Customer Id: ' + matchedCustomerDetailsOtherX.customer_id,
+      matchedCustomerDetailsOtherX["customer_details"] = {
+        name: otherCustomerAgentIdDetails.name === null ? 'Agent' : otherCustomerAgentIdDetails.name + ', Agent',
+        mobile1: otherCustomerAgentIdDetails.mobile,
+        mobile2: '',
+        address: 'Please Contact Agent and refer to Customer Id: ' + matchedCustomerDetailsOtherX.customer_id,
+      }
     }
   }
+  return matchedCustomerDetailsOther;
 }
 
 // End : Util Methods
@@ -595,6 +608,8 @@ const getGlobalSearchResult = async (req, res) => {
   const reqUserId = obj.req_user_id;
   const minePropertyList = [];
   const otherPropertyList = []; // Other agents property list
+  const mineCustomerList = [];
+  const otherCustomerList = []; // Other agents customer list
   try {
     if (obj.lookingFor.trim().toLowerCase() === "property".trim().toLowerCase()) {
       if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
@@ -646,14 +661,124 @@ const getGlobalSearchResult = async (req, res) => {
           }
         }
 
-        const otherPropertyDataAfterMasking = await replaceOwnerDetailsWithAgentDetails(otherPropertyList);
-        const allPropertiesData = [...residentialPropertyRentData, ...otherPropertyDataAfterMasking];
+        for (let property of otherPropertyList) {
+          const result = await ResidentialRentPropertyMatch.aggregate([
+            {
+              $match: {
+                property_id: property.property_id // Filter by property_id first
+              }
+            },
+            {
+              $unwind: "$matched_customer_id_other"
+            },
+            {
+              $match: {
+                "matched_customer_id_other.agent_id": reqUserId // Filter by agent_id
+              }
+            },
+            {
+              $count: "count"
+            }
+          ]);
+          property.match_count = result[0].count;
+          console.log(result);
+        }
+
+        const otherPropertyDataAfterMasking = await replaceOwnerDetailsWithAgentDetails(otherPropertyList, reqUserId);
+        const allPropertiesData = [...minePropertyList, ...otherPropertyDataAfterMasking];
 
         console.log(JSON.stringify(allPropertiesData));
         res.send(allPropertiesData);
         res.end();
 
 
+      }
+    } else if (obj.lookingFor.trim().toLowerCase() === "customer".trim().toLowerCase()) {
+      if (obj.whatType.trim().toLowerCase() === "residential".trim().toLowerCase()) {
+        const gLocations = obj.selectedLocationArray;
+        // Create an array of coordinates objects
+        const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
+
+        console.log(coordinatesArray);
+
+        // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
+        const radiusInMiles = 55;
+        const radiusInRadians = radiusInMiles / 3963.2;
+
+        // Create an array of geospatial queries for each location
+        const locationQueries = coordinatesArray.map((coordinates) => ({
+          location: {
+            $geoWithin: {
+              $centerSphere: [coordinates, radiusInRadians],
+            },
+          },
+        }));
+
+        // 1) find customer id from residential_customer_rent_location
+        // 2) use those customer id to find customer details and apply filter
+
+        // Combined query
+        const residentialCustomerRentLocationQuery = {
+          $or: locationQueries, // Geospatial queries for locations
+        };
+
+        // Find customer IDs from residential_customer_rent_location
+        const residentialCustomerRentLocations = await ResidentialCustomerRentLocation.find(residentialCustomerRentLocationQuery, { customer_id: 1 }).lean().exec();
+
+        // Extract customer IDs
+        const customerIds = residentialCustomerRentLocations.map(location => location.customer_id);
+
+        // Use these customer IDs to find customer details
+        const residentialCustomerRentData = await ResidentialPropertyCustomerRent.find({
+          customer_id: { $in: customerIds },
+          "customer_locality.city": obj.city, // Filter by city
+          "customer_property_details.bhk_type": { $in: ["2BHK"] }, // Filter by BHK type
+          "customer_rent_details.expected_rent": {
+            $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+            $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+          },
+          // "customer_rent_details.available_from": obj.reqWithin,
+        }).lean().exec();
+
+
+        const allCustomers = [...residentialCustomerRentData];
+        for (let customer of allCustomers) {
+          if (customer.agent_id === reqUserId) {
+            mineCustomerList.push(customer);
+          } else {
+            otherCustomerList.push(customer);
+          }
+        }
+
+        for (let customer of otherCustomerList) {
+          const result = await ResidentialRentCustomerMatch.aggregate([
+            {
+              $match: {
+                customer_id: customer.customer_id // Filter by customer_id first
+              }
+            },
+            {
+              $unwind: "$matched_property_id_other"
+            },
+            {
+              $match: {
+                "matched_property_id_other.agent_id": reqUserId // Filter by agent_id
+              }
+            },
+            {
+              $count: "count"
+            }
+          ]);
+          customer.match_count = result[0].count;
+          console.log(result);
+        }
+
+
+        const otherCustomerDataAfterMasking = await replaceCustomerDetailsWithAgentDetails(otherCustomerList, reqUserId);
+        const allCustomersData = [...mineCustomerList, ...otherCustomerDataAfterMasking];
+
+        console.log(JSON.stringify(allCustomersData));
+        res.send(allCustomersData);
       }
     }
 
@@ -1148,7 +1273,7 @@ const getReminderList = async (req, res) => {
   }).sort({ user_id: -1 }).lean().exec();
 
   for (let reminder of remiderArray) {
-    if (agentIdDict.req_user_id !== reminder.user_id) {
+    if (agentIdDict.req_user_id !== reminder.agent_id_of_client) {
       const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
       reminder.client_name = user.name ? user.name : "Agent";
       reminder.client_mobile = user.mobile;
@@ -1202,9 +1327,9 @@ const getReminderListByCustomerId = async (req, res) => {
 
   const reminderDataArr = await Reminder.find({ reminder_id: { $in: reminderArr } }).lean().exec();
   for (let reminder of reminderDataArr) {
-    if (reminder.user_id === reqUserId) {
+    if (reminder.agent_id_of_client === reqUserId) {
       finalReminderDataArr.push(reminder);
-    } else if (reminder.user_id_secondary === reqUserId) {
+    } else if (reminder.meeting_creator_id === reqUserId) {
       const otherCustomerAgentIdDetails = await User.findOne({ id: reminder.user_id }).lean().exec();
       reminder.client_name = otherCustomerAgentIdDetails.name === null ? "Agent" : otherCustomerAgentIdDetails.name + ', Agent';
       reminder.client_mobile = otherCustomerAgentIdDetails.mobile;
@@ -1353,6 +1478,7 @@ const getmatchedResidentialCustomerRentList = async (req, res) => {
   try {
     const propertyDetails = JSON.parse(JSON.stringify(req.body));
     const property_id = propertyDetails.property_id;
+    const reqUserId = propertyDetails.req_user_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
     const matchedProperty = await ResidentialRentPropertyMatch.findOne({ property_id: property_id }).lean().exec();
@@ -1365,14 +1491,14 @@ const getmatchedResidentialCustomerRentList = async (req, res) => {
     // create dict of matched_customer_id_mine and percentage
     const myMatchedCustomeryList = matchedProperty.matched_customer_id_mine;
     const myMatchedCustomeryDictList = {};
-    for(let myMatchedCustomerDict of myMatchedCustomeryList){
+    for (let myMatchedCustomerDict of myMatchedCustomeryList) {
       myMatchedCustomeryDictList[myMatchedCustomerDict.customer_id] = myMatchedCustomerDict.matched_percentage;
     }
 
     // create dict of matched_customer_id_other and percentage
     const otherMatchedCustomeryList = matchedProperty.matched_customer_id_other;
     const otherMatchedCustomeryDictList = {};
-    for(let otherMatchedCustomerDict of otherMatchedCustomeryList){
+    for (let otherMatchedCustomerDict of otherMatchedCustomeryList) {
       otherMatchedCustomeryDictList[otherMatchedCustomerDict.customer_id] = otherMatchedCustomerDict.matched_percentage;
     }
 
@@ -1383,7 +1509,7 @@ const getmatchedResidentialCustomerRentList = async (req, res) => {
     const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } }).lean().exec();
     // const matchedCustomerBuyDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
 
-    for(let matchedCustomerRentDetail of matchedCustomerRentDetailsMine){
+    for (let matchedCustomerRentDetail of matchedCustomerRentDetailsMine) {
       const matchedCustomerId = matchedCustomerRentDetail.customer_id;
       const matchedPercentage = myMatchedCustomeryDictList[matchedCustomerId];
       matchedCustomerRentDetail.matched_percentage = matchedPercentage;
@@ -1396,14 +1522,14 @@ const getmatchedResidentialCustomerRentList = async (req, res) => {
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } }).lean().exec();
     // const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
-    for(let matchedCustomerRentDetail of matchedCustomerRentDetailsOther){
+    for (let matchedCustomerRentDetail of matchedCustomerRentDetailsOther) {
       const matchedCustomerId = matchedCustomerRentDetail.customer_id;
       const matchedPercentage = otherMatchedCustomeryDictList[matchedCustomerId];
       matchedCustomerRentDetail.matched_percentage = matchedPercentage;
     }
 
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
-    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
+    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther, reqUserId);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1420,6 +1546,7 @@ const getMatchedResidentialCustomerBuyList = async (req, res) => {
   try {
     const propertyDetails = JSON.parse(JSON.stringify(req.body));
     const property_id = propertyDetails.property_id;
+    const reqUserId = propertyDetails.req_user_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
     const matchedProperty = await ResidentialBuyPropertyMatch.findOne({ property_id: property_id }).lean().exec();
@@ -1432,14 +1559,14 @@ const getMatchedResidentialCustomerBuyList = async (req, res) => {
     // create dict of matched_customer_id_mine and percentage
     const myMatchedCustomeryList = matchedProperty.matched_customer_id_mine;
     const myMatchedCustomeryDictList = {};
-    for(let myMatchedCustomerDict of myMatchedCustomeryList){
+    for (let myMatchedCustomerDict of myMatchedCustomeryList) {
       myMatchedCustomeryDictList[myMatchedCustomerDict.customer_id] = myMatchedCustomerDict.matched_percentage;
     }
 
     // create dict of matched_customer_id_other and percentage
     const otherMatchedCustomeryList = matchedProperty.matched_customer_id_other;
     const otherMatchedCustomeryDictList = {};
-    for(let otherMatchedCustomerDict of otherMatchedCustomeryList){
+    for (let otherMatchedCustomerDict of otherMatchedCustomeryList) {
       otherMatchedCustomeryDictList[otherMatchedCustomerDict.customer_id] = otherMatchedCustomerDict.matched_percentage;
     }
 
@@ -1449,7 +1576,7 @@ const getMatchedResidentialCustomerBuyList = async (req, res) => {
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } }).lean().exec();
     // const matchedCustomerBuyDetailsMine = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
-    for(let matchedCustomerRentDetail of matchedCustomerRentDetailsMine){
+    for (let matchedCustomerRentDetail of matchedCustomerRentDetailsMine) {
       const matchedCustomerId = matchedCustomerRentDetail.customer_id;
       const matchedPercentage = myMatchedCustomeryDictList[matchedCustomerId];
       matchedCustomerRentDetail.matched_percentage = matchedPercentage;
@@ -1462,14 +1589,14 @@ const getMatchedResidentialCustomerBuyList = async (req, res) => {
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } }).lean().exec();
     // const matchedCustomerBuyDetailsOther = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
-    for(let matchedCustomerRentDetail of matchedCustomerRentDetailsOther){
+    for (let matchedCustomerRentDetail of matchedCustomerRentDetailsOther) {
       const matchedCustomerId = matchedCustomerRentDetail.customer_id;
       const matchedPercentage = otherMatchedCustomeryDictList[matchedCustomerId];
       matchedCustomerRentDetail.matched_percentage = matchedPercentage;
     }
 
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
-    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
+    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther, reqUserId);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1486,6 +1613,7 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
   try {
     const propertyDetails = JSON.parse(JSON.stringify(req.body));
     const property_id = propertyDetails.property_id;
+    const reqUserId = propertyDetails.req_user_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
     const matchedProperty = await CommercialRentPropertyMatch.findOne({ property_id: property_id }).lean().exec();
@@ -1498,14 +1626,14 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
     // create dict of matched_customer_id_mine and percentage
     const myMatchedCustomeryList = matchedProperty.matched_customer_id_mine;
     const myMatchedCustomeryDictList = {};
-    for(let myMatchedCustomerDict of myMatchedCustomeryList){
+    for (let myMatchedCustomerDict of myMatchedCustomeryList) {
       myMatchedCustomeryDictList[myMatchedCustomerDict.customer_id] = myMatchedCustomerDict.matched_percentage;
     }
 
     // create dict of matched_customer_id_other and percentage
     const otherMatchedCustomeryList = matchedProperty.matched_customer_id_other;
     const otherMatchedCustomeryDictList = {};
-    for(let otherMatchedCustomerDict of otherMatchedCustomeryList){
+    for (let otherMatchedCustomerDict of otherMatchedCustomeryList) {
       otherMatchedCustomeryDictList[otherMatchedCustomerDict.customer_id] = otherMatchedCustomerDict.matched_percentage;
     }
 
@@ -1515,7 +1643,7 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsMine = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } }).lean().exec();
     // const matchedCustomerBuyDetailsMine = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } });
-    for(let matchedCustomerRentDetail of matchedCustomerRentDetailsMine){
+    for (let matchedCustomerRentDetail of matchedCustomerRentDetailsMine) {
       const matchedCustomerId = matchedCustomerRentDetail.customer_id;
       const matchedPercentage = myMatchedCustomeryDictList[matchedCustomerId];
       matchedCustomerRentDetail.matched_percentage = matchedPercentage;
@@ -1529,14 +1657,14 @@ const getMatchedCommercialCustomerRentList = async (req, res) => {
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedCustomerRentDetailsOther = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } }).lean().exec();
     // const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } });
-    for(let matchedCustomerRentDetail of matchedCustomerRentDetailsOther){
+    for (let matchedCustomerRentDetail of matchedCustomerRentDetailsOther) {
       const matchedCustomerId = matchedCustomerRentDetail.customer_id;
       const matchedPercentage = otherMatchedCustomeryDictList[matchedCustomerId];
       matchedCustomerRentDetail.matched_percentage = matchedPercentage;
     }
     // const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther, ...matchedCustomerBuyDetailsOther];
     const matchedCustomerDetailsOther = [...matchedCustomerRentDetailsOther];
-    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
+    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther, reqUserId);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1555,6 +1683,7 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
   try {
     const propertyDetails = JSON.parse(JSON.stringify(req.body));
     const property_id = propertyDetails.property_id;
+    const reqUserId = propertyDetails.req_user_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
     const matchedProperty = await CommercialBuyPropertyMatch.findOne({ property_id: property_id }).lean().exec();
@@ -1566,14 +1695,14 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
     // create dict of matched_customer_id_mine and percentage
     const myMatchedCustomeryList = matchedProperty.matched_customer_id_mine;
     const myMatchedCustomeryDictList = {};
-    for(let myMatchedCustomerDict of myMatchedCustomeryList){
+    for (let myMatchedCustomerDict of myMatchedCustomeryList) {
       myMatchedCustomeryDictList[myMatchedCustomerDict.customer_id] = myMatchedCustomerDict.matched_percentage;
     }
 
     // create dict of matched_customer_id_other and percentage
     const otherMatchedCustomeryList = matchedProperty.matched_customer_id_other;
     const otherMatchedCustomeryDictList = {};
-    for(let otherMatchedCustomerDict of otherMatchedCustomeryList){
+    for (let otherMatchedCustomerDict of otherMatchedCustomeryList) {
       otherMatchedCustomeryDictList[otherMatchedCustomerDict.customer_id] = otherMatchedCustomerDict.matched_percentage;
     }
 
@@ -1583,7 +1712,7 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     // const matchedCustomerRentDetailsMine = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerMineIds } });
     const matchedCustomerBuyDetailsMine = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerMineIds } }).lean().exec();
-    for(let matchedCustomerRentDetail of matchedCustomerBuyDetailsMine){
+    for (let matchedCustomerRentDetail of matchedCustomerBuyDetailsMine) {
       const matchedCustomerId = matchedCustomerRentDetail.customer_id;
       const matchedPercentage = myMatchedCustomeryDictList[matchedCustomerId];
       matchedCustomerRentDetail.matched_percentage = matchedPercentage;
@@ -1596,14 +1725,14 @@ const getMatchedCommercialCustomerSellList = async (req, res) => {
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     // const matchedCustomerRentDetailsOther = await CommercialPropertyCustomerRent.find({ customer_id: { $in: matchedCustomerOtherIds } });
     const matchedCustomerBuyDetailsOther = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: matchedCustomerOtherIds } }).lean().exec();
-    for(let matchedCustomerRentDetail of matchedCustomerBuyDetailsOther){
+    for (let matchedCustomerRentDetail of matchedCustomerBuyDetailsOther) {
       const matchedCustomerId = matchedCustomerRentDetail.customer_id;
       const matchedPercentage = otherMatchedCustomeryDictList[matchedCustomerId];
       matchedCustomerRentDetail.matched_percentage = matchedPercentage;
     }
 
     const matchedCustomerDetailsOther = [...matchedCustomerBuyDetailsOther];
-    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther);
+    await replaceCustomerDetailsWithAgentDetails(matchedCustomerDetailsOther, reqUserId);
     // 6) Send both customer details
     res.send({
       matchedCustomerDetailsMine,
@@ -1623,6 +1752,7 @@ const getMatchedCommercialProptiesBuyList = async (req, res) => {
   try {
     const customerDetails = JSON.parse(JSON.stringify(req.body));
     const customer_id = customerDetails.customer_id;
+    const reqUserId = customerDetails.req_user_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
     const matchedPCustomer = await CommercialBuyCustomerMatch.findOne({ customer_id: customer_id }).lean().exec();
@@ -1634,13 +1764,13 @@ const getMatchedCommercialProptiesBuyList = async (req, res) => {
     // create dict of matched_property_id_mine and percentage
     const mineMatchedPropertyList = matchedPCustomer.matched_property_id_mine;
     const mineMatchedPropertyDictList = {};
-    for(let mineMatchedPropertyDict of mineMatchedPropertyList){
+    for (let mineMatchedPropertyDict of mineMatchedPropertyList) {
       mineMatchedPropertyDictList[mineMatchedPropertyDict.property_id] = mineMatchedPropertyDict.matched_percentage;
     }
     // create dict of matched_property_id_other and percentage
     const otherMatchedPropertyList = matchedPCustomer.matched_property_id_other;
     const otherMatchedPropertyDictList = {};
-    for(let otherMatchedPropertyDict of otherMatchedPropertyList){
+    for (let otherMatchedPropertyDict of otherMatchedPropertyList) {
       otherMatchedPropertyDictList[otherMatchedPropertyDict.property_id] = otherMatchedPropertyDict.matched_percentage;
     }
 
@@ -1650,7 +1780,7 @@ const getMatchedCommercialProptiesBuyList = async (req, res) => {
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsMine = await CommercialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } }).lean().exec();
     // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
-    for(let matchedPropertyRentDetail of matchedPropertyRentDetailsMine){
+    for (let matchedPropertyRentDetail of matchedPropertyRentDetailsMine) {
       const matchedPropertyId = matchedPropertyRentDetail.property_id;
       const matchedPercentage = mineMatchedPropertyDictList[matchedPropertyId];
       matchedPropertyRentDetail.matched_percentage = matchedPercentage;
@@ -1663,13 +1793,13 @@ const getMatchedCommercialProptiesBuyList = async (req, res) => {
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsOther = await CommercialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
-    for(let matchedPropertyRentDetail of matchedPropertyRentDetailsOther){
+    for (let matchedPropertyRentDetail of matchedPropertyRentDetailsOther) {
       const matchedPropertyId = matchedPropertyRentDetail.property_id;
       const matchedPercentage = otherMatchedPropertyDictList[matchedPropertyId];
       matchedPropertyRentDetail.matched_percentage = matchedPercentage;
     }
     let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
-    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther, reqUserId);
     // 6) Send both customer details
     res.send({
       matchedPropertyDetailsMine,
@@ -1689,6 +1819,7 @@ const getMatchedCommercialProptiesRentList = async (req, res) => {
   try {
     const customerDetails = JSON.parse(JSON.stringify(req.body));
     const customer_id = customerDetails.customer_id;
+    const reqUserId = customerDetails.req_user_id;
 
     // 1) Get matched property using property_id from residentialRentPropertyMatch
     const matchedPCustomer = await CommercialRentCustomerMatch.findOne({ customer_id: customer_id });
@@ -1700,13 +1831,13 @@ const getMatchedCommercialProptiesRentList = async (req, res) => {
     // create dict of matched_property_id_mine and percentage
     const mineMatchedPropertyList = matchedPCustomer.matched_property_id_mine;
     const mineMatchedPropertyDictList = {};
-    for(let mineMatchedPropertyDict of mineMatchedPropertyList){
+    for (let mineMatchedPropertyDict of mineMatchedPropertyList) {
       mineMatchedPropertyDictList[mineMatchedPropertyDict.property_id] = mineMatchedPropertyDict.matched_percentage;
     }
     // create dict of matched_property_id_other and percentage
     const otherMatchedPropertyList = matchedPCustomer.matched_property_id_other;
     const otherMatchedPropertyDictList = {};
-    for(let otherMatchedPropertyDict of otherMatchedPropertyList){
+    for (let otherMatchedPropertyDict of otherMatchedPropertyList) {
       otherMatchedPropertyDictList[otherMatchedPropertyDict.property_id] = otherMatchedPropertyDict.matched_percentage;
     }
 
@@ -1716,7 +1847,7 @@ const getMatchedCommercialProptiesRentList = async (req, res) => {
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsMine = await CommercialPropertyRent.find({ property_id: { $in: matchedPropertyMineIds } }).lean().exec();
     // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
-    for(let matchedPropertyRentDetail of matchedPropertyRentDetailsMine){
+    for (let matchedPropertyRentDetail of matchedPropertyRentDetailsMine) {
       const matchedPropertyId = matchedPropertyRentDetail.property_id;
       const matchedPercentage = mineMatchedPropertyDictList[matchedPropertyId];
       matchedPropertyRentDetail.matched_percentage = matchedPercentage;
@@ -1729,13 +1860,13 @@ const getMatchedCommercialProptiesRentList = async (req, res) => {
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsOther = await CommercialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
-    for(let matchedPropertyRentDetail of matchedPropertyRentDetailsOther){
+    for (let matchedPropertyRentDetail of matchedPropertyRentDetailsOther) {
       const matchedPropertyId = matchedPropertyRentDetail.property_id;
       const matchedPercentage = otherMatchedPropertyDictList[matchedPropertyId];
       matchedPropertyRentDetail.matched_percentage = matchedPercentage;
     }
     let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
-    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther, reqUserId);
     // 6) Send both customer details
     res.send({
       matchedPropertyDetailsMine,
@@ -1765,18 +1896,18 @@ const matchedResidentialProptiesBuyList = async (req, res) => {
       return;
     }
 
-     // create dict of matched_property_id_mine and percentage
-     const mineMatchedPropertyList = matchedPCustomer.matched_property_id_mine;
-     const mineMatchedPropertyDictList = {};
-     for(let mineMatchedPropertyDict of mineMatchedPropertyList){
-       mineMatchedPropertyDictList[mineMatchedPropertyDict.property_id] = mineMatchedPropertyDict.matched_percentage;
-     }
-     // create dict of matched_property_id_other and percentage
-     const otherMatchedPropertyList = matchedPCustomer.matched_property_id_other;
-     const otherMatchedPropertyDictList = {};
-     for(let otherMatchedPropertyDict of otherMatchedPropertyList){
-       otherMatchedPropertyDictList[otherMatchedPropertyDict.property_id] = otherMatchedPropertyDict.matched_percentage;
-     }
+    // create dict of matched_property_id_mine and percentage
+    const mineMatchedPropertyList = matchedPCustomer.matched_property_id_mine;
+    const mineMatchedPropertyDictList = {};
+    for (let mineMatchedPropertyDict of mineMatchedPropertyList) {
+      mineMatchedPropertyDictList[mineMatchedPropertyDict.property_id] = mineMatchedPropertyDict.matched_percentage;
+    }
+    // create dict of matched_property_id_other and percentage
+    const otherMatchedPropertyList = matchedPCustomer.matched_property_id_other;
+    const otherMatchedPropertyDictList = {};
+    for (let otherMatchedPropertyDict of otherMatchedPropertyList) {
+      otherMatchedPropertyDictList[otherMatchedPropertyDict.property_id] = otherMatchedPropertyDict.matched_percentage;
+    }
 
     // 2) Get matched_customer_id_mine from matched property
     const matchedPropertyMineIds = matchedPCustomer.matched_property_id_mine.map(property => property.property_id);
@@ -1784,7 +1915,7 @@ const matchedResidentialProptiesBuyList = async (req, res) => {
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } }).lean().exec();
     // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
-    for(let matchedPropertyRentDetail of matchedPropertyRentDetailsMine){
+    for (let matchedPropertyRentDetail of matchedPropertyRentDetailsMine) {
       const matchedPropertyId = matchedPropertyRentDetail.property_id;
       const matchedPercentage = mineMatchedPropertyDictList[matchedPropertyId];
       matchedPropertyRentDetail.matched_percentage = matchedPercentage;
@@ -1797,7 +1928,7 @@ const matchedResidentialProptiesBuyList = async (req, res) => {
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
-    for(let matchedPropertyRentDetail of matchedPropertyRentDetailsOther){
+    for (let matchedPropertyRentDetail of matchedPropertyRentDetailsOther) {
       const matchedPropertyId = matchedPropertyRentDetail.property_id;
       const matchedPercentage = otherMatchedPropertyDictList[matchedPropertyId];
       matchedPropertyRentDetail.matched_percentage = matchedPercentage;
@@ -1837,13 +1968,13 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
     // create dict of matched_property_id_mine and percentage
     const mineMatchedPropertyList = matchedPCustomer.matched_property_id_mine;
     const mineMatchedPropertyDictList = {};
-    for(let mineMatchedPropertyDict of mineMatchedPropertyList){
+    for (let mineMatchedPropertyDict of mineMatchedPropertyList) {
       mineMatchedPropertyDictList[mineMatchedPropertyDict.property_id] = mineMatchedPropertyDict.matched_percentage;
     }
     // create dict of matched_property_id_other and percentage
     const otherMatchedPropertyList = matchedPCustomer.matched_property_id_other;
     const otherMatchedPropertyDictList = {};
-    for(let otherMatchedPropertyDict of otherMatchedPropertyList){
+    for (let otherMatchedPropertyDict of otherMatchedPropertyList) {
       otherMatchedPropertyDictList[otherMatchedPropertyDict.property_id] = otherMatchedPropertyDict.matched_percentage;
     }
 
@@ -1853,7 +1984,7 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
     // 3) Get customer details using matched_customer_id_mine from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsMine = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyMineIds } }).lean().exec();
     // const matchedPropertyBuyDetailsMine = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyMineIds } });
-    for(let matchedPropertyRentDetail of matchedPropertyRentDetailsMine){
+    for (let matchedPropertyRentDetail of matchedPropertyRentDetailsMine) {
       const matchedPropertyId = matchedPropertyRentDetail.property_id;
       const matchedPercentage = mineMatchedPropertyDictList[matchedPropertyId];
       matchedPropertyRentDetail.matched_percentage = matchedPercentage;
@@ -1866,14 +1997,14 @@ const getMatchedResidentialProptiesRentList = async (req, res) => {
     // 5) Get customer details using matched_customer_id_other from residentialPropertyCustomerRent
     const matchedPropertyRentDetailsOther = await ResidentialPropertyRent.find({ property_id: { $in: matchedPropertyOtherIds } }).lean().exec();
     // const matchedPropertyBuyDetailsOther = await ResidentialPropertySell.find({ property_id: { $in: matchedPropertyOtherIds } });
-    for(let matchedPropertyRentDetail of matchedPropertyRentDetailsOther){
+    for (let matchedPropertyRentDetail of matchedPropertyRentDetailsOther) {
       const matchedPropertyId = matchedPropertyRentDetail.property_id;
       const matchedPercentage = otherMatchedPropertyDictList[matchedPropertyId];
       matchedPropertyRentDetail.matched_percentage = matchedPercentage;
     }
     let matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther];
     // if we are sending property deatils of other agents then we need to reppace owner deatils with agent deatils
-    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther);
+    matchedPropertyDetailsOther = await replaceOwnerDetailsWithAgentDetails(matchedPropertyDetailsOther, reqUserId);
 
     // const matchedPropertyDetailsOther = [...matchedPropertyRentDetailsOther, ...matchedPropertyBuyDetailsOther];
     // 6) Send both customer details
@@ -1987,7 +2118,7 @@ const getCustomerListForMeeting = async (req, res) => {
   const myMatchedCustomerDictList = matchedData.matched_customer_id_mine;
   const myMatchedCustomerMap = {};
   const myMatchedCustomerIdList = [];
-  for(let myMatchedCustomerDict of myMatchedCustomerDictList) {
+  for (let myMatchedCustomerDict of myMatchedCustomerDictList) {
     myMatchedCustomerIdList.push(myMatchedCustomerDict.customer_id);
     myMatchedCustomerMap[myMatchedCustomerDict.customer_id.toString()] = myMatchedCustomerDict.matched_percentage.toString();
   }
@@ -2001,7 +2132,7 @@ const getCustomerListForMeeting = async (req, res) => {
   const otherMatchedCustomerDictList = matchedData.matched_customer_id_other;
   const otherMatchedCustomerMap = {};
   // const otherMatchedCustomerIdList = [];
-  for(let otherMatchedCustomerDict of otherMatchedCustomerDictList) {
+  for (let otherMatchedCustomerDict of otherMatchedCustomerDictList) {
     // otherMatchedCustomerIdList.push(otherMatchedCustomerDict.customer_id);
     otherMatchedCustomerMap[otherMatchedCustomerDict.customer_id.toString()] = otherMatchedCustomerDict.matched_percentage.toString();
   }
@@ -2155,7 +2286,7 @@ const getPropertyListingForMeeting = async (req, res) => {
   // the aregument order sud be first matched data list then all data list so matched data will be added in final merge list
   // const myPropertyRentList = mergeDedupe(myMatchedPropertyList, myPropertyRentListX, "property_id");
   const myPropertyRentList = removeDuplicates(myMatchedPropertyList, myPropertyRentListX, "property_id");
-  const finalData = [...myPropertyRentList,  ...myMatchedPropertyList, ...otherPropertyListAfterMasking];
+  const finalData = [...myPropertyRentList, ...myMatchedPropertyList, ...otherPropertyListAfterMasking];
   res.send(JSON.stringify(finalData));
   res.end();
 
@@ -2881,7 +3012,7 @@ const modifyCustomerDetails = async (reqUserId, customerDetails) => {
 
 
 
-const getCustomerAndMeetingDetails = async (req, res) => {
+const getCustomerAndMeetingDetailsX = async (req, res) => {
   console.log("getCustomerAndMeetingDetails: " + JSON.stringify(req.body));
   const queryObj = JSON.parse(JSON.stringify(req.body));
   const reqUserId = queryObj.req_user_id;
@@ -2906,11 +3037,11 @@ const getCustomerAndMeetingDetails = async (req, res) => {
         otherMatchedPropertyMap[otherMatchedProperty.property_id.toString()] = otherMatchedProperty.matched_percentage.toString();
       }
       for (let property of propertyDetail) {
-        property.matched_percentage = mineMatchedPropertyMap[property.property_id.toString()] 
-        ? mineMatchedPropertyMap[property.property_id.toString()] : "Not Matched";
-        if (property.matched_percentage === "Not Matched") {
-          property.matched_percentage = otherMatchedPropertyMap[property.property_id.toString()] 
-          ? otherMatchedPropertyMap[property.property_id.toString()] : "Not Matched";
+        property.matched_percentage = mineMatchedPropertyMap[property.property_id.toString()]
+          ? mineMatchedPropertyMap[property.property_id.toString()] : 0;
+        if (property.matched_percentage === 0) {
+          property.matched_percentage = otherMatchedPropertyMap[property.property_id.toString()]
+            ? otherMatchedPropertyMap[property.property_id.toString()] : 0;
         }
 
       }
@@ -2989,6 +3120,102 @@ const getCustomerAndMeetingDetails = async (req, res) => {
     }
 
   }
+};
+
+
+const getCustomerAndMeetingDetails = async (req, res) => {
+  console.log("getCustomerAndMeetingDetails: " + JSON.stringify(req.body));
+  const queryObj = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = queryObj.req_user_id;
+
+  let propertyDetail = [];
+  let customerDetails = [];
+  let matchModel;
+  if (queryObj.category_type === "Residential") {
+    if (queryObj.category_for === "Rent") {
+      propertyDetail = await ResidentialPropertyRent.find({ property_id: { $in: queryObj.category_ids } }).lean().exec();
+      customerDetails = await ResidentialPropertyCustomerRent.findOne({ customer_id: queryObj.client_id }).lean().exec();
+      matchModel = ResidentialRentCustomerMatch;
+
+
+    } else if (queryObj.category_for === "Sell" || queryObj.category_for === "Buy") {
+
+      propertyDetail = await ResidentialPropertySell.find({
+        property_id: { $in: queryObj.category_ids }
+      }).lean().exec();
+      customerDetails = await ResidentialPropertyCustomerBuy.findOne({
+        customer_id: queryObj.client_id
+      }).lean().exec();
+
+      matchModel = ResidentialBuyCustomerMatch;
+
+    }
+
+  } else if (queryObj.category_type === "Commercial") {
+    if (queryObj.category_for === "Rent") {
+
+      propertyDetail = await CommercialPropertyRent.find({
+        property_id: { $in: queryObj.category_ids }
+      }).lean().exec();
+
+      customerDetails = await CommercialPropertyCustomerRent.findOne({
+        customer_id: queryObj.client_id
+      }).lean().exec();
+
+      matchModel = CommercialRentCustomerMatch;
+
+
+
+    } else if (queryObj.category_for === "Sell" || queryObj.category_for === "Buy") {
+
+      propertyDetail = await CommercialPropertySell.find({
+        property_id: { $in: queryObj.category_ids }
+      }).lean().exec();
+
+      customerDetails = await CommercialPropertyCustomerBuy.findOne({
+        customer_id: queryObj.client_id
+      }).lean().exec();
+
+      matchModel = CommercialBuyCustomerMatch;
+
+    }
+
+  }
+
+  //1) we have customer id so I ll find matched_property_id_mine and matched_property_id_other
+  //2) create map so we dont have itrate multiple time
+  //3) itrate thriugh propertyDetail and where match asign matched_percentage
+  const matchPropertiesForCustomer = await matchModel.findOne({ customer_id: customerDetails.customer_id }).lean().exec();
+  const mineMatchedPropertyList = matchPropertiesForCustomer.matched_property_id_mine;
+  const otherMatchedPropertyList = matchPropertiesForCustomer.matched_property_id_other;
+  const mineMatchedPropertyMap = {};
+  for (let mineMatchedProperty of mineMatchedPropertyList) {
+    mineMatchedPropertyMap[mineMatchedProperty.property_id.toString()] = mineMatchedProperty.matched_percentage.toString();
+  }
+
+  const otherMatchedPropertyMap = {};
+  for (let otherMatchedProperty of otherMatchedPropertyList) {
+    otherMatchedPropertyMap[otherMatchedProperty.property_id.toString()] = otherMatchedProperty.matched_percentage.toString();
+  }
+  for (let property of propertyDetail) {
+    property.matched_percentage = mineMatchedPropertyMap[property.property_id.toString()]
+      ? mineMatchedPropertyMap[property.property_id.toString()] : 0;
+    if (property.matched_percentage === 0) {
+      property.matched_percentage = otherMatchedPropertyMap[property.property_id.toString()]
+        ? otherMatchedPropertyMap[property.property_id.toString()] : 0;
+    }
+
+  }
+
+  await modifyPropertyOwnerAndAddressDetails(reqUserId, propertyDetail);
+  await modifyCustomerDetails(reqUserId, customerDetails);
+  const resObj = {
+    property_details: propertyDetail,
+    customer_details: customerDetails
+  };
+  res.send(resObj);
+  res.end();
+  return;
 };
 
 const getAllGlobalListingByLocations = (req, res) => {

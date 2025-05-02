@@ -123,6 +123,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
           if (!uniqueCustomerOther.has(customer.customer_id)) {
             const obj = {
               customer_id: customer.customer_id,
+              agent_id: customer.agent_id,
               distance: customer.distance,
               matched_percentage:  Math.ceil(matchScore)
             };
@@ -152,6 +153,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
           if (!updatedOther.some(p => p.property_id === property.property_id)) {
             updatedOther.push({
               property_id: property.property_id,
+              agent_id: property.agent_id,
               distance: customer.distance,
               matched_percentage: Math.ceil(matchScore)
             });
@@ -188,6 +190,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
           }] : [],
           matched_property_id_other: customer.agent_id !== property.agent_id ? [{
             property_id: property.property_id,
+            agent_id: property.agent_id,
             distance: customer.distance,
             matched_percentage: Math.ceil(matchScore)
           }] : [],

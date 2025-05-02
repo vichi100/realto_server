@@ -18,6 +18,7 @@ const propertySchema = new mongoose.Schema({
   matched_property_id_other: [{
     matched_percentage: Number,
     property_id: String,
+    agent_id: String,
     distance: Number  
   }],
   update_date_time: {

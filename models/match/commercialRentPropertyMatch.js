@@ -12,6 +12,7 @@ const propertySchema = new mongoose.Schema({
   matched_customer_id_other: [{
     matched_percentage: Number,
     customer_id: String,
+    agent_id: String,
     distance: Number
   }],
   update_date_time: {
