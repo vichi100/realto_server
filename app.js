@@ -632,27 +632,51 @@ const getGlobalSearchResult = async (req, res) => {
           },
         }));
 
+        let residentialPropertyData = [];
+        let query = null;
+        let matchDocument = null;
         // Combined query
-        const query = {
-          $or: locationQueries,
-          property_for: "Rent",//obj.purpose,
-          // property_status: "1",
-          "property_address.city": obj.city,
-          "property_details.bhk_type": { $in: "2BHK" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
-          "rent_details.expected_rent": {
-            $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
-            $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
-          },
-          // "rent_details.available_from": obj.reqWithin,
-          // "rent_details.preferred_tenants": obj.tenant,
-        };
+        if (obj.purpose.trim().toLowerCase() === "Rent".trim().toLowerCase()) {
+          query = {
+            $or: locationQueries,
+            property_for: "Rent",//obj.purpose,
+            // property_status: "1",
+            "property_address.city": obj.city,
+            "property_details.bhk_type": { $in: "2BHK" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+            "rent_details.expected_rent": {
+              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+            },
+            // "rent_details.available_from": obj.reqWithin,
+            // "rent_details.preferred_tenants": obj.tenant,
+          };
 
-        // Use await to wait for the database query to complete
-        const residentialPropertyRentData = await ResidentialPropertyRent.find(query).lean().exec();
-        // const residentialPropertySellData = await ResidentialPropertySell.find(query).exec();
+          // Use await to wait for the database query to complete
+          residentialPropertyData = await ResidentialPropertyRent.find(query).lean().exec();
+          matchDocument = ResidentialRentPropertyMatch;
+
+        } else if (obj.purpose.trim().toLowerCase() === "Buy".trim().toLowerCase()) {
+          query = {
+            $or: locationQueries,
+            property_for: "Sell",//obj.purpose,
+            // property_status: "1",
+            "property_address.city": obj.city,
+            "property_details.bhk_type": { $in: "2BHK" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+            "sell_details.expected_sell_price": {
+              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+            },
+            // "rent_details.available_from": obj.reqWithin,
+            // "rent_details.preferred_tenants": obj.tenant,
+          };
+
+          residentialPropertyData = await ResidentialPropertySell.find(query).exec();
+          matchDocument = ResidentialBuyPropertyMatchBuy;
+
+        }
 
         // Merge the two arrays
-        const allProperties = [...residentialPropertyRentData];
+        const allProperties = [...residentialPropertyData];
         for (let property of allProperties) {
           if (property.agent_id === reqUserId) {
             minePropertyList.push(property);
@@ -662,7 +686,117 @@ const getGlobalSearchResult = async (req, res) => {
         }
 
         for (let property of otherPropertyList) {
-          const result = await ResidentialRentPropertyMatch.aggregate([
+          const result = await matchDocument.aggregate([
+            {
+              $match: {
+                property_id: property.property_id // Filter by property_id first
+              }
+            },
+            {
+              $unwind: "$matched_customer_id_other"
+            },
+            {
+              $match: {
+                "matched_customer_id_other.agent_id": reqUserId // Filter by agent_id
+              }
+            },
+            {
+              $count: "count"
+            }
+          ]);
+          property.match_count = result[0].count;
+          console.log(result);
+        }
+
+        const otherPropertyDataAfterMasking = await replaceOwnerDetailsWithAgentDetails(otherPropertyList, reqUserId);
+        const allPropertiesData = [...minePropertyList, ...otherPropertyDataAfterMasking];
+
+        console.log(JSON.stringify(allPropertiesData));
+        res.send(allPropertiesData);
+        res.end();
+
+
+      } else if (obj.whatType.trim().toLowerCase() === "commercial".trim().toLowerCase()) {
+
+        const gLocations = obj.selectedLocationArray;
+        // Create an array of coordinates objects
+        const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
+
+        console.log(coordinatesArray);
+
+        // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
+        const radiusInMiles = 55;
+        const radiusInRadians = radiusInMiles / 3963.2;
+
+        // Create an array of geospatial queries for each location
+        const locationQueries = coordinatesArray.map((coordinates) => ({
+          location: {
+            $geoWithin: {
+              $centerSphere: [coordinates, radiusInRadians],
+            },
+          },
+        }));
+
+        let residentialPropertyData = [];
+        let query = null;
+        let matchDocument = null;
+
+        if (obj.purpose.trim().toLowerCase() === "Rent".trim().toLowerCase()) {
+
+          // Combined query
+          query = {
+            $or: locationQueries,
+            property_for: "Rent",//obj.purpose,
+            // property_status: "1",
+            "property_address.city": obj.city,
+            "property_details.property_used_for": { $in: "Shop" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+            "rent_details.expected_rent": {
+              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+            },
+            // "rent_details.available_from": obj.reqWithin,
+            // "rent_details.preferred_tenants": obj.tenant,
+          };
+
+          // Use await to wait for the database query to complete
+          residentialPropertyData = await CommercialPropertyRent.find(query).lean().exec();
+          matchDocument = CommercialRentPropertyMatch;
+
+        } else if (obj.purpose.trim().toLowerCase() === "Buy".trim().toLowerCase()) {
+          // Combined query
+          query = {
+            $or: locationQueries,
+            property_for: "Sell",//obj.purpose,
+            // property_status: "1",
+            "property_address.city": obj.city,
+            "property_details.property_used_for": { $in: "Shop" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+            "sell_details.expected_sell_price": {
+              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+            },
+            // "rent_details.available_from": obj.reqWithin,
+            // "rent_details.preferred_tenants": obj.tenant,
+          };
+
+          // Use await to wait for the database query to complete
+          residentialPropertyData = await CommercialPropertySell.find(query).lean().exec();
+          matchDocument = CommercialBuyPropertyMatch;
+        }
+
+        // const residentialPropertySellData = await ResidentialPropertySell.find(query).exec();
+
+        // Merge the two arrays
+        const allProperties = [...residentialPropertyData];
+        for (let property of allProperties) {
+          if (property.agent_id === reqUserId) {
+            minePropertyList.push(property);
+          } else {
+            otherPropertyList.push(property);
+          }
+        }
+
+        for (let property of otherPropertyList) {
+          const result = await matchDocument.aggregate([
             {
               $match: {
                 property_id: property.property_id // Filter by property_id first
@@ -718,30 +852,69 @@ const getGlobalSearchResult = async (req, res) => {
         // 2) use those customer id to find customer details and apply filter
 
         // Combined query
-        const residentialCustomerRentLocationQuery = {
+        const locationQuery = {
           $or: locationQueries, // Geospatial queries for locations
         };
 
-        // Find customer IDs from residential_customer_rent_location
-        const residentialCustomerRentLocations = await ResidentialCustomerRentLocation.find(residentialCustomerRentLocationQuery, { customer_id: 1 }).lean().exec();
+        let residentialCustomerLocations = [];
+        let customerIds = [];
+        let residentialCustomerData = [];
+        let matchDocument = null;
 
-        // Extract customer IDs
-        const customerIds = residentialCustomerRentLocations.map(location => location.customer_id);
+        if (obj.purpose.trim().toLowerCase() === "Rent".trim().toLowerCase()) {
+          // Find customer IDs from residential_customer_rent_location
+          residentialCustomerLocations = await ResidentialCustomerRentLocation.find(
+            locationQuery, // Query filter
+            { customer_id: 1 }// Projection
+          ).lean().exec();
 
-        // Use these customer IDs to find customer details
-        const residentialCustomerRentData = await ResidentialPropertyCustomerRent.find({
-          customer_id: { $in: customerIds },
-          "customer_locality.city": obj.city, // Filter by city
-          "customer_property_details.bhk_type": { $in: ["2BHK"] }, // Filter by BHK type
-          "customer_rent_details.expected_rent": {
-            $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
-            $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
-          },
-          // "customer_rent_details.available_from": obj.reqWithin,
-        }).lean().exec();
+          // Extract customer IDs
+          customerIds = residentialCustomerLocations.map(location => location.customer_id);
+          // Use these customer IDs to find customer details
+          residentialCustomerData = await ResidentialPropertyCustomerRent.find({
+            customer_id: { $in: customerIds },
+            "customer_locality.city": obj.city, // Filter by city
+            "customer_property_details.bhk_type": { $in: ["2BHK"] }, // Filter by BHK type
+            "customer_rent_details.expected_rent": {
+              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+            },
+            // "customer_rent_details.available_from": obj.reqWithin,
+          }).lean().exec();
+
+          matchDocument = ResidentialRentCustomerMatch;
 
 
-        const allCustomers = [...residentialCustomerRentData];
+        } else if (obj.purpose.trim().toLowerCase() === "Buy".trim().toLowerCase()) {
+          // Find customer IDs from residential_customer_rent_location
+          residentialCustomerLocations = await ResidentialCustomerBuyLocation.find(
+            locationQuery, // Query filter
+            { customer_id: 1 }// Projection
+          ).lean().exec();
+          // Extract customer IDs
+          customerIds = residentialCustomerLocations.map(location => location.customer_id);
+          // Use these customer IDs to find customer details
+          residentialCustomerData = await ResidentialPropertyCustomerBuy.find({
+            customer_id: { $in: customerIds },
+            "customer_locality.city": obj.city, // Filter by city
+            "customer_property_details.bhk_type": { $in: ["2BHK"] }, // Filter by BHK type
+            "customer_buy_details.expected_buy_price": {
+              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+            },
+            // "customer_rent_details.available_from": obj.reqWithin,
+          }).lean().exec();
+
+          matchDocument = ResidentialBuyCustomerMatch;
+
+        }
+
+
+
+
+
+
+        const allCustomers = [...residentialCustomerData];
         for (let customer of allCustomers) {
           if (customer.agent_id === reqUserId) {
             mineCustomerList.push(customer);
@@ -751,7 +924,118 @@ const getGlobalSearchResult = async (req, res) => {
         }
 
         for (let customer of otherCustomerList) {
-          const result = await ResidentialRentCustomerMatch.aggregate([
+          const result = await matchDocument.aggregate([
+            {
+              $match: {
+                customer_id: customer.customer_id // Filter by customer_id first
+              }
+            },
+            {
+              $unwind: "$matched_property_id_other"
+            },
+            {
+              $match: {
+                "matched_property_id_other.agent_id": reqUserId // Filter by agent_id
+              }
+            },
+            {
+              $count: "count"
+            }
+          ]);
+          customer.match_count = result[0].count;
+          console.log(result);
+        }
+
+
+        const otherCustomerDataAfterMasking = await replaceCustomerDetailsWithAgentDetails(otherCustomerList, reqUserId);
+        const allCustomersData = [...mineCustomerList, ...otherCustomerDataAfterMasking];
+
+        console.log(JSON.stringify(allCustomersData));
+        res.send(allCustomersData);
+      } else if (obj.whatType.trim().toLowerCase() === "commercial".trim().toLowerCase()) {
+
+        const gLocations = obj.selectedLocationArray;
+        // Create an array of coordinates objects
+        const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
+
+        console.log(coordinatesArray);
+
+        // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
+        const radiusInMiles = 55;
+        const radiusInRadians = radiusInMiles / 3963.2;
+
+        // Create an array of geospatial queries for each location
+        const locationQueries = coordinatesArray.map((coordinates) => ({
+          location: {
+            $geoWithin: {
+              $centerSphere: [coordinates, radiusInRadians],
+            },
+          },
+        }));
+
+        // 1) find customer id from residential_customer_rent_location
+        // 2) use those customer id to find customer details and apply filter
+
+        // Combined query
+        const customerLocationQuery = {
+          $or: locationQueries, // Geospatial queries for locations
+        };
+        let customerLocations = [];
+        let customerIds = [];
+        let customerData = [];
+        let matchDocument = null;
+
+        if (obj.purpose.trim().toLowerCase() === "Rent".trim().toLowerCase()) {
+          // Find customer IDs from residential_customer_rent_location
+         customerLocations = await CommercialCustomerRentLocation.find(customerLocationQuery, { customer_id: 1 }).lean().exec();
+
+        // Extract customer IDs
+         customerIds = customerLocations.map(location => location.customer_id);
+
+        // Use these customer IDs to find customer details
+         customerData = await CommercialPropertyCustomerRent.find({
+          customer_id: { $in: customerIds },
+          "customer_locality.city": obj.city, // Filter by city
+          "customer_property_details.property_used_for": { $in: ["Shop"] }, // Filter by BHK type
+          "customer_rent_details.expected_rent": {
+            $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+            $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+          },
+          // "customer_rent_details.available_from": obj.reqWithin,
+        }).lean().exec();
+        matchDocument = CommercialRentCustomerMatch;
+
+        }else if (obj.purpose.trim().toLowerCase() === "Buy".trim().toLowerCase()) {
+          // Find customer IDs from residential_customer_rent_location
+         customerLocations = await CommercialCustomerBuyLocation.find(customerLocationQuery, { customer_id: 1 }).lean().exec();
+        // Extract customer IDs
+         customerIds = customerLocations.map(location => location.customer_id);
+        // Use these customer IDs to find customer details
+         customerData = await CommercialPropertyCustomerBuy.find({
+          customer_id: { $in: customerIds },
+          "customer_locality.city": obj.city, // Filter by city
+          "customer_property_details.property_used_for": { $in: ["Shop"] }, // Filter by BHK type
+          "customer_buy_details.expected_buy_price": {
+            $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+            $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+          },
+          // "customer_rent_details.available_from": obj.reqWithin, 
+        }).lean().exec();
+        matchDocument = CommercialBuyCustomerMatch;
+        
+      }
+
+        const allCustomers = [...customerData];
+        for (let customer of allCustomers) {
+          if (customer.agent_id === reqUserId) {
+            mineCustomerList.push(customer);
+          } else {
+            otherCustomerList.push(customer);
+          }
+        }
+
+        for (let customer of otherCustomerList) {
+          const result = await matchDocument.aggregate([
             {
               $match: {
                 customer_id: customer.customer_id // Filter by customer_id first
@@ -780,6 +1064,7 @@ const getGlobalSearchResult = async (req, res) => {
         console.log(JSON.stringify(allCustomersData));
         res.send(allCustomersData);
       }
+
     }
 
   } catch (err) {
