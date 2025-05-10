@@ -642,7 +642,7 @@ const getGlobalSearchResult = async (req, res) => {
             property_for: "Rent",//obj.purpose,
             // property_status: "1",
             "property_address.city": obj.city,
-            "property_details.bhk_type": { $in: "2BHK" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+            "property_details.bhk_type": { $in: obj.selectedBHK }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
             "rent_details.expected_rent": {
               $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
@@ -661,16 +661,16 @@ const getGlobalSearchResult = async (req, res) => {
             property_for: "Sell",//obj.purpose,
             // property_status: "1",
             "property_address.city": obj.city,
-            "property_details.bhk_type": { $in: "2BHK" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+            "property_details.bhk_type": { $in: obj.selectedBHK }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
             "sell_details.expected_sell_price": {
-              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
-              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+              $gte: obj.priceRangeCr[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRangeCr[1] || Infinity, // Less than or equal to max price
             },
             // "rent_details.available_from": obj.reqWithin,
             // "rent_details.preferred_tenants": obj.tenant,
           };
 
-          residentialPropertyData = await ResidentialPropertySell.find(query).exec();
+          residentialPropertyData = await ResidentialPropertySell.find(query).lean().exec();
           matchDocument = ResidentialBuyPropertyMatchBuy;
 
         }
@@ -749,7 +749,8 @@ const getGlobalSearchResult = async (req, res) => {
             property_for: "Rent",//obj.purpose,
             // property_status: "1",
             "property_address.city": obj.city,
-            "property_details.property_used_for": { $in: "Shop" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+            "property_details.property_used_for": { $in: obj.selectedRequiredFor }, 
+            "property_details.building_type": { $in: obj.selectedBuildingType }, 
             "rent_details.expected_rent": {
               $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
@@ -769,10 +770,11 @@ const getGlobalSearchResult = async (req, res) => {
             property_for: "Sell",//obj.purpose,
             // property_status: "1",
             "property_address.city": obj.city,
-            "property_details.property_used_for": { $in: "Shop" }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+            "property_details.property_used_for": { $in: obj.selectedRequiredFor }, 
+            "property_details.building_type": { $in: obj.selectedBuildingType },
             "sell_details.expected_sell_price": {
-              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
-              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+              $gte: obj.priceRangeCr[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRangeCr[1] || Infinity, // Less than or equal to max price
             },
             // "rent_details.available_from": obj.reqWithin,
             // "rent_details.preferred_tenants": obj.tenant,
