@@ -174,7 +174,7 @@ app.post("/getSubjectDetails", function (req, res) {
   getSubjectDetails(req, res);
 });
 
-app.post("/getEmployeeList", function (req, res) {
+app.post("/employeeList", function (req, res) {
   console.log("getEmployeeList");
   getEmployeeList(req, res);
 });
@@ -749,8 +749,8 @@ const getGlobalSearchResult = async (req, res) => {
             property_for: "Rent",//obj.purpose,
             // property_status: "1",
             "property_address.city": obj.city,
-            "property_details.property_used_for": { $in: obj.selectedRequiredFor }, 
-            "property_details.building_type": { $in: obj.selectedBuildingType }, 
+            "property_details.property_used_for": { $in: obj.selectedRequiredFor },
+            "property_details.building_type": { $in: obj.selectedBuildingType },
             "rent_details.expected_rent": {
               $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
@@ -770,7 +770,7 @@ const getGlobalSearchResult = async (req, res) => {
             property_for: "Sell",//obj.purpose,
             // property_status: "1",
             "property_address.city": obj.city,
-            "property_details.property_used_for": { $in: obj.selectedRequiredFor }, 
+            "property_details.property_used_for": { $in: obj.selectedRequiredFor },
             "property_details.building_type": { $in: obj.selectedBuildingType },
             "sell_details.expected_sell_price": {
               $gte: obj.priceRangeCr[0] || 0, // Greater than or equal to min price
@@ -989,43 +989,43 @@ const getGlobalSearchResult = async (req, res) => {
 
         if (obj.purpose.trim().toLowerCase() === "Rent".trim().toLowerCase()) {
           // Find customer IDs from residential_customer_rent_location
-         customerLocations = await CommercialCustomerRentLocation.find(customerLocationQuery, { customer_id: 1 }).lean().exec();
+          customerLocations = await CommercialCustomerRentLocation.find(customerLocationQuery, { customer_id: 1 }).lean().exec();
 
-        // Extract customer IDs
-         customerIds = customerLocations.map(location => location.customer_id);
+          // Extract customer IDs
+          customerIds = customerLocations.map(location => location.customer_id);
 
-        // Use these customer IDs to find customer details
-         customerData = await CommercialPropertyCustomerRent.find({
-          customer_id: { $in: customerIds },
-          "customer_locality.city": obj.city, // Filter by city
-          "customer_property_details.property_used_for": { $in: ["Shop"] }, // Filter by BHK type
-          "customer_rent_details.expected_rent": {
-            $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
-            $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
-          },
-          // "customer_rent_details.available_from": obj.reqWithin,
-        }).lean().exec();
-        matchDocument = CommercialRentCustomerMatch;
+          // Use these customer IDs to find customer details
+          customerData = await CommercialPropertyCustomerRent.find({
+            customer_id: { $in: customerIds },
+            "customer_locality.city": obj.city, // Filter by city
+            "customer_property_details.property_used_for": { $in: ["Shop"] }, // Filter by BHK type
+            "customer_rent_details.expected_rent": {
+              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+            },
+            // "customer_rent_details.available_from": obj.reqWithin,
+          }).lean().exec();
+          matchDocument = CommercialRentCustomerMatch;
 
-        }else if (obj.purpose.trim().toLowerCase() === "Buy".trim().toLowerCase()) {
+        } else if (obj.purpose.trim().toLowerCase() === "Buy".trim().toLowerCase()) {
           // Find customer IDs from residential_customer_rent_location
-         customerLocations = await CommercialCustomerBuyLocation.find(customerLocationQuery, { customer_id: 1 }).lean().exec();
-        // Extract customer IDs
-         customerIds = customerLocations.map(location => location.customer_id);
-        // Use these customer IDs to find customer details
-         customerData = await CommercialPropertyCustomerBuy.find({
-          customer_id: { $in: customerIds },
-          "customer_locality.city": obj.city, // Filter by city
-          "customer_property_details.property_used_for": { $in: ["Shop"] }, // Filter by BHK type
-          "customer_buy_details.expected_buy_price": {
-            $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
-            $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
-          },
-          // "customer_rent_details.available_from": obj.reqWithin, 
-        }).lean().exec();
-        matchDocument = CommercialBuyCustomerMatch;
-        
-      }
+          customerLocations = await CommercialCustomerBuyLocation.find(customerLocationQuery, { customer_id: 1 }).lean().exec();
+          // Extract customer IDs
+          customerIds = customerLocations.map(location => location.customer_id);
+          // Use these customer IDs to find customer details
+          customerData = await CommercialPropertyCustomerBuy.find({
+            customer_id: { $in: customerIds },
+            "customer_locality.city": obj.city, // Filter by city
+            "customer_property_details.property_used_for": { $in: ["Shop"] }, // Filter by BHK type
+            "customer_buy_details.expected_buy_price": {
+              $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+              $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+            },
+            // "customer_rent_details.available_from": obj.reqWithin, 
+          }).lean().exec();
+          matchDocument = CommercialBuyCustomerMatch;
+
+        }
 
         const allCustomers = [...customerData];
         for (let customer of allCustomers) {
@@ -1297,118 +1297,81 @@ const getEmployerDetails = agentIdsArray => {
   });
 };
 
-const getEmployeeList = (req, res) => {
+const getEmployeeList = async (req, res) => {
   const userObj = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
-  User.find(
-    { works_for: userObj.user_id },
-    { name: 1, mobile: 1, id: 1, access_rights: 1, _id: 0 },
-    function (err, data) {
-      if (err) {
-        console.log(err);
-        return;
-      } else {
-        console.log("response datax2:  " + JSON.stringify(data));
-        res.send(JSON.stringify(data));
-        res.end();
-        return;
-      }
-    }
-  ).sort({ user_id: -1 });
+  try {
+    const empList = await User.find({ works_for: userObj.req_user_id, user_type: "employee" }).sort({ user_id: -1 }).lean().exec();
+    console.log("EmployeeList:  " + JSON.stringify(empList));
+    res.send(JSON.stringify(empList));
+    res.end();
+    return;
+  } catch (err) {
+    console.error(`getUserDetails# Failed to fetch documents : ${err}`);
+    res.send(JSON.stringify(null));
+    res.end();
+    return;
+  }
+
+
+  // User.find(
+  //   { works_for: userObj.user_id },
+  //   { name: 1, mobile: 1, id: 1, access_rights: 1, _id: 0 },
+  //   function (err, data) {
+  //     if (err) {
+  //       console.log(err);
+  //       return;
+  //     } else {
+  //       console.log("response datax2:  " + JSON.stringify(data));
+  //       res.send(JSON.stringify(data));
+  //       res.end();
+  //       return;
+  //     }
+  //   }
+  // ).sort({ user_id: -1 });
 };
 
-const addEmployee = (req, res) => {
+const addEmployee = async (req, res) => {
   const employeeDetails = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
   // first check if any employee with that mobile number exist
-  User.find({ mobile: employeeDetails.mobile }, function (err, data) {
-    if (err) {
-      console.log(err);
-      return;
-    } else {
-      console.log("response datax3:  " + JSON.stringify(data));
-      if (data && data.length === 0) {
-        // create a new employee n update agent employee list
-        const newUserId = uniqueId();
-        const empObj = {
-          user_type: "employee", // employee or agent
-          id: newUserId,
-          expo_token: null,
-          name: employeeDetails.name,
-          company_name: employeeDetails.company_name,
-          mobile: employeeDetails.mobile,
-          address: employeeDetails.address,
-          city: employeeDetails.city,
-          access_rights: employeeDetails.access_rights,
-          employees: [], // if employee then it will be empty,
-          works_for: employeeDetails.user_id,
-          user_status: "active",
-          create_date_time: new Date(Date.now()),
-          update_date_time: new Date(Date.now())
-        };
-        console.log("creating new employee");
-        User.collection
-          .insertOne(empObj)
-          .then(
-            result => {
-              const agentId = employeeDetails.user_id;
-              const employeeId = newUserId;
-              console.log("agentId: " + agentId);
-              console.log("employeeId: " + employeeId);
-              User.collection.updateOne(
-                { id: agentId },
-                { $addToSet: { employees: employeeId } }
-              );
-            },
-            err => {
-              console.log("err1: " + err);
-              res.send(JSON.stringify(err));
-              res.end();
-            }
-          )
-          .then(
-            result => {
-              console.log("1");
-              res.send(JSON.stringify(newUserId));
-              res.end();
-            },
-            err => {
-              console.log("err2: " + err);
-              res.send(JSON.stringify(err));
-              res.end();
-            }
-          );
+  const emp = await User.find({ mobile: employeeDetails.mobile }).lean().exec();
+  if (emp && emp.length > 0) {
+    return res.send(JSON.stringify(emp));
+  }
 
-        // const insertFlag = insertNewUserAsEmployee(empObj);
-        // console.log("updating .... " + insertFlag);
-        // if (insertFlag) {
-        //   console.log("updating .... ");
-        //   const agentId = employeeDetails.user_id; // whom he works for
-        //   const employeeId = newUserId;
-        //   const updateEmployeeListFlag = updateUserEmployeeList(
-        //     agentId,
-        //     employeeId
-        //   );
-        //   if (updateEmployeeListFlag) {
-        //     console.log("agent employee list updated");
-        //     res.send(JSON.stringify("success"));
-        //     res.end();
-        //     return;
-        //   } else {
-        //     res.send(JSON.stringify("fail"));
-        //     res.end();
-        //     return;
-        //   }
-        // }
-      } else {
-        // employee is either present as agent or as some one else employee
-        // just update employee work_for and add employee is in employee[]
-        res.send(JSON.stringify(data));
-        res.end();
-        return;
-      }
-    }
-  });
+  try {
+    const newUserId = uniqueId();
+    const empObj = {
+      user_type: "employee", // employee or agent
+      id: newUserId,
+      expo_token: null,
+      name: employeeDetails.emp_name,
+      company_name: employeeDetails.company_name,
+      mobile: employeeDetails.emp_mobile,
+      address: employeeDetails.address,
+      city: employeeDetails.city,
+      access_rights: employeeDetails.access_rights,
+      employee_ids: [], // if employee then it will be empty,
+      liked_properties: [],
+      liked_customers: [],
+      assigned_properties: [],
+      assigned_customers: [],
+      works_for: employeeDetails.agent_id,// whom he works for
+      user_status: "active",
+      create_date_time: new Date(Date.now()),
+      update_date_time: new Date(Date.now())
+    };
+    const result = await User.create(empObj);
+    console.log("New employee added : ", result);
+    res.send(JSON.stringify(result));
+    res.end();
+  } catch (err) {
+    console.error(`getUserDetails# Failed to fetch documents : ${err}`);
+    res.send(JSON.stringify(null));
+    res.end();
+  }
+
 };
 
 const updateUserEmployeeList = (agentId, employeeId) => {

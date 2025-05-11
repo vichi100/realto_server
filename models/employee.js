@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const employeeSchema = new Schema({
   user_type: String, // employee or agent
-  agent_ids: [],
+  agent_id: String,
   id: String,
   expo_token: String,
   name: String,
@@ -11,6 +11,8 @@ const employeeSchema = new Schema({
   // agent_address: String,
   city: String,
   access_rights: String, // read , edit
+  assigned_properties:[],
+  assigned_customers:[],
   create_date_time: {
     type: Date
   },
