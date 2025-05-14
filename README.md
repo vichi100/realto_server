@@ -151,7 +151,31 @@ vichirajan@192 ~ %
 └────────── Minute (0-59)
 
 
+### Approaches to Modify Existing Documents
 
+Update Documents Individually
+You can update existing documents to match your new schema using update operations:
+
+// Example: Adding a new field with a default value
+db.yourCollection.updateMany(
+  { newField: { $exists: false } }, // Find documents missing the field
+  { $set: { newField: "defaultValue" } } // Add the field
+);
+
+db.residential_property_rents.updateMany(
+  { assigned_to_employee: { $exists: false } }, // Find documents missing the field
+  { $set: { assigned_to_employee: [] } } // Add the field
+);
+
+db.residential_property_sells.updateMany(
+  { assigned_to_employee: { $exists: false } }, // Find documents missing the field
+  { $set: { assigned_to_employee: [] } } // Add the field
+);
+
+db.commercial_customer_buys.updateMany(
+  { assigned_to_employee: { $exists: false } }, // Find documents missing the field
+  { $set: { assigned_to_employee: [] } } // Add the field
+);
 
 
 
