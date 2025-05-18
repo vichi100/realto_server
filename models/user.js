@@ -33,7 +33,7 @@ const userSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("user", userSchema);
 
 // employees=[
 //   { employee_id: String, employee_name: String, employee_mobile: String, access_rights:String}

@@ -154,6 +154,12 @@ app.post('/generateOTP', function (req, res) {
   generateOTP(req, res);
 });
 
+app.post('/updatePropertiesForEmployee', function (req, res) {
+  console.log('updatePropertiesForEmployee');
+  updatePropertiesForEmployee(req, res);
+});
+
+
 app.post('/getUserDetails', function (req, res) {
   console.log('getUserDetails');
   getUserDetails(req, res);
@@ -1297,6 +1303,241 @@ const getEmployerDetails = agentIdsArray => {
   });
 };
 
+
+const updatePropertiesForEmployee = async (req, res) => {
+  const userObj = JSON.parse(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.body));
+  const reqUserId = userObj.req_user_id;
+  const employeeId = userObj.employee_id;
+  const employeeName = userObj.employee_name;
+  const operation = userObj.operation;
+  const userData = userObj.user_data;
+  const whatToUpdateData = userObj.what_to_update_data;
+
+  try {
+    // Use findOneAndUpdate to check if the employee exists and update the document
+    const updatedEmployee = await User.findOneAndUpdate(
+      { id: employeeId, works_for: reqUserId }, // Query to find the employee
+      { $set: userData }, // Update the employee document with the provided userData
+      { new: true, lean: true } // Return the updated document and convert it to a plain JavaScript object
+    );
+
+    if (!updatedEmployee) {
+      res.status(403).send("Unauthorized or employee not found");
+      return;
+    }
+
+    let isScuuess = false;
+    if (operation === "add") {
+      isScuuess = await addEmplolyeeToPropertyOrCustomer(whatToUpdateData, employeeId, employeeName);
+    } else if (operation === "remove") {
+      isScuuess = await removeEmployeeFromPropertyOrCustomer(whatToUpdateData, employeeId, employeeName);
+    }
+
+    if (!isScuuess) {
+      res.status(403).send("Unauthorized or employee not found");
+      return;
+    }
+
+
+    res.send("success");
+    res.end();
+  } catch (err) {
+    console.error(`updatePropertiesForEmployee# Failed to update employee: ${err}`);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+const addEmplolyeeToPropertyOrCustomer = async (whatToUpdateData, employeeId, employeeName) => {
+  if (whatToUpdateData.isProperty) {
+    if (whatToUpdateData.isResidential) {
+      if (whatToUpdateData.isForRent) {
+        await ResidentialPropertyRent.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          {
+            $addToSet: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeName },
+          }
+        );
+
+      } else if (whatToUpdateData.isForSell) {
+        await ResidentialPropertySell.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          {
+            $addToSet: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeName },
+          }
+        );
+      }
+    } else if (whatToUpdateData.isCommercial) {
+      if (whatToUpdateData.isForRent) {
+        await CommercialPropertyRent.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          {
+            $addToSet: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeName },
+          }
+        );
+
+      } else if (whatToUpdateData.isForSell) {
+        await CommercialPropertySell.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          {
+            $addToSet: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeName },
+          }
+        );
+      }
+    }
+  } else if (whatToUpdateData.isCustomer) {
+    if (whatToUpdateData.isResidential) {
+      if (whatToUpdateData.isForRent) {
+        await ResidentialPropertyCustomerRent.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          {
+            $addToSet: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeName },
+          }
+        );
+
+      } else if (whatToUpdateData.isForSell) {
+        await ResidentialPropertyCustomerBuy.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          {
+            $addToSet: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeName },
+          }
+        );
+      }
+    } else if (whatToUpdateData.isCommercial) {
+      if (whatToUpdateData.isForRent) {
+        await CommercialPropertyCustomerRent.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          {
+            $addToSet: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeName },
+          }
+        );
+
+      } else if (whatToUpdateData.isForSell) {
+        await CommercialPropertyCustomerBuy.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          {
+            $addToSet: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeName },
+          }
+        );
+      }
+    }
+  }
+  return true;
+}
+
+const removeEmployeeFromPropertyOrCustomer = async (whatToUpdateData, employeeId, employeeName) => {
+  if (whatToUpdateData.isProperty) {
+    if (whatToUpdateData.isResidential) {
+      if (whatToUpdateData.isForRent) {
+        // First, remove the employee ID
+        await ResidentialPropertyRent.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          { $pull: { assigned_to_employee: employeeId } } // Remove the employee ID
+        );
+
+        // Then, remove the employee name
+        await ResidentialPropertyRent.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          { $pull: { assigned_to_employee_name: employeeName } } // Remove the employee name
+        );
+      } else if (whatToUpdateData.isForSell) {
+        // First, remove the employee ID
+        await ResidentialPropertySell.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          { $pull: { assigned_to_employee: employeeId } } // Remove the employee ID
+        );
+
+        // Then, remove the employee name
+        await ResidentialPropertySell.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          { $pull: { assigned_to_employee_name: employeeName } } // Remove the employee name
+        );
+      }
+    } else if (whatToUpdateData.isCommercial) {
+      if (whatToUpdateData.isForRent) {
+        // First, remove the employee ID
+        await CommercialPropertyRent.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          { $pull: { assigned_to_employee: employeeId } } // Remove the employee ID
+        );
+
+        // Then, remove the employee name
+        await CommercialPropertyRent.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          { $pull: { assigned_to_employee_name: employeeName } } // Remove the employee name
+        );
+      } else if (whatToUpdateData.isForSell) {
+        // First, remove the employee ID
+        await CommercialPropertySell.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          { $pull: { assigned_to_employee: employeeId } } // Remove the employee ID
+        );
+
+        // Then, remove the employee name
+        await CommercialPropertySell.updateOne(
+          { property_id: whatToUpdateData.property_id },
+          { $pull: { assigned_to_employee_name: employeeName } } // Remove the employee name
+        );
+      }
+    }
+  } else if (whatToUpdateData.isCustomer) {
+    if (whatToUpdateData.isResidential) {
+      if (whatToUpdateData.isForRent) {
+        // First, remove the employee ID
+        await ResidentialPropertyCustomerRent.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          { $pull: { assigned_to_employee: employeeId } } // Remove the employee ID
+        );
+
+        // Then, remove the employee name
+        await ResidentialPropertyCustomerRent.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          { $pull: { assigned_to_employee_name: employeeName } } // Remove the employee name
+        );
+      } else if (whatToUpdateData.isForSell) {
+        // First, remove the employee ID
+        await ResidentialPropertyCustomerBuy.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          { $pull: { assigned_to_employee: employeeId } } // Remove the employee ID
+        );
+
+        // Then, remove the employee name
+        await ResidentialPropertyCustomerBuy.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          { $pull: { assigned_to_employee_name: employeeName } } // Remove the employee name
+        );
+      }
+    } else if (whatToUpdateData.isCommercial) {
+      if (whatToUpdateData.isForRent) {
+        // First, remove the employee ID
+        await CommercialPropertyCustomerRent.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          { $pull: { assigned_to_employee: employeeId } } // Remove the employee ID
+        );
+
+        // Then, remove the employee name
+        await CommercialPropertyCustomerRent.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          { $pull: { assigned_to_employee_name: employeeName } } // Remove the employee name
+        );
+      } else if (whatToUpdateData.isForSell) {
+        // First, remove the employee ID
+        await CommercialPropertyCustomerBuy.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          { $pull: { assigned_to_employee: employeeId } } // Remove the employee ID
+        );
+
+        // Then, remove the employee name
+        await CommercialPropertyCustomerBuy.updateOne(
+          { customer_id: whatToUpdateData.customer_id },
+          { $pull: { assigned_to_employee_name: employeeName } } // Remove the employee name
+        );
+      }
+    }
+  }
+  return true;
+};
+
 const getEmployeeList = async (req, res) => {
   const userObj = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
@@ -1312,23 +1553,6 @@ const getEmployeeList = async (req, res) => {
     res.end();
     return;
   }
-
-
-  // User.find(
-  //   { works_for: userObj.user_id },
-  //   { name: 1, mobile: 1, id: 1, access_rights: 1, _id: 0 },
-  //   function (err, data) {
-  //     if (err) {
-  //       console.log(err);
-  //       return;
-  //     } else {
-  //       console.log("response datax2:  " + JSON.stringify(data));
-  //       res.send(JSON.stringify(data));
-  //       res.end();
-  //       return;
-  //     }
-  //   }
-  // ).sort({ user_id: -1 });
 };
 
 const addEmployee = async (req, res) => {
@@ -2561,8 +2785,8 @@ const getResidentialPropertyListings = async (req, res) => {
     const agent_id = agentDetails.agent_id;
 
     // Use await to wait for the database query to complete
-    const residentialPropertyRentData = await ResidentialPropertyRent.find({ agent_id: agent_id }).exec();
-    const residentialPropertySellData = await ResidentialPropertySell.find({ agent_id: agent_id }).exec();
+    const residentialPropertyRentData = await ResidentialPropertyRent.find({ agent_id: agent_id }).lean().exec();
+    const residentialPropertySellData = await ResidentialPropertySell.find({ agent_id: agent_id }).lean().exec();
 
     // Merge the two arrays
     const allProperties = [...residentialPropertyRentData, ...residentialPropertySellData];

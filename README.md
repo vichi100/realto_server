@@ -177,5 +177,22 @@ db.commercial_customer_buys.updateMany(
   { $set: { assigned_to_employee: [] } } // Add the field
 );
 
+db.users.updateMany(
+  { 
+    assigned_residential_rent_properties: { $exists: false } // Ensure the field doesn't already exist
+  },
+  { 
+    $set: { 
+      assigned_residential_rent_properties: [],
+      assigned_residential_sell_properties: [],
+      assigned_commercial_rent_properties: [],
+      assigned_commercial_sell_properties: [],
+      assigned_residential_rent_customers: [],
+      assigned_residential_buy_customers: [],
+      assigned_commercial_rent_customers: [],
+      assigned_commercial_buy_customers: []
+    } 
+  }
+);
 
 
