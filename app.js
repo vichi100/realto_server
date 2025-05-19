@@ -1131,36 +1131,67 @@ const getCustomerReminderList = async (req, res) => {
 
 
 
-// {category_ids: { $in: [propertyId] } }
+// there will be two cases
+// 1) I am the owner of property/custome means I am the agent
+// I can see all the remoinders of this property or customer for which I am the agent
+// 2) I am employee
+// I can see only those reminders which are created by me
 const getPropReminderList = async (req, res) => {
   console.log(JSON.stringify(req.body));
   const reqData = JSON.parse(JSON.stringify(req.body));
   const propertyId = reqData.property_id;
-  const reqUserId = reqData.req_user_id;
-  const remiderList = await Reminder.find({ category_ids: { $in: [propertyId] } }).sort({ property_id: -1 }).lean().exec();
-  for (let reminder of remiderList) {
-    if (reqUserId !== reminder.agent_id_of_client) {
-      const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
-      reminder.client_name = user.name ? user.name : "Agent";
-      reminder.client_mobile = user.mobile;
-    }
-  }
-  console.log("getPropReminderList resp:  " + JSON.stringify(remiderList));
-  res.send(JSON.stringify(remiderList));
-  res.end();
-  return;
+  const reqUserId = reqData.req_user_id;// user id
+  const agentId = reqData.agent_id;// works_for
 
-  // Reminder.find({ category_ids: { $in: [propertyId] } }, function (err, data) {
-  //   if (err) {
-  //     console.log(err);
-  //     return;
-  //   } else {
-  //     console.log("response datax1:  " + JSON.stringify(data));
-  //     res.send(JSON.stringify(data));
-  //     res.end();
-  //     return;
-  //   }
-  // }).sort({ property_id: -1 });
+  if (reqUserId === agentId) {
+    // Case 1: Agent can see all reminders for the property
+    const remiderList = await Reminder.find({
+      category_ids: { $in: [propertyId] },
+      $or: [
+        { meeting_creator_id: reqUserId }, // Include reminders created by the agent
+        { agent_id_of_client: reqUserId } // Include reminders where the agent is the client
+      ]
+    }).sort({ property_id: -1 }).lean().exec();
+
+    for (let reminder of remiderList) {
+      if (reqUserId !== reminder.agent_id_of_client) {
+        const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
+        reminder.client_name = user.name ? user.name : "Agent";
+        reminder.client_mobile = user.mobile;
+      }
+    }
+    console.log("getPropReminderList resp:  " + JSON.stringify(remiderList));
+    res.send(JSON.stringify(remiderList));
+    res.end();
+    return;
+  } else if (reqUserId !== agentId) {
+    // Case 2: Employee can only see reminders created by them
+    const remiderList = await Reminder.find({
+      category_ids: { $in: [propertyId] },
+      meeting_creator_id: reqUserId // Only include reminders created by the employee
+    })
+      .sort({ property_id: -1 })
+      .lean()
+      .exec();
+
+    for (let reminder of remiderList) {
+      // if reqUserid agent id and agent id of client is not same then only mask the details
+      const reqUserIdDetails = await User.findOne({ id: reqUserId }).lean().exec();
+
+      if (reqUserIdDetails.works_for !== reminder.agent_id_of_client) {
+        const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
+        reminder.client_name = user.name ? user.name : "Agent";
+        reminder.client_mobile = user.mobile;
+      }
+    }
+    console.log("getPropReminderList resp:  " + JSON.stringify(remiderList));
+    res.send(JSON.stringify(remiderList));
+    res.end();
+    return;
+  }
+
+
+
 };
 
 const checkLoginRole = (req, res) => {
@@ -1572,7 +1603,7 @@ const addEmployee = async (req, res) => {
       expo_token: null,
       name: employeeDetails.emp_name,
       company_name: employeeDetails.company_name,
-      mobile: employeeDetails.emp_mobile,
+      mobile: "+91" + employeeDetails.emp_mobile,
       address: employeeDetails.address,
       city: employeeDetails.city,
       access_rights: employeeDetails.access_rights,
@@ -1738,26 +1769,51 @@ const updateUserProfile = (req, res) => {
 const getReminderList = async (req, res) => {
   console.log("getReminderList 1: ") //req_user_id
   const agentIdDict = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = agentIdDict.req_user_id;// user id
+  const agentId = agentIdDict.agent_id;// agent id
 
-  const remiderArray = await Reminder.find({
-    $or: [
-      { agent_id_of_client: agentIdDict.req_user_id },
-      { meeting_creator_id: agentIdDict.req_user_id }
-    ]
-  }).sort({ user_id: -1 }).lean().exec();
+  if (reqUserId === agentId) {
+    const remiderArray = await Reminder.find({
+      $or: [
+        { agent_id_of_client: agentId },
+        { meeting_creator_id: reqUserId }
+      ]
+    }).sort({ user_id: -1 }).lean().exec();
 
-  for (let reminder of remiderArray) {
-    if (agentIdDict.req_user_id !== reminder.agent_id_of_client) {
-      const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
-      reminder.client_name = user.name ? user.name : "Agent";
-      reminder.client_mobile = user.mobile;
+    for (let reminder of remiderArray) {
+      if (agentIdDict.req_user_id !== reminder.agent_id_of_client) {
+        const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
+        reminder.client_name = user.name ? user.name : "Agent";
+        reminder.client_mobile = user.mobile;
+      }
     }
+
+
+    res.send(JSON.stringify(remiderArray));
+    res.end();
+    return;
+  } else if (reqUserId !== agentId) {
+    // then only return the remoder which matched req_user_id with meeting_creator_id
+    const remiderArray = await Reminder.find({
+      $or: [
+        { meeting_creator_id: reqUserId }
+      ]
+    }).sort({ user_id: -1 }).lean().exec();
+    for (let reminder of remiderArray) {
+      const reqUserIdDetails  = await User.findOne({ id: reqUserId }).lean().exec();
+
+      if (reqUserIdDetails.works_for !== reminder.agent_id_of_client) {
+        const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
+        reminder.client_name = user.name ? user.name : "Agent";
+        reminder.client_mobile = user.mobile;
+      }
+    }
+    res.send(JSON.stringify(remiderArray));
+    res.end();
+    return;
   }
 
 
-  res.send(JSON.stringify(remiderArray));
-  res.end();
-  return;
 };
 
 
@@ -1876,15 +1932,32 @@ const getCommercialCustomerListings = async (req, res) => {
   try {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
     // console.log(JSON.stringify(req.body));
-    const agent_id = agentDetails.agent_id;
-    const commercialPropertyCustomerRent = await CommercialPropertyCustomerRent.find({ agent_id: agent_id }).lean().exec();
-    const commercialPropertyCustomerBuy = await CommercialPropertyCustomerBuy.find({ agent_id: agent_id }).lean().exec();
+    const agent_id = agentDetails.agent_id;// works_for
+    const reqUserId = agentDetails.req_user_id;// user id
 
-    const data = [...commercialPropertyCustomerRent, ...commercialPropertyCustomerBuy];
+    if (agent_id === reqUserId) {
+      const commercialPropertyCustomerRent = await CommercialPropertyCustomerRent.find({ agent_id: agent_id }).lean().exec();
+      const commercialPropertyCustomerBuy = await CommercialPropertyCustomerBuy.find({ agent_id: agent_id }).lean().exec();
 
-    console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
-    res.send(data);
-    res.end();
+      const data = [...commercialPropertyCustomerRent, ...commercialPropertyCustomerBuy];
+
+      console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
+      res.send(data);
+      res.end();
+
+    } else if (agent_id !== reqUserId) {
+      const empObj = await User.findOne({ id: reqUserId }).lean().exec();
+      const commercialPropertyCustomerRentIds = empObj.assigned_commercial_rent_customers;
+      const commercialPropertyCustomerBuyIds = empObj.assigned_commercial_buy_customers;
+      const commercialPropertyCustomerRent = await CommercialPropertyCustomerRent.find({ customer_id: { $in: commercialPropertyCustomerRentIds } }).lean().exec();
+      const commercialPropertyCustomerBuy = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: commercialPropertyCustomerBuyIds } }).lean().exec();
+      const data = [...commercialPropertyCustomerRent, ...commercialPropertyCustomerBuy];
+      console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
+      res.send(data);
+      res.end();
+    }
+
+
 
   } catch (err) {
     console.error(err);
@@ -1897,21 +1970,40 @@ const getCommercialCustomerListings = async (req, res) => {
 const getCommercialPropertyListings = async (req, res) => {
   try {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
-    const agent_id = agentDetails.agent_id;
+    const agent_id = agentDetails.agent_id;// works_for
+    const reqUserId = agentDetails.req_user_id;// user id
 
-    // Use await to wait for the database query to complete
-    const commercialPropertyRentData = await CommercialPropertyRent.find({ agent_id: agent_id }).lean().exec();
-    const commercialPropertySellData = await CommercialPropertySell.find({ agent_id: agent_id }).lean().exec();
+    if (agent_id === reqUserId) {
 
-    // Merge the two arrays
-    const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
+      // Use await to wait for the database query to complete
+      const commercialPropertyRentData = await CommercialPropertyRent.find({ agent_id: agent_id }).lean().exec();
+      const commercialPropertySellData = await CommercialPropertySell.find({ agent_id: agent_id }).lean().exec();
 
-    // Sort the merged array based on update_date_time
-    allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
+      // Merge the two arrays
+      const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
 
-    console.log(JSON.stringify(allProperties));
-    res.send(allProperties); // Send the response with the sorted data
-    res.end(); // End the response
+      // Sort the merged array based on update_date_time
+      allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
+
+      console.log(JSON.stringify(allProperties));
+      res.send(allProperties); // Send the response with the sorted data
+      res.end(); // End the response
+
+    } else if (agent_id !== reqUserId) {
+
+      const empObj = await User.findOne({ id: reqUserId }).lean().exec();
+      const commercialPropertyRentIds = empObj.assigned_commercial_rent_properties;
+      const commercialPropertySellIds = empObj.assigned_commercial_sell_properties;
+      const commercialPropertyRentData = await CommercialPropertyRent.find({ property_id: { $in: commercialPropertyRentIds } }).lean().exec();
+      const commercialPropertySellData = await CommercialPropertySell.find({ property_id: { $in: commercialPropertySellIds } }).lean().exec();
+      const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
+      allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
+      console.log(JSON.stringify(allProperties));
+      res.send(allProperties); // Send the response with the sorted data
+      res.end(); // End the response
+    }
+
+
   } catch (err) {
     console.error(err); // Log the error
     res.status(500).send("Internal Server Error"); // Send an error response
@@ -1924,15 +2016,30 @@ const getResidentialCustomerList = async (req, res) => {
   try {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
     // console.log(JSON.stringify(req.body));
-    const agent_id = agentDetails.agent_id;
-    const residentialPropertyCustomerRent = await ResidentialPropertyCustomerRent.find({ agent_id: agent_id }).lean().exec();
-    const residentialPropertyCustomerBuy = await ResidentialPropertyCustomerBuy.find({ agent_id: agent_id }).lean().exec();
+    const agent_id = agentDetails.agent_id;// works_for
+    const reqUserId = agentDetails.req_user_id;// user id
 
-    const data = [...residentialPropertyCustomerRent, ...residentialPropertyCustomerBuy];
+    if (agent_id === reqUserId) {
+      const residentialPropertyCustomerRent = await ResidentialPropertyCustomerRent.find({ agent_id: agent_id }).lean().exec();
+      const residentialPropertyCustomerBuy = await ResidentialPropertyCustomerBuy.find({ agent_id: agent_id }).lean().exec();
 
-    console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
-    res.send(data);
-    res.end();
+      const data = [...residentialPropertyCustomerRent, ...residentialPropertyCustomerBuy];
+
+      console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
+      res.send(data);
+      res.end();
+    } else if (agent_id !== reqUserId) {
+      const empObj = await User.findOne({ id: reqUserId }).lean().exec();
+      const residentialPropertyCustomerRentIds = empObj.assigned_residential_rent_customers;
+      const residentialPropertyCustomerBuyIds = empObj.assigned_residential_buy_customers;
+      const residentialPropertyCustomerRent = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: residentialPropertyCustomerRentIds } }).lean().exec();
+      const residentialPropertyCustomerBuy = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: residentialPropertyCustomerBuyIds } }).lean().exec();
+      const data = [...residentialPropertyCustomerRent, ...residentialPropertyCustomerBuy];
+      console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
+      res.send(data);
+      res.end();
+    }
+
 
   } catch (err) {
     console.error(err);
@@ -2783,20 +2890,37 @@ const getResidentialPropertyListings = async (req, res) => {
   try {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
     const agent_id = agentDetails.agent_id;
+    const reqUserId = agentDetails.req_user_id;
+    if (reqUserId === agent_id) {
+      // Use await to wait for the database query to complete
+      const residentialPropertyRentData = await ResidentialPropertyRent.find({ agent_id: agent_id }).lean().exec();
+      const residentialPropertySellData = await ResidentialPropertySell.find({ agent_id: agent_id }).lean().exec();
 
-    // Use await to wait for the database query to complete
-    const residentialPropertyRentData = await ResidentialPropertyRent.find({ agent_id: agent_id }).lean().exec();
-    const residentialPropertySellData = await ResidentialPropertySell.find({ agent_id: agent_id }).lean().exec();
+      // Merge the two arrays
+      const allProperties = [...residentialPropertyRentData, ...residentialPropertySellData];
 
-    // Merge the two arrays
-    const allProperties = [...residentialPropertyRentData, ...residentialPropertySellData];
+      // Sort the merged array based on update_date_time
+      allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
 
-    // Sort the merged array based on update_date_time
-    allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
+      console.log(JSON.stringify(allProperties));
+      res.send(allProperties); // Send the response with the sorted data
+      res.end(); // End the response
 
-    console.log(JSON.stringify(allProperties));
-    res.send(allProperties); // Send the response with the sorted data
-    res.end(); // End the response
+    } else if (reqUserId !== agent_id) {
+      const empObj = await User.findOne({ id: reqUserId }).lean().exec();
+      const residentialPropertyRentIds = empObj.assigned_residential_rent_properties;
+      const residentialPropertySellIds = empObj.assigned_residential_sell_properties;
+      const residentialPropertyRentData = await ResidentialPropertyRent.find({ property_id: { $in: residentialPropertyRentIds } }).lean().exec();
+      const residentialPropertySellData = await ResidentialPropertySell.find({ property_id: { $in: residentialPropertySellIds } }).lean().exec();
+      // Merge the two arrays
+      const allProperties = [...residentialPropertyRentData, ...residentialPropertySellData];
+      // Sort the merged array based on update_date_time
+      allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
+      console.log(JSON.stringify(allProperties));
+      res.send(allProperties); // Send the response with the sorted data
+      res.end(); // End the response
+
+    }
   } catch (err) {
     console.error(err); // Log the error
     res.status(500).send("Internal Server Error"); // Send an error response
@@ -3060,8 +3184,74 @@ const getDirectoryPath = (agent_id) => {
 }
 
 
+const getTotalListingSummary = async (req, res) => {
+  console.log("Prop details1: " + JSON.stringify(req.body));
+  const agentObj = JSON.parse(JSON.stringify(req.body));
+  // first check if user is agent or employee
+  // if agent he can see all properties/customers for him and his employees
+  // if employee he can see all properties/customers which are assigned to him
+  const reqUserId = agentObj.req_user_id;
+  const agentId = agentObj.agent_id;
 
-const getTotalListingSummary = (req, res) => {
+  let residentialPropertyRentCount = 0;
+  let residentialPropertySellCount = 0;
+  let commercialPropertyRentCount = 0;
+  let commercialPropertySellCount = 0;
+  let residentialPropertyCustomerRentCount = 0;
+  let residentialPropertyCustomerBuyCount = 0;
+  let commercialPropertyCustomerRentCount = 0;
+  let commercialPropertyCustomerBuyCount = 0;
+
+  if (reqUserId === agentId) {
+    // means this is agent
+    // for properties
+    residentialPropertyRentCount = await ResidentialPropertyRent.countDocuments({ agent_id: agentId }).lean().exec();
+    residentialPropertySellCount = await ResidentialPropertySell.countDocuments({ agent_id: agentId }).lean().exec();
+    commercialPropertyRentCount = await CommercialPropertyRent.countDocuments({ agent_id: agentId }).lean().exec();
+    commercialPropertySellCount = await CommercialPropertySell.countDocuments({ agent_id: agentId }).lean().exec();
+    // for customers
+    residentialPropertyCustomerRentCount = await ResidentialPropertyCustomerRent.countDocuments({ agent_id: agentId }).lean().exec();
+    residentialPropertyCustomerBuyCount = await ResidentialPropertyCustomerBuy.countDocuments({ agent_id: agentId }).lean().exec();
+    commercialPropertyCustomerRentCount = await CommercialPropertyCustomerRent.countDocuments({ agent_id: agentId }).lean().exec();
+    commercialPropertyCustomerBuyCount = await CommercialPropertyCustomerBuy.countDocuments({ agent_id: agentId }).lean().exec();
+
+
+
+  } else if (reqUserId !== agentId) {
+    // means this is employee
+    // now find what are properties/customers are assigned to him
+    employeeObj = await User.findOne({ id: reqUserId }).lean().exec();
+    residentialPropertyRentCount = employeeObj.assigned_residential_rent_properties.length;
+    residentialPropertySellCount = employeeObj.assigned_residential_sell_properties.length;
+    commercialPropertyRentCount = employeeObj.assigned_commercial_rent_properties.length;
+    commercialPropertySellCount = employeeObj.assigned_commercial_sell_properties.length;
+    // for customers
+    residentialPropertyCustomerRentCount = employeeObj.assigned_residential_rent_customers.length;
+    residentialPropertyCustomerBuyCount = employeeObj.assigned_residential_buy_customers.length;
+    commercialPropertyCustomerRentCount = employeeObj.assigned_commercial_rent_customers.length;
+    commercialPropertyCustomerBuyCount = employeeObj.assigned_commercial_buy_customers.length;
+  }
+
+  const responseObj = {
+    residentialPropertyRentCount: residentialPropertyRentCount,
+    residentialPropertySellCount: residentialPropertySellCount,
+    commercialPropertyRentCount: commercialPropertyRentCount,
+    commercialPropertySellCount: commercialPropertySellCount,
+    residentialPropertyCustomerRentCount: residentialPropertyCustomerRentCount,
+    residentialPropertyCustomerBuyCount: residentialPropertyCustomerBuyCount,
+    commercialPropertyCustomerRentCount: commercialPropertyCustomerRentCount,
+    commercialPropertyCustomerBuyCount: commercialPropertyCustomerBuyCount
+  }
+
+  res.send(JSON.stringify(responseObj));
+  res.end();
+  return;
+
+
+}
+
+
+const getTotalListingSummaryX = (req, res) => {
   console.log("Prop details1: " + JSON.stringify(req.body));
   const agentObj = JSON.parse(JSON.stringify(req.body));
   // calculate last 4 months starting time
