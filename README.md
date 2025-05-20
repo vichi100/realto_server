@@ -202,3 +202,7 @@ db.commercial_property_rents.updateMany(
 );
 
 
+### Employee issue
+1) after deleting Ramu it is still in comercial customer
+
+

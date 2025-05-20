@@ -1349,14 +1349,60 @@ const updatePropertiesForEmployee = async (req, res) => {
   const operation = userObj.operation;
   const userData = userObj.user_data;
   const whatToUpdateData = userObj.what_to_update_data;
-
+  const { isResidential, isCommercial, isForRent, isForSell, isProperty, isCustomer} = whatToUpdateData;
+  let fieldToUpdate = null;
+  let updatedEmployee = null;
+  let assetId = null;
   try {
+    if (isProperty) {
+      if (isResidential && isForRent) {
+        fieldToUpdate = "assigned_residential_rent_properties"
+      } else if (isResidential && isForSell) {
+        fieldToUpdate = "assigned_residential_sell_properties"
+      } else if (isCommercial && isForRent) {
+        fieldToUpdate = "assigned_commercial_rent_properties"
+      } else if (isCommercial && isForSell) {
+        fieldToUpdate = "assigned_commercial_sell_properties"
+      }
+
+      assetId = whatToUpdateData.property_id;
+
+    } else if (isCustomer) {
+      if (isResidential && isForRent) {
+        fieldToUpdate = "assigned_residential_rent_customers"
+      } else if (isResidential && isForSell) {
+        fieldToUpdate = "assigned_residential_buy_customers"
+      } else if (isCommercial && isForRent) {
+        fieldToUpdate = "assigned_commercial_rent_customers"
+      } else if (isCommercial && isForSell) {
+        fieldToUpdate = "assigned_commercial_buy_customers"
+      }
+
+      assetId = whatToUpdateData.customer_id;
+    }
+
+    if (operation === "add") {
+      updatedEmployee = await User.findOneAndUpdate(
+        { id: employeeId, works_for: reqUserId }, // Query to find the employee
+        {
+          $addToSet: { [fieldToUpdate]: assetId }, // Add the property/customer to the employee's assigned list
+          $set: { update_date_time: new Date(Date.now()) } // Update the timestamp
+        },
+        { new: true, lean: true } // Return the updated document and convert it to a plain JavaScript object
+      );
+    } else if (operation === "remove") {
+      updatedEmployee = await User.findOneAndUpdate(
+        { id: employeeId, works_for: reqUserId }, // Query to find the employee
+        {
+          $pull: { [fieldToUpdate]: assetId }, // Remove the property/customer from the employee's assigned list
+          $set: { update_date_time: new Date(Date.now()) } // Update the timestamp
+        },
+        { new: true, lean: true } // Return the updated document and convert it to a plain JavaScript object
+      );
+    }
+
     // Use findOneAndUpdate to check if the employee exists and update the document
-    const updatedEmployee = await User.findOneAndUpdate(
-      { id: employeeId, works_for: reqUserId }, // Query to find the employee
-      { $set: userData }, // Update the employee document with the provided userData
-      { new: true, lean: true } // Return the updated document and convert it to a plain JavaScript object
-    );
+
 
     if (!updatedEmployee) {
       res.status(403).send("Unauthorized or employee not found");
@@ -1889,7 +1935,7 @@ const getReminderList = async (req, res) => {
       ]
     }).sort({ user_id: -1 }).lean().exec();
     for (let reminder of remiderArray) {
-      const reqUserIdDetails  = await User.findOne({ id: reqUserId }).lean().exec();
+      const reqUserIdDetails = await User.findOne({ id: reqUserId }).lean().exec();
 
       if (reqUserIdDetails.works_for !== reminder.agent_id_of_client) {
         const user = await User.findOne({ id: reminder.agent_id_of_client }).lean().exec();
