@@ -196,3 +196,9 @@ db.users.updateMany(
 );
 
 
+db.commercial_property_rents.updateMany(
+  { assigned_to_employee: { $exists: true } }, // Find documents missing the field
+  { $set: { assigned_to_employee_name: [] } } // Add the field
+);
+
+
