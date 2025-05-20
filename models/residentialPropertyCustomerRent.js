@@ -36,7 +36,7 @@ const propertySchema = new mongoose.Schema({
     available_from: String,
   },
 
-  reminders: [],
+  reminders: { type: String, default: [] },
   assigned_to_employee:{ type: String, default: [] },
   assigned_to_employee_name:{ type: String, default: [] },
   create_date_time: {

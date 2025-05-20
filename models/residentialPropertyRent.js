@@ -61,8 +61,8 @@ const propertySchema = new mongoose.Schema({
   },
 
 
-  image_urls: [],
-  reminders: [],
+  image_urls: { type: String, default: [] },
+  reminders: { type: String, default: [] },
   assigned_to_employee:{ type: String, default: [] },
   assigned_to_employee_name:{ type: String, default: [] },
   create_date_time: {

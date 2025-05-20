@@ -39,7 +39,7 @@ const propertySchema = new mongoose.Schema({
   property_details: {
     property_used_for: String,
     building_type: String,
-    ideal_for: [],
+    ideal_for: { type: String, default: [] },
     parking_type: String,
     property_age: String,
     power_backup: String,
@@ -59,8 +59,8 @@ const propertySchema = new mongoose.Schema({
     negotiable: String
   },
 
-  image_urls: [],
-  reminders: [],
+  image_urls: { type: String, default: [] },
+  reminders: { type: String, default: [] },
   create_date_time: {
     type: Date
   },

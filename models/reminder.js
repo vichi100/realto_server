@@ -6,7 +6,7 @@ const reminderSchema = new Schema({
   },
   meeting_creator_id: String, // this will be req_use_id
   agent_id_of_client: String, 
-  category_ids: [], // property_id or buyer_id
+  category_ids: { type: String, default: [] },// property_id or buyer_id
   category: String, // property, customer
   category_type: String, // commercial, residential
   category_for: String, // buy, sell rent
