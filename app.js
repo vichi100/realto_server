@@ -1692,77 +1692,99 @@ const addEmployee = async (req, res) => {
 // };
 
 const deleteEmployee = async (req, res) => {
-  const employeeDetails = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
-  const employeeId = employeeDetails.employee_id;
-  const employeeObj = await User.findOne({ id: employeeId }).lean().exec();
+  const session = await mongoose.startSession(); // Start a new session for the transaction
+  session.startTransaction(); // Start the transaction
 
-  const residentialRentProperties = employeeObj.assigned_residential_rent_properties;
-  const residentialSellProperties = employeeObj.assigned_residential_sell_properties;
-  const commercialRentProperties = employeeObj.assigned_commercial_rent_properties;
-  const commercialSellProperties = employeeObj.assigned_commercial_sell_properties;
+  try {
+    const employeeDetails = JSON.parse(JSON.stringify(req.body));
+    console.log(JSON.stringify(req.body));
+    const employeeId = employeeDetails.employee_id;
 
-  const residentialRentCustomers = employeeObj.assigned_residential_rent_customers;
-  const residentialSellCustomers = employeeObj.assigned_residential_buy_customers;
-  const commercialRentCustomers = employeeObj.assigned_commercial_rent_customers;
-  const commercialSellCustomers = employeeObj.assigned_commercial_buy_customers;
+    // Fetch the employee document
+    const employeeObj = await User.findOne({ id: employeeId }).lean().exec();
 
-  await ResidentialPropertyRent.updateMany(
-    { property_id: { $in: residentialRentProperties } },
-    {
-      $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name }
+    if (!employeeObj) {
+      throw new Error("Employee not found");
     }
-  );
-  await ResidentialPropertySell.updateMany(
-    { property_id: { $in: residentialSellProperties } },
-    {
-      $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name }
-    }
-  );
-  await CommercialPropertyRent.updateMany(
-    { property_id: { $in: commercialRentProperties } },
-    {
-      $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name }
-    }
-  );
-  await CommercialPropertySell.updateMany(
-    { property_id: { $in: commercialSellProperties } },
-    {
-      $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name }
-    }
-  );
-  await ResidentialPropertyCustomerRent.updateMany(
-    { customer_id: { $in: residentialRentCustomers } },
-    {
-      $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name }
-    }
-  );
-  await ResidentialPropertyCustomerBuy.updateMany(
-    { customer_id: { $in: residentialSellCustomers } },
-    {
-      $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name }
-    }
-  );
-  await CommercialPropertyCustomerRent.updateMany(
-    { customer_id: { $in: commercialRentCustomers } },
-    {
-      $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name }
-    }
-  );
-  await CommercialPropertyCustomerBuy.updateMany(
-    { customer_id: { $in: commercialSellCustomers } },
-    {
-      $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name }
-    }
-  );
-  // Delete the employee document from the User collection
-  await User.deleteOne({ id: employeeId });
 
-  console.log("Employee deleted successfully");
-  res.send("success");
-  res.end();
+    const residentialRentProperties = employeeObj.assigned_residential_rent_properties;
+    const residentialSellProperties = employeeObj.assigned_residential_sell_properties;
+    const commercialRentProperties = employeeObj.assigned_commercial_rent_properties;
+    const commercialSellProperties = employeeObj.assigned_commercial_sell_properties;
 
-}
+    const residentialRentCustomers = employeeObj.assigned_residential_rent_customers;
+    const residentialBuyCustomers = employeeObj.assigned_residential_buy_customers;
+    const commercialRentCustomers = employeeObj.assigned_commercial_rent_customers;
+    const commercialBuyCustomers = employeeObj.assigned_commercial_buy_customers;
+
+    // Update all related documents in a transaction
+    await ResidentialPropertyRent.updateMany(
+      { property_id: { $in: residentialRentProperties } },
+      { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    await ResidentialPropertySell.updateMany(
+      { property_id: { $in: residentialSellProperties } },
+      { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    await CommercialPropertyRent.updateMany(
+      { property_id: { $in: commercialRentProperties } },
+      { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    await CommercialPropertySell.updateMany(
+      { property_id: { $in: commercialSellProperties } },
+      { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    await ResidentialPropertyCustomerRent.updateMany(
+      { customer_id: { $in: residentialRentCustomers } },
+      { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    await ResidentialPropertyCustomerBuy.updateMany(
+      { customer_id: { $in: residentialBuyCustomers } },
+      { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    await CommercialPropertyCustomerRent.updateMany(
+      { customer_id: { $in: commercialRentCustomers } },
+      { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    await CommercialPropertyCustomerBuy.updateMany(
+      { customer_id: { $in: commercialBuyCustomers } },
+      { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    // Delete the employee document
+    await User.deleteOne({ id: employeeId }, { session });
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    console.log("Employee deleted successfully");
+    res.send("success");
+    res.end();
+  } catch (err) {
+    // Abort the transaction in case of an error
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error deleting employee:", err);
+    res.status(500).send("Failed to delete employee");
+  }
+};
 
 const updateUserEmployeeList = (agentId, employeeId) => {
   User.updateOne(

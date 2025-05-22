@@ -1,5 +1,12 @@
 # How to login mongo db
 
+sudo service mongod stop
+sudo service mongod start
+sudo service mongod status
+
+
+
+
 admin@vmi2390151:~$ mongosh
 Current Mongosh Log ID:	67b1076c4264af247b544ca6
 Connecting to:		mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.8
@@ -23,6 +30,14 @@ residential_customers
 residential_properties
 users
 realtodb> 
+
+sudo systemctl start mongod
+
+sudo service mongod stop
+
+sudo service mongod [start|stop|restart|status]
+
+sudo tail -n 100 /var/log/mongodb/mongod.log
 
 
 ### Delete data from one collection
@@ -196,13 +211,13 @@ db.users.updateMany(
 );
 
 
-db.commercial_property_rents.updateMany(
+db.commercial_customer_buys.updateMany(
   { assigned_to_employee: { $exists: true } }, // Find documents missing the field
-  { $set: { assigned_to_employee_name: [] } } // Add the field
+  { $set: { assigned_to_employee: [] } } // Add the field
 );
 
 
 ### Employee issue
-1) after deleting Ramu it is still in comercial customer
+1) after deleting Ramu it is still in comercial customer BUY
 
 
