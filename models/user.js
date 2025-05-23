@@ -13,8 +13,8 @@ const userSchema = new Schema({
   city: String,
   access_rights: String, // employee, agent
   employee_ids: {type: [String],default: []}, // if employee then it will be empty,
-  liked_properties: [],
-  liked_customers: [],
+  liked_properties: {type: [String],default: []},
+  liked_customers: {type: [String],default: []},
   assigned_residential_rent_properties:{type: [String],default: []},
   assigned_residential_sell_properties:{type: [String],default: []},
   assigned_commercial_rent_properties:{type: [String],default: []},

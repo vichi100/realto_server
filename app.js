@@ -1641,9 +1641,18 @@ const addEmployee = async (req, res) => {
   const employeeDetails = JSON.parse(JSON.stringify(req.body));
   console.log(JSON.stringify(req.body));
   // first check if any employee with that mobile number exist
-  const emp = await User.find({ mobile: employeeDetails.mobile }).lean().exec();
+  // first check if +91 is appended to the mobile number
+  let mobileNumber = employeeDetails.emp_mobile;
+  if (!mobileNumber.startsWith("+91")) {
+    mobileNumber = "+91" + mobileNumber;
+  }
+  // Check if the mobile number is already registered
+  const emp = await User.find({ mobile: mobileNumber }).lean().exec();
   if (emp && emp.length > 0) {
-    return res.send(JSON.stringify(emp));
+    return res.status(409).send({
+      errorCode: "EMPLOYEE_EXISTS",
+      message: "This mobile number is already registered"
+    }); // 409 Conflict with custom error code
   }
 
   try {
@@ -1654,17 +1663,13 @@ const addEmployee = async (req, res) => {
       expo_token: null,
       name: employeeDetails.emp_name,
       company_name: employeeDetails.company_name,
-      mobile: "+91" + employeeDetails.emp_mobile,
+      mobile: mobileNumber,
       address: employeeDetails.address,
       city: employeeDetails.city,
       access_rights: employeeDetails.access_rights,
       employee_ids: [], // if employee then it will be empty,
-      liked_properties: [],
-      liked_customers: [],
-      assigned_properties: [],
-      assigned_customers: [],
       works_for: employeeDetails.agent_id,// whom he works for
-      user_status: "active",
+      user_status: "active",// suspended or active
       create_date_time: new Date(Date.now()),
       update_date_time: new Date(Date.now())
     };
@@ -1763,6 +1768,13 @@ const deleteEmployee = async (req, res) => {
     await CommercialPropertyCustomerBuy.updateMany(
       { customer_id: { $in: commercialBuyCustomers } },
       { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },
+      { session }
+    );
+
+    // remove the employee id from the agent document
+    await User.updateOne(
+      { id: employeeObj.works_for },
+      { $pull: { employees: employeeId } },
       { session }
     );
 
@@ -2124,7 +2136,7 @@ const getCommercialCustomerListings = async (req, res) => {
 
 
 
-const getCommercialPropertyListings = async (req, res) => {
+const getCommercialPropertyListingsX = async (req, res) => {
   try {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
     const agent_id = agentDetails.agent_id;// works_for
@@ -2167,6 +2179,58 @@ const getCommercialPropertyListings = async (req, res) => {
   }
 };
 
+
+const getCommercialPropertyListings = async (req, res) => {
+  try {
+    const agentDetails = JSON.parse(JSON.stringify(req.body));
+    const agent_id = agentDetails.agent_id;
+    const reqUserId = agentDetails.req_user_id;
+
+    if (reqUserId === agent_id) {
+      // Agent case: Fetch all properties for the agent
+      const commercialPropertyRentData = await CommercialPropertyRent.find({ agent_id: agent_id }).lean().exec();
+      const commercialPropertySellData = await CommercialPropertySell.find({ agent_id: agent_id }).lean().exec();
+
+      // Merge and sort the properties
+      const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
+      allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
+
+      console.log(JSON.stringify(allProperties));
+      res.send(allProperties);
+      res.end();
+    } else {
+      // Employee case: Fetch assigned properties
+      const empObj = await User.findOne({ id: reqUserId }).lean().exec();
+
+      if (!empObj) {
+        // Handle case where employee is not found
+        console.error(`Employee with id ${reqUserId} not found`);
+        res.status(404).send({
+          errorCode: "EMPLOYEE_NOT_FOUND",
+          message: "Employee not found"
+        });
+        return;
+      }
+
+      const commercialPropertyRentIds = empObj.assigned_commercial_rent_properties || [];
+      const commercialPropertySellIds = empObj.assigned_commercial_sell_properties || [];
+
+      const commercialPropertyRentData = await CommercialPropertyRent.find({ property_id: { $in: commercialPropertyRentIds } }).lean().exec();
+      const commercialPropertySellData = await CommercialPropertySell.find({ property_id: { $in: commercialPropertySellIds } }).lean().exec();
+
+      // Merge and sort the properties
+      const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
+      allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
+
+      console.log(JSON.stringify(allProperties));
+      res.send(allProperties);
+      res.end();
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+};
 
 
 const getResidentialCustomerList = async (req, res) => {
