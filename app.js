@@ -23,7 +23,8 @@ const CommercialPropertySell = require("./models/commercialPropertySell");
 const CommercialCustomerBuyLocation = require("./models/commercialCustomerBuyLocation");
 const CommercialCustomerRentLocation = require("./models/commercialCustomerRentLocation");
 
-const CommercialBuyPropertyMatch = null;//require('./models/match/commercialBuypropertyMatch');
+// UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
+const CommercialBuyPropertyMatch = null;//require('./models/match/commercialBuypropertyMatch'); // UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
 const CommercialBuyCustomerMatch = require('./models/match/commercialBuyCustomerMatch');
 
 const CommercialRentPropertyMatch = require('./models/match/commercialRentPropertyMatch');
