@@ -71,7 +71,7 @@ const app = express();
 // app.use(busboy());
 const cors = require('cors');
 app.use(cors({
-  origin: 'http://localhost:8081', // Allow requests from this origin
+  origin: 'http://localhost:8082', // Allow requests from this origin
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
   credentials: true // Include credentials if needed
 }));
@@ -1851,24 +1851,46 @@ const removeEmployee = (req, res) => {
     );
 };
 
-const deleteAgentAccount = (req, res) => {
+// delete agent account will remove delete property and customer which belongs to the agent
+// all its employee will be deleted
+// delete all reminders which created by the agent and its employee
+// delete the agent account from the user collection
+
+const deleteAgentAccount = async(req, res) => {
   const agentObj = JSON.parse(JSON.stringify(req.body));
   const agent_id = agentObj.agent_id;
+  const reqUserId = agentObj.req_user_id;
+  if( reqUserId !== agent_id) {
+    res.status(403).send("Unauthorized");
+    res.end();
+    return;
+  }
 
-  User.collection
-    .updateOne({ id: agent_id }, { $set: { user_status: "suspend" } })
-    .then(
-      result => {
-        res.send("success");
-        res.end();
-      },
-      err => {
-        console.log("err1: " + err);
-        res.send(JSON.stringify(err));
-        res.end();
-      }
-    );
+  // remove  properties
+  await ResidentialPropertyRent.deleteMany({ agent_id: agent_id }).exec();
+  await ResidentialPropertySell.deleteMany({ agent_id: agent_id }).exec();
+  await CommercialPropertyRent.deleteMany({ agent_id: agent_id }).exec();
+  await CommercialPropertySell.deleteMany({ agent_id: agent_id }).exec();
+  // remove  customers
+  await ResidentialPropertyCustomerRent.deleteMany({ agent_id: agent_id }).exec();
+  await ResidentialPropertyCustomerBuy.deleteMany({ agent_id: agent_id }).exec();
+  await CommercialPropertyCustomerRent.deleteMany({ agent_id: agent_id }).exec();
+  await CommercialPropertyCustomerBuy.deleteMany({ agent_id: agent_id }).exec();
+  // remove reminders
+  await Reminder.deleteMany({ agent_id_of_client: agent_id }).exec();
+  await Reminder.deleteMany({ meeting_creator_id: agent_id }).exec();
+  // remove employees
+  const employees = await User.find({ works_for: agent_id, user_type: "employee" }).lean().exec();
+  for (const employee of employees) {
+    await User.deleteOne({ id: employee.id }).exec();
+  }
+  // finally remove the agent account
+  await User.deleteOne({ id: agent_id }).exec();
+  res.send("success");
+  res.end();
 };
+
+  
 
 const reactivateAccount = (req, res) => {
   const agentObj = JSON.parse(JSON.stringify(req.body));
