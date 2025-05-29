@@ -14,9 +14,9 @@ const propertySchema = new mongoose.Schema({
   },
 
   customer_buy_details: {
-    expected_buy_price: String,
-    maintenance_charge: String,
-    available_from: String,
+    expected_buy_price: { type: Number, default: 0 },
+    maintenance_charge: { type: Number, default: 0 },
+    available_from: { type: Date },
   },
 
   location: {

@@ -198,3 +198,42 @@ const coordinates = [72.81703279999999, 19.1246969]; // [longitude, latitude]
 const maxDistance = 5000; // 5 km in meters
 
 findCustomersByNameAndLocation(name, coordinates, maxDistance);
+
+
+
+Processing collection: residential_customer_buys
+Processing collection: commercial_customer_buys
+Processing collection: commercial_customer_rent_locations
+Processing collection: residential_customer_rent_locations
+Processing collection: residential_property_sells
+Processing collection: commercial_customer_buy_locations
+Processing collection: commercial_property_sells
+Processing collection: reminders
+Processing collection: residential_customer_rents
+Processing collection: commercial_customer_rents
+Processing collection: residential_property_rents
+Processing collection: commercial_property_rents
+
+
+commercial_buy_customer_matches
+commercial_buy_property_matches
+
+
+
+
+
+
+commercial_rent_customer_matches
+commercial_rent_property_matches
+
+residential_buy_customer_matches
+residential_buy_property_matches
+residential_customer_buy_locations
+
+
+
+
+
+residential_rent_customer_matches
+residential_rent_property_matches
+users

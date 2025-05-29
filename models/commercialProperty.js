@@ -10,7 +10,6 @@ const propertySchema = new mongoose.Schema({
   owner_details: {
     name: String,
     mobile1: String,
-    mobile2: String,
     address: String
   },
 
@@ -43,19 +42,19 @@ const propertySchema = new mongoose.Schema({
     parking_type: String,
     property_age: String,
     power_backup: String,
-    property_size: String
+    property_size: { type: Number, default: 0 }
   },
 
   rent_details: {
-    expected_rent: String,
-    expected_deposit: String,
-    available_from: String
+    expected_rent: { type: Number, default: 0 },
+    expected_deposit: { type: Number, default: 0 },
+    available_from: { type: Date }
   },
 
   sell_details: {
-    expected_sell_price: String,
-    maintenance_charge: String,
-    available_from: String,
+    expected_sell_price: { type: Number, default: 0 },
+    maintenance_charge: { type: Number, default: 0 },
+    available_from: { type: Date },
     negotiable: String
   },
 

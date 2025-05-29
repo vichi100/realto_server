@@ -27,9 +27,7 @@ const reminderSchema = new Schema({
     type: String,
     required: true
   },
-  meeting_date: {
-    type: String
-  },
+  meeting_date: { type: Date },
 
   meeting_time: {
     type: String

@@ -24,7 +24,7 @@ const CommercialCustomerBuyLocation = require("./models/commercialCustomerBuyLoc
 const CommercialCustomerRentLocation = require("./models/commercialCustomerRentLocation");
 
 // UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
-const CommercialBuyPropertyMatch = null;//require('./models/match/commercialBuypropertyMatch'); // UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
+const CommercialBuyPropertyMatch = require('./models/match/commercialBuyPropertyMatch'); // UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
 const CommercialBuyCustomerMatch = require('./models/match/commercialBuyCustomerMatch');
 
 const CommercialRentPropertyMatch = require('./models/match/commercialRentPropertyMatch');
@@ -659,8 +659,8 @@ const getGlobalSearchResult = async (req, res) => {
               $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
             },
-            // "rent_details.available_from": obj.reqWithin,
-            // "rent_details.preferred_tenants": obj.tenant,
+            "rent_details.available_from": obj.reqWithin,
+            "rent_details.preferred_tenants": obj.tenant,
           };
 
           // Use await to wait for the database query to complete

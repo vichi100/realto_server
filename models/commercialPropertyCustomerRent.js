@@ -39,13 +39,13 @@ const propertySchema = new mongoose.Schema({
     building_type: String,
     parking_type: String,
     property_used_for: String,
-    property_size: String
+    property_size: { type: Number, default: 0 }
   },
 
   customer_rent_details: {
-    expected_rent: String,
-    expected_deposit: String,
-    available_from: String,
+    expected_rent: { type: Number, default: 0 },
+    expected_deposit: { type: Number, default: 0 },
+    available_from: { type: Date },
   },
 
   reminders: { type: String, default: [] },

@@ -12,7 +12,6 @@ const propertySchema = new mongoose.Schema({
   owner_details: {
     name: String,
     mobile1: String,
-    mobile2: String,
     address: String
   },
   location: {
@@ -44,18 +43,18 @@ const propertySchema = new mongoose.Schema({
     washroom_numbers: String,
     furnishing_status: String,
     parking_type: String,
-    parking_number: String,
-    property_age: String,
-    floor_number: String,
-    total_floor: String,
+    parking_number: { type: String },
+    property_age: { type: String },// e.g., "1-5", "5-10", "10+"
+    floor_number: { type: Number },
+    total_floor: { type: Number },
     lift: String,
-    property_size: String
+    property_size: { type: Number }
   },
 
   rent_details: {
-    expected_rent: String,
-    expected_deposit: String,
-    available_from: String,
+    expected_rent: { type: Number },
+    expected_deposit: { type: Number },
+    available_from: { type: Date },
     preferred_tenants: String,
     non_veg_allowed: String
   },

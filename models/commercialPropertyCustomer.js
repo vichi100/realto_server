@@ -11,7 +11,6 @@ const propertySchema = new mongoose.Schema({
   customer_details: {
     name: String,
     mobile1: String,
-    mobile2: String,
     address: String
   },
   location: [// this we are using to display the location names on screen
@@ -41,14 +40,14 @@ const propertySchema = new mongoose.Schema({
   },
 
   customer_rent_details: {
-    expected_rent: String,
-    expected_deposit: String,
+    expected_rent: { type: Number, default: 0 },
+    expected_deposit: { type: Number, default: 0 },
   },
 
   customer_buy_details: {
-    expected_buy_price: String,
-    maintenance_charge: String,
-    available_from: String,
+    expected_buy_price: { type: Number, default: 0 },
+    maintenance_charge: { type: Number, default: 0 },
+    available_from: { type: Date },
     negotiable: String
   },
 
