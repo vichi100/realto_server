@@ -55,10 +55,9 @@ const replaceOwnerDetailsWithAgentDetails = async (properties, reqUserId) => {
         landmark_or_street: property.property_address.landmark_or_street,
       };
       maskedProperty.owner_details = {
-        name: otherPropertyAgentDetails.name ? 'Agent' : otherPropertyAgentDetails.name,
+        name: otherPropertyAgentDetails.name ? otherPropertyAgentDetails.name +' ,Agent': 'Agent',
         mobile1: otherPropertyAgentDetails.mobile,
-        mobile2: '',
-        address: `Please Contact Agent and refer to Property Id: ${property.property_id}`,
+        address: `Please contact agent and refer to property id: : ${property.property_id?.slice(-6)}`,
       };
       finalProperties.push(maskedProperty);
     }
@@ -81,8 +80,7 @@ const replaceCustomerDetailsWithAgentDetails = async (customers, reqUserId) => {
       maskedCustomer.customer_details = {
         name: otherCustomerAgentDetails.name === null ? 'Agent' : `${otherCustomerAgentDetails.name}, Agent`,
         mobile1: otherCustomerAgentDetails.mobile,
-        mobile2: '',
-        address: `Please Contact Agent and refer to Customer Id: ${customer.customer_id}`,
+        address: `Please contact agent and refer to customer id: : ${customer.customer_id?.slice(-6)}`,
       };
       finalCustomers.push(maskedCustomer);
     }

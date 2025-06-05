@@ -148,6 +148,12 @@ app.post('/getGlobalSearchResult', function (req, res) {
   getGlobalSearchResult(req, res);
 });
 
+app.post('/getUserProfile', function (req, res) {
+  console.log('getUserProfile');
+  getUserProfile(req, res);
+});
+
+
 
 
 app.post('/generateOTP', function (req, res) {
@@ -170,6 +176,13 @@ app.post('/getUserDetails', function (req, res) {
   console.log('getUserDetails');
   getUserDetails(req, res);
 });
+
+app.post('/getUserProfileDeatails', function (req, res) {
+  console.log('getUserProfileDeatails');
+  getUserProfileDeatails(req, res);
+});
+
+
 
 app.post("/getTotalListingSummary", function (req, res) {
   console.log("getTotalListingSummary");
@@ -414,10 +427,9 @@ const replaceOwnerDetailsWithAgentDetails = async (matchedPropertyDetailsOther, 
         landmark_or_street: matchedPropertyDetailsOtherX.property_address.landmark_or_street,
       }
       matchedPropertyDetailsOtherX["owner_details"] = {
-        name: otherPropertyAgentIdDetails.name ? 'Agent' : otherPropertyAgentIdDetails.name,
+        name: otherPropertyAgentIdDetails.name ? otherPropertyAgentIdDetails.name + ', Agent' : 'Agent',
         mobile1: otherPropertyAgentIdDetails.mobile,
-        mobile2: '',
-        address: 'Please Contact Agent and refer to Property Id: ' + matchedPropertyDetailsOtherX.property_id,
+        address: 'Please contact agent and refer to property id: ' + matchedPropertyDetailsOtherX.property_id?.slice(-6),
       }
       finalObjAfterMasking.push(matchedPropertyDetailsOtherX);
     }
@@ -436,8 +448,7 @@ const replaceCustomerDetailsWithAgentDetails = async (matchedCustomerDetailsOthe
       matchedCustomerDetailsOtherX["customer_details"] = {
         name: otherCustomerAgentIdDetails.name === null ? 'Agent' : otherCustomerAgentIdDetails.name + ', Agent',
         mobile1: otherCustomerAgentIdDetails.mobile,
-        mobile2: '',
-        address: 'Please Contact Agent and refer to Customer Id: ' + matchedCustomerDetailsOtherX.customer_id,
+        address: 'Please contact agent and refer to customer Id: ' + matchedCustomerDetailsOtherX.customer_id?.slice(-6),
       }
     }
   }
@@ -535,6 +546,23 @@ const getPropertyDetailsByIdToShare = (req, res) => {
 
 };
 
+const getUserProfileDeatails = async (req, res) => {
+  const obj = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = obj.req_user_id;
+  const mobile = obj.mobile;
+  const user = await User.findOne({ id: reqUserId, mobile: mobile }).lean().exec();
+  if (user) {
+    res.status(200).send(JSON.stringify(user)); // 200 OK
+    res.end();
+    return;
+  } else {
+    res.status(500).send(JSON.stringify(null)); // 500 Internal Server Error
+    res.end();
+    return;
+  }
+
+}
+
 const generateOTP = (req, res) => {
   console.log(JSON.stringify(req.body));
   const obj = JSON.parse(JSON.stringify(req.body));
@@ -613,6 +641,7 @@ const getUserDetails = async (req, res) => {
 };
 
 
+// if exact search dont resturn any result then modify the search query
 
 const getGlobalSearchResult = async (req, res) => {
   console.log(JSON.stringify(req.body));
@@ -659,12 +688,33 @@ const getGlobalSearchResult = async (req, res) => {
               $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
             },
-            "rent_details.available_from": obj.reqWithin,
+            $expr: {
+              $lte: [
+                { $dateFromString: { dateString: "$rent_details.available_from" } }, // Convert string to Date
+                new Date(obj.reqWithin) // Compare with reqWithin date
+              ]
+            },
             "rent_details.preferred_tenants": obj.tenant,
           };
 
           // Use await to wait for the database query to complete
           residentialPropertyData = await ResidentialPropertyRent.find(query).lean().exec();
+          if (residentialPropertyData.length === 0) {
+            // If no results found, modify the query to search for properties with similar BHK types
+            query = {
+              $or: locationQueries,
+              property_for: "Rent",//obj.purpose,
+              // property_status: "1",
+              "property_address.city": obj.city,
+              "property_details.bhk_type": { $in: obj.selectedBHK }, //{ $in: obj.selectedBHK }, // Filter by bhk_type
+              "rent_details.expected_rent": {
+                $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+                $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+              },
+
+            };
+            residentialPropertyData = await ResidentialPropertyRent.find(query).lean().exec();
+          }
           matchDocument = ResidentialRentPropertyMatch;
 
         } else if (obj.purpose.trim().toLowerCase() === "Buy".trim().toLowerCase()) {
@@ -767,12 +817,34 @@ const getGlobalSearchResult = async (req, res) => {
               $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
             },
-            // "rent_details.available_from": obj.reqWithin,
+            $expr: {
+              $lte: [
+                { $dateFromString: { dateString: "$rent_details.available_from" } }, // Convert string to Date
+                new Date(obj.reqWithin) // Compare with reqWithin date
+              ]
+            },
             // "rent_details.preferred_tenants": obj.tenant,
           };
 
           // Use await to wait for the database query to complete
           residentialPropertyData = await CommercialPropertyRent.find(query).lean().exec();
+          if (residentialPropertyData.length === 0) {
+            // If no results found, modify the query to search for properties with similar Required For
+            query = {
+              $or: locationQueries,
+              property_for: "Rent",//obj.purpose,
+              // property_status: "1",
+              "property_address.city": obj.city,
+              "property_details.property_used_for": { $in: obj.selectedRequiredFor },
+              "property_details.building_type": { $in: obj.selectedBuildingType },
+              "rent_details.expected_rent": {
+                $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+                $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+              },
+
+            };
+            residentialPropertyData = await CommercialPropertyRent.find(query).lean().exec();
+          }
           matchDocument = CommercialRentPropertyMatch;
 
         } else if (obj.purpose.trim().toLowerCase() === "Buy".trim().toLowerCase()) {
@@ -894,7 +966,26 @@ const getGlobalSearchResult = async (req, res) => {
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
             },
             // "customer_rent_details.available_from": obj.reqWithin,
+            $expr: {
+              $lte: [
+                { $dateFromString: { dateString: "$customer_rent_details.available_from" } }, // Convert string to Date
+                new Date(obj.reqWithin) // Compare with reqWithin date
+              ]
+            },
           }).lean().exec();
+
+          if (residentialCustomerData.length === 0) {
+            // If no results found, modify the query to search for customers with similar BHK types
+            residentialCustomerData = await ResidentialPropertyCustomerRent.find({
+              customer_id: { $in: customerIds },
+              "customer_locality.city": obj.city, // Filter by city
+              "customer_property_details.bhk_type": { $in: ["2BHK"] }, // Filter by BHK type
+              "customer_rent_details.expected_rent": {
+                $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
+                $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
+              },
+            }).lean().exec();
+          }
 
           matchDocument = ResidentialRentCustomerMatch;
 
@@ -1016,6 +1107,13 @@ const getGlobalSearchResult = async (req, res) => {
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
             },
             // "customer_rent_details.available_from": obj.reqWithin,
+            $expr: {
+              $lte: [
+                { $dateFromString: { dateString: "$customer_rent_details.available_from" } }, // Convert string to Date
+                new Date(obj.reqWithin) // Compare with reqWithin date
+              ]
+            },
+
           }).lean().exec();
           matchDocument = CommercialRentCustomerMatch;
 
@@ -1350,7 +1448,7 @@ const updatePropertiesForEmployee = async (req, res) => {
   const operation = userObj.operation;
   const userData = userObj.user_data;
   const whatToUpdateData = userObj.what_to_update_data;
-  const { isResidential, isCommercial, isForRent, isForSell, isProperty, isCustomer} = whatToUpdateData;
+  const { isResidential, isCommercial, isForRent, isForSell, isProperty, isCustomer } = whatToUpdateData;
   let fieldToUpdate = null;
   let updatedEmployee = null;
   let assetId = null;
@@ -1857,11 +1955,11 @@ const removeEmployee = (req, res) => {
 // delete all reminders which created by the agent and its employee
 // delete the agent account from the user collection
 
-const deleteAgentAccount = async(req, res) => {
+const deleteAgentAccount = async (req, res) => {
   const agentObj = JSON.parse(JSON.stringify(req.body));
   const agent_id = agentObj.agent_id;
   const reqUserId = agentObj.req_user_id;
-  if( reqUserId !== agent_id) {
+  if (reqUserId !== agent_id) {
     res.status(403).send("Unauthorized");
     res.end();
     return;
@@ -1891,7 +1989,7 @@ const deleteAgentAccount = async(req, res) => {
   res.end();
 };
 
-  
+
 
 const reactivateAccount = (req, res) => {
   const agentObj = JSON.parse(JSON.stringify(req.body));
@@ -2052,7 +2150,7 @@ const getReminderListByCustomerId = async (req, res) => {
     if (reminder.agent_id_of_client === reqUserId) {
       finalReminderDataArr.push(reminder);
     } else if (reminder.meeting_creator_id === reqUserId) {
-      const otherCustomerAgentIdDetails = await User.findOne({ id: reminder.user_id }).lean().exec();
+      const otherCustomerAgentIdDetails = await User.findOne({ id: reminder.meeting_creator_id }).lean().exec();
       reminder.client_name = otherCustomerAgentIdDetails.name === null ? "Agent" : otherCustomerAgentIdDetails.name + ', Agent';
       reminder.client_mobile = otherCustomerAgentIdDetails.mobile;
       finalReminderDataArr.push(reminder);
@@ -3098,8 +3196,7 @@ const getPropertyListingForMeeting = async (req, res) => {
           otherProperty.owner_details = {
             name: otherAgent.name ? otherAgent.name : "Agent",
             mobile1: otherAgent.mobile,
-            mobile2: otherAgent.mobile,
-            address: "Please contact agent and refer property id " + otherProperty.property_id
+            address: "Please contact agent and refer to property id: " + otherProperty.property_id?.slice(-6)
           }
           otherPropertyListAfterMasking.push(otherProperty);
         }
@@ -3223,7 +3320,6 @@ const addNewCommercialProperty = async (req, res) => {
     owner_details: {
       name: propertyDetails.owner_details.name,
       mobile1: propertyDetails.owner_details.mobile1,
-      mobile2: propertyDetails.owner_details.mobile2,
       address: propertyDetails.owner_details.address
     },
     location: gLocation,
@@ -3331,7 +3427,6 @@ const addNewResidentialRentProperty = async (req, res) => {
     owner_details: {
       name: propertyDetails.owner_details.name,
       mobile1: propertyDetails.owner_details.mobile1,
-      mobile2: propertyDetails.owner_details.mobile2,
       address: propertyDetails.owner_details.address
     },
     location: gLocation,
@@ -3754,7 +3849,6 @@ const addNewCommercialCustomer = async (req, res) => {
     customer_details: {
       name: customerDetails.customer_details.name,
       mobile1: customerDetails.customer_details.mobile1,
-      // mobile2: customerDetails.customer_details.mobile2,
       address: customerDetails.customer_details.address
     },
     customer_locality: {
@@ -3868,10 +3962,9 @@ const modifyPropertyOwnerAndAddressDetails = async (reqUserId, propertyDetail) =
       if (reqUserId !== propertyDetail[i].agent_id) {
         const otherPropertyAgentIdDetails = await User.findOne({ id: propertyDetail[i].agent_id }).lean().exec();
         propertyDetail[i]["owner_details"] = {
-          name: otherPropertyAgentIdDetails.name ? otherPropertyAgentIdDetails.name : 'Agent',
+          name: otherPropertyAgentIdDetails.name ? otherPropertyAgentIdDetails.name + ', Agent' : 'Agent',
           mobile1: otherPropertyAgentIdDetails.mobile,
-          mobile2: otherPropertyAgentIdDetails.mobile,
-          address: 'Please contact agent for more details with property id: ' + propertyDetail[i].property_id
+          address: 'Please contact agent and refer to property id: ' + propertyDetail[i].property_id?.slice(-6)
         }
         propertyDetail[i]["property_address"] = {
           city: propertyDetail[i].property_address.city,
@@ -3895,10 +3988,9 @@ const modifyPropertyOwnerAndAddressDetails = async (reqUserId, propertyDetail) =
       }
       const otherPropertyAgentIdDetails = await User.findOne({ id: otherPropertyAgentId }).lean().exec();
       propertyDetail["owner_details"] = {
-        name: otherPropertyAgentIdDetails.name ? otherPropertyAgentIdDetails.name : 'Agent',
+        name: otherPropertyAgentIdDetails.name ? otherPropertyAgentIdDetails.name + ' ,Agent' : 'Agent',
         mobile1: otherPropertyAgentIdDetails.mobile,
-        mobile2: otherPropertyAgentIdDetails.mobile,
-        address: 'Please contact agent for more details with property id: ' + propertyDetail.property_id
+        address: 'Please contact agent and refer to property id: ' + propertyDetail.property_id?.slice(-6)
       }
     }
   }
@@ -3909,9 +4001,9 @@ const modifyCustomerDetails = async (reqUserId, customerDetails) => {
   if (reqUserId !== customerDetails.agent_id) {
     const otherCustomerAgentIdDetails = await User.findOne({ id: customerDetails.agent_id }).lean().exec();
     customerDetails["customer_details"] = {
-      name: otherCustomerAgentIdDetails.name ? otherCustomerAgentIdDetails.name : 'Agent',
+      name: otherCustomerAgentIdDetails.name ? otherCustomerAgentIdDetails.name + ' ,Agent' : 'Agent',
       mobile1: otherCustomerAgentIdDetails.mobile,
-      address: 'Please contact agent for more details with Reference customer id: ' + customerDetails.customer_id
+      address: 'Please contact agent and refer to customer id: ' + customerDetails.customer_id?.slice(-6)
     }
   }
 

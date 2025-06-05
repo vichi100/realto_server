@@ -12,6 +12,7 @@ const userSchema = new Schema({
   address: String,
   city: String,
   access_rights: String, // employee, agent
+  country_code: {type: String, default: "+91"}, // default is India
   employee_ids: {type: [String],default: []}, // if employee then it will be empty,
   liked_properties: {type: [String],default: []},
   liked_customers: {type: [String],default: []},
@@ -24,12 +25,14 @@ const userSchema = new Schema({
   assigned_commercial_rent_customers:{type: [String],default: []},
   assigned_commercial_buy_customers:{type: [String],default: []},
   email: String,
+  last_backup_date: { type: Date },
+  employe_role: String, // read, edit, master, admin
   user_status: { type: String, default: "active" },  //"active", suspend, blocked, removed
   create_date_time: {
-    type: Date
+    type: Date, default: Date.now
   },
   update_date_time: {
-    type: Date
+    type: Date, default: Date.now
   }
 });
 

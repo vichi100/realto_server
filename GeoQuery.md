@@ -73,8 +73,7 @@ Property.find(query)
   is_close_successfully: "no",
   owner_details: {
     name: "John Doe",
-    mobile1: "1234567890",
-    mobile2: "",
+    mobile1: "1234567890",2
     address: "123 Main St"
   },
   location: {

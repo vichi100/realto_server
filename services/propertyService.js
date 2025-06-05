@@ -24,7 +24,6 @@ class PropertyService {
       owner_details: {
         name: propertyDetails.owner_details.name,
         mobile1: propertyDetails.owner_details.mobile1,
-        mobile2: propertyDetails.owner_details.mobile2,
         address: propertyDetails.owner_details.address
       },
       location: gLocation,
@@ -95,7 +94,6 @@ class PropertyService {
       owner_details: {
         name: propertyDetails.owner_details.name,
         mobile1: propertyDetails.owner_details.mobile1,
-        mobile2: propertyDetails.owner_details.mobile2,
         address: propertyDetails.owner_details.address
       },
       location: gLocation,
