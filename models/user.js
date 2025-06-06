@@ -11,7 +11,6 @@ const userSchema = new Schema({
   mobile: String,
   address: String,
   city: String,
-  access_rights: String, // employee, agent
   country_code: {type: String, default: "+91"}, // default is India
   employee_ids: {type: [String],default: []}, // if employee then it will be empty,
   liked_properties: {type: [String],default: []},
@@ -26,7 +25,7 @@ const userSchema = new Schema({
   assigned_commercial_buy_customers:{type: [String],default: []},
   email: String,
   last_backup_date: { type: Date },
-  employe_role: String, // read, edit, master, admin
+  employee_role: String, // view, add, master, admin
   user_status: { type: String, default: "active" },  //"active", suspend, blocked, removed
   create_date_time: {
     type: Date, default: Date.now
@@ -37,6 +36,10 @@ const userSchema = new Schema({
 });
 
 module.exports = mongoose.model("user", userSchema);
+//read: just able to see what is asign to him, 
+// edit: will be able to read and add new but wont be able to delete which are asign to him,
+//  master: will be able to see all the property and add new property, asign property to employees, 
+// admin: will be able read delete add any property employee. All access 
 
 // employees=[
 //   { employee_id: String, employee_name: String, employee_mobile: String, access_rights:String}

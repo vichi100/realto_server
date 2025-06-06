@@ -241,6 +241,13 @@ app.post("/addEmployee", function (req, res) {
   addEmployee(req, res);
 });
 
+app.post("/updateEmployeeDetails", function (req, res) {
+  console.log("updateEmployeeDetails");
+  updateEmployeeDetails(req, res);
+});
+
+
+
 app.post("/sendMessage", function (req, res) {
   console.log("sendMessage");
   sendMessage(req, res);
@@ -1765,10 +1772,10 @@ const addEmployee = async (req, res) => {
       mobile: mobileNumber,
       address: employeeDetails.address,
       city: employeeDetails.city,
-      access_rights: employeeDetails.access_rights,
       employee_ids: [], // if employee then it will be empty,
       works_for: employeeDetails.agent_id,// whom he works for
       user_status: "active",// suspended or active
+      employee_role: employeeDetails.employee_role,
       create_date_time: new Date(Date.now()),
       update_date_time: new Date(Date.now())
     };
@@ -1782,6 +1789,74 @@ const addEmployee = async (req, res) => {
     res.end();
   }
 
+};
+
+// req_user_id: props.userDetails.works_for,// agent_id
+//       agent_id: props.userDetails.works_for,
+//       emp_id: empData.id,
+//       emp_name: employeeName.trim(),
+//       emp_mobile: employeeMobile.trim(),
+//       employee_role: role
+
+
+const updateEmployeeDetails = async (req, res) => {
+  const employeeDetails = JSON.parse(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.body));
+  // first check if any employee with that mobile number exist
+  // first check if +91 is appended to the mobile number
+  const empId = employeeDetails.emp_id;
+  const name = employeeDetails.emp_name;
+  const role = employeeDetails.employee_role;
+  let mobileNumber = employeeDetails.emp_mobile;
+  if (!mobileNumber.startsWith("+91")) {
+    mobileNumber = "+91" + mobileNumber;
+  }
+  
+
+  try {
+
+    // first verfy if mobile number is already exist then dont update
+    // Check if the mobile number is already registered
+  const emp = await User.findOne({ mobile: mobileNumber }).lean().exec();
+  if (emp) {
+    return res.status(409).send({
+      errorCode: "EMPLOYEE_EXISTS",
+      message: "This mobile number is already registered"
+    }); // 409 Conflict with custom error code
+  }
+    // Update the employee details
+    const result = await User.updateOne(
+      { id: empId }, // Find the user by empId
+      {
+        $set: {
+          name: name,
+          mobile: mobileNumber,
+          employee_role: role,
+          update_date_time: new Date(Date.now()) // Update the timestamp
+        }
+      }
+    );
+
+    if (result.modifiedCount > 0) {
+      console.log(`Employee with ID ${empId} updated successfully`);
+      res.status(200).send({
+        successCode: "EMPLOYEE_UPDATED",
+        message: "Employee details updated successfully"
+      });
+    } else {
+      console.error(`Employee with ID ${empId} not found`);
+      res.status(404).send({
+        errorCode: "EMPLOYEE_NOT_FOUND",
+        message: "Employee not found"
+      });
+    }
+  } catch (err) {
+    console.error(`Failed to update employee details: ${err}`);
+    res.status(500).send({
+      errorCode: "INTERNAL_SERVER_ERROR",
+      message: "Failed to update employee details"
+    });
+  }
 };
 
 
