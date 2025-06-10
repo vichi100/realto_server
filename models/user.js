@@ -25,7 +25,7 @@ const userSchema = new Schema({
   assigned_commercial_buy_customers:{type: [String],default: []},
   email: String,
   last_backup_date: { type: Date },
-  employee_role: String, // view, add, master, admin
+  employee_role: String, // view, add, master, admin, 
   user_status: { type: String, default: "active" },  //"active", suspend, blocked, removed
   create_date_time: {
     type: Date, default: Date.now

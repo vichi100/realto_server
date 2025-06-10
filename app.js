@@ -1921,6 +1921,8 @@ const deleteEmployee = async (req, res) => {
       { session }
     );
 
+    // customers
+
     await ResidentialPropertyCustomerRent.updateMany(
       { customer_id: { $in: residentialRentCustomers } },
       { $pull: { assigned_to_employee: employeeId, assigned_to_employee_name: employeeObj.name } },

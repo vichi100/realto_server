@@ -221,3 +221,6 @@ db.commercial_customer_buys.updateMany(
 1) after deleting Ramu it is still in comercial customer BUY
 
 
+### deleting employee is not delting from customers
+### how employee who created meeting will able to see his meeting .... meeting creator id .. verify this logic - MUST CHECK ITS NOT WORKING........0.
+
