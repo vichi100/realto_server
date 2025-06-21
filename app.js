@@ -49,8 +49,8 @@ const ResidentialBuyCustomerMatch = require('./models/match/residentialBuyCustom
 
 
 const Reminder = require("./models/reminder");
-const Agent = require("./models/agent");
-const Employee = require("./models/employee");
+// const Agent = require("./models/agent");
+// const Employee = require("./models/employee");
 const User = require("./models/user");
 // const ResidentialPropertyCustomer = require("./models/residentialPropertyCustomer");
 const ResidentialPropertyCustomerRent = require("./models/residentialPropertyCustomerRent");
@@ -58,7 +58,7 @@ const ResidentialPropertyCustomerBuy = require("./models/residentialPropertyCust
 const CommercialPropertyCustomerRent = require("./models/commercialPropertyCustomerRent");
 const CommercialPropertyCustomerBuy = require("./models/commercialPropertyCustomerBuy");
 const Message = require("./models/message");
-const commercialProperty = require("./models/commercialProperty");
+// const commercialProperty = require("./models/commercialProperty");
 const { json } = require("body-parser");
 const commercialPropertyRent = require("./models/commercialPropertyRent");
 
