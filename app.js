@@ -9,8 +9,11 @@ const { nanoid, customAlphabet } = require('nanoid');
 const axios = require('axios');
 const sharp = require('sharp');
 var fs = require('fs');
+const dotenv = require('dotenv');
+const logger = require('./logger');
 
 const { PORT, DB_URL, NODE_ENV, IMAGE_PATH_URL,  OTP_API} = require('./config/env');
+
 
 // const multer = require('multer');
 
@@ -72,6 +75,32 @@ const commercialPropertyRent = require("./models/commercialPropertyRent");
 const matchRoutes = require('./routes/matchRoutes');
 
 const app = express();
+
+dotenv.config();
+
+// Middleware example
+app.use((req, res, next) => {
+  logger.info(`Request: ${req.method} ${req.url}`);
+  next();
+});
+
+// Example routes
+app.get('/', (req, res) => {
+  logger.info('GET / called');
+  res.send('Hello from Express with Winston logger!');
+});
+
+app.get('/error', (req, res) => {
+  try {
+    throw new Error('Sample error for logging');
+  } catch (err) {
+    logger.error(err.stack);
+    res.status(500).send('Something went wrong');
+  }
+});
+
+
+
 // app.use(busboy());
 const cors = require('cors');
 app.use(cors({
@@ -127,12 +156,12 @@ mongoose
   .then(() => {
     // app.listen(6000 ,'0.0.0.0');
     app.listen(PORT, "0.0.0.0", () => {
-      console.log("server is listening on 7000 port");
+      logger.info("server is listening on 7000 port");
     });
 
-    console.log("MongoDB connected...server listening at 7000");
+    logger.info("MongoDB connected...server listening at 7000");
   })
-  .catch(err => console.log(err));
+  .catch(err => logger.info(err));
 
 // end: Connect to DB
 
@@ -141,19 +170,19 @@ const uniqueId = () => {
   const nanoid2 = customAlphabet('1234567890', 3);
   const nanoid3 = customAlphabet('1234567890', 2);
   const uniqueNumber = Date.now().toString() + nanoid1() + nanoid2() + nanoid3();
-  console.log(uniqueNumber); // Example: 171051387612387
+  logger.info(uniqueNumber); // Example: 171051387612387
   return uniqueNumber;
 }
 
 // app.post('/matchedResidentialCustomerRentList', matchRoutes);
 
 app.post('/getGlobalSearchResult', function (req, res) {
-  console.log('getGlobalSearchResult');
+  logger.info('getGlobalSearchResult');
   getGlobalSearchResult(req, res);
 });
 
 app.post('/getUserProfile', function (req, res) {
-  console.log('getUserProfile');
+  logger.info('getUserProfile');
   getUserProfile(req, res);
 });
 
@@ -161,140 +190,140 @@ app.post('/getUserProfile', function (req, res) {
 
 
 app.post('/generateOTP', function (req, res) {
-  console.log('generateOTP');
+  logger.info('generateOTP');
   generateOTP(req, res);
 });
 
 app.post('/updatePropertiesForEmployee', function (req, res) {
-  console.log('updatePropertiesForEmployee');
+  logger.info('updatePropertiesForEmployee');
   updatePropertiesForEmployee(req, res);
 });
 
 app.post('/deleteEmployee', function (req, res) {
-  console.log('deleteEmployee');
+  logger.info('deleteEmployee');
   deleteEmployee(req, res);
 });
 
 
 app.post('/getUserDetails', function (req, res) {
-  console.log('getUserDetails');
+  logger.info('getUserDetails');
   getUserDetails(req, res);
 });
 
 app.post('/getUserProfileDeatails', function (req, res) {
-  console.log('getUserProfileDeatails');
+  logger.info('getUserProfileDeatails');
   getUserProfileDeatails(req, res);
 });
 
 
 
 app.post("/getTotalListingSummary", function (req, res) {
-  console.log("getTotalListingSummary");
+  logger.info("getTotalListingSummary");
   getTotalListingSummary(req, res);
 });
 
 app.post("/getMessagesList", function (req, res) {
-  console.log("getMessagesList");
+  logger.info("getMessagesList");
   getMessagesList(req, res);
 });
 
 app.post("/getSubjectDetails", function (req, res) {
-  console.log("getSubjectDetails");
+  logger.info("getSubjectDetails");
   getSubjectDetails(req, res);
 });
 
 app.post("/employeeList", function (req, res) {
-  console.log("getEmployeeList");
+  logger.info("getEmployeeList");
   getEmployeeList(req, res);
 });
 
 app.post("/getPropReminderList", function (req, res) {
-  console.log("getPropReminderList");
+  logger.info("getPropReminderList");
   getPropReminderList(req, res);
 });
 
 app.post("/getCustomerReminderList", function (req, res) {
-  console.log("getCustomerReminderList");
+  logger.info("getCustomerReminderList");
   getCustomerReminderList(req, res);
 });
 
 
 
 app.post("/getCustomerAndMeetingDetails", function (req, res) {
-  console.log("getCustomerAndMeetingDetails");
+  logger.info("getCustomerAndMeetingDetails");
   getCustomerAndMeetingDetails(req, res);
 });
 
 app.post("/getAllGlobalListingByLocations", function (req, res) {
-  console.log("getAllGlobalListingByLocations");
+  logger.info("getAllGlobalListingByLocations");
   getAllGlobalListingByLocations(req, res);
 });
 
 app.post("/checkLoginRole", function (req, res) {
-  console.log("checkLoginRole");
+  logger.info("checkLoginRole");
   checkLoginRole(req, res);
 });
 
 app.post("/insertNewAgent", function (req, res) {
-  console.log("insertNewAgent");
+  logger.info("insertNewAgent");
   insertNewAgent(req, res);
 });
 
 app.post("/addEmployee", function (req, res) {
-  console.log("addEmployee");
+  logger.info("addEmployee");
   addEmployee(req, res);
 });
 
 app.post("/updateEmployeeDetails", function (req, res) {
-  console.log("updateEmployeeDetails");
+  logger.info("updateEmployeeDetails");
   updateEmployeeDetails(req, res);
 });
 
 
 
 app.post("/sendMessage", function (req, res) {
-  console.log("sendMessage");
+  logger.info("sendMessage");
   sendMessage(req, res);
 });
 
 app.post("/removeEmployee", function (req, res) {
-  console.log("removeEmployee");
+  logger.info("removeEmployee");
   removeEmployee(req, res);
 });
 
 app.post("/deleteAgentAccount", function (req, res) {
-  console.log("deleteAgentAccount");
+  logger.info("deleteAgentAccount");
   deleteAgentAccount(req, res);
 });
 
 app.post("/reactivateAccount", function (req, res) {
-  console.log("reactivateAccount");
+  logger.info("reactivateAccount");
   reactivateAccount(req, res);
 });
 
 app.post("/updateEmployeeEditRights", function (req, res) {
-  console.log("updateEmployeeEditRights");
+  logger.info("updateEmployeeEditRights");
   updateEmployeeEditRights(req, res);
 });
 
 app.post("/updateUserProfile", function (req, res) {
-  console.log("updateUserProfile");
+  logger.info("updateUserProfile");
   updateUserProfile(req, res);
 });
 
 // masking - Done
 app.post("/getReminderList", function (req, res) {
-  console.log("getReminderList");
+  logger.info("getReminderList");
   getReminderList(req, res);
 });
 
 app.post("/getReminderListByCustomerId", function (req, res) {
-  console.log("getReminderListByCustomerId");
+  logger.info("getReminderListByCustomerId");
   getReminderListByCustomerId(req, res);
 });
 
 app.post("/addNewReminder", function (req, res) {
-  console.log("addNewReminder");
+  logger.info("addNewReminder");
   addNewReminder(req, res);
 });
 
@@ -310,32 +339,32 @@ app.post("/addNewCommercialProperty", function (req, res) {
 });
 
 app.post("/commercialPropertyListings", function (req, res) {
-  console.log("commercial Property Listings");
+  logger.info("commercial Property Listings");
   getCommercialPropertyListings(req, res);
 });
 
 app.post("/commercialCustomerList", function (req, res) {
-  console.log("commercial customer Listings");
+  logger.info("commercial customer Listings");
   getCommercialCustomerListings(req, res);
 });
 
 app.post("/residentialPropertyListings", function (req, res) {
-  console.log("residential property Listings");
+  logger.info("residential property Listings");
   getResidentialPropertyListings(req, res);
 });
 
 app.post("/getPropertyListingForMeeting", function (req, res) {
-  console.log("property Listings for meeting");
+  logger.info("property Listings for meeting");
   getPropertyListingForMeeting(req, res);
 });
 
 app.post("/getCustomerListForMeeting", function (req, res) {
-  console.log("customer List for meeting");
+  logger.info("customer List for meeting");
   getCustomerListForMeeting(req, res);
 });
 
 app.post("/residentialCustomerList", function (req, res) {
-  console.log("residentialCustomerList");
+  logger.info("residentialCustomerList");
   getResidentialCustomerList(req, res);
 });
 
@@ -344,23 +373,23 @@ app.post("/residentialCustomerList", function (req, res) {
 
 // This one is for Rent
 app.post("/matchedResidentialCustomerRentList", function (req, res) {
-  console.log("matchedResidentialCustomerRentList");
+  logger.info("matchedResidentialCustomerRentList");
   getmatchedResidentialCustomerRentList(req, res);
 });
 
 // This one is for Rent matchedResidentialProptiesRentList
 app.post("/matchedResidentialProptiesRentList", function (req, res) {
-  console.log("matchedResidentialProptiesRentList");
+  logger.info("matchedResidentialProptiesRentList");
   getMatchedResidentialProptiesRentList(req, res);
 });
 
 app.post("/matchedResidentialProptiesBuyList", function (req, res) {
-  console.log("matchedResidentialProptiesBuyList");
+  logger.info("matchedResidentialProptiesBuyList");
   matchedResidentialProptiesBuyList(req, res);
 });
 
 app.post("/matchedResidentialCustomerBuyList", function (req, res) {
-  console.log("matchedResidentialCustomerBuyList");// this are customer who wanna buy
+  logger.info("matchedResidentialCustomerBuyList");// this are customer who wanna buy
   getMatchedResidentialCustomerBuyList(req, res);
 });
 
@@ -371,48 +400,48 @@ app.post("/matchedResidentialCustomerBuyList", function (req, res) {
 
 // This one is for Commercial Customer Rent
 app.post("/matchedCommercialProptiesRentList", function (req, res) {
-  console.log("matchedCommercialProptiesRentList");
+  logger.info("matchedCommercialProptiesRentList");
   getMatchedCommercialProptiesRentList(req, res);
 });
 
 // This one is for Commercial Customer Sell
 app.post("/matchedCommercialProptiesBuyList", function (req, res) {
-  console.log("matchedCommercialProptiesBuyList");
+  logger.info("matchedCommercialProptiesBuyList");
   getMatchedCommercialProptiesBuyList(req, res);
 });
 
 // This one is for Commercial Customer Rent
 app.post("/matchedCommercialCustomerRentList", function (req, res) {
-  console.log("matchedCommercialCustomerRentList");
+  logger.info("matchedCommercialCustomerRentList");
   getMatchedCommercialCustomerRentList(req, res);
 });
 
 // This one is for Commercial Customer Sell
 app.post("/matchedCommercialCustomerSellList", function (req, res) {
-  console.log("matchedCommercialCustomerSellList");
+  logger.info("matchedCommercialCustomerSellList");
   getMatchedCommercialCustomerSellList(req, res);
 });
 
 //******** Match  End */
 
 app.post("/getPropertyDetailsByIdToShare", function (req, res) {
-  console.log("getPropertyDetailsByIdToShare Listings");
+  logger.info("getPropertyDetailsByIdToShare Listings");
   getPropertyDetailsByIdToShare(req, res);
 });
 
 app.post("/getCustomerDetailsByIdToShare", function (req, res) {
-  console.log("getCustomerDetailsByIdToShare Listings");
+  logger.info("getCustomerDetailsByIdToShare Listings");
   getCustomerDetailsByIdToShare(req, res);
 });
 
 
 app.post("/addNewResidentialCustomer", function (req, res) {
-  console.log("addNewResidentialCustomer");
+  logger.info("addNewResidentialCustomer");
   addNewResidentialCustomer(req, res);
 });
 
 app.post("/addNewCommercialCustomer", function (req, res) {
-  console.log("addNewCommercialCustomer");
+  logger.info("addNewCommercialCustomer");
   addNewCommercialCustomer(req, res);
 });
 
@@ -470,7 +499,7 @@ const replaceCustomerDetailsWithAgentDetails = async (matchedCustomerDetailsOthe
 
 const getCustomerDetailsByIdToShare = (req, res) => {
   const propObj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   // const propertyId = JSON.parse(JSON.stringify(req.body)).property_id;
   // const agentId = JSON.parse(JSON.stringify(req.body)).agent_id;
   // property_type: String,
@@ -497,12 +526,12 @@ const getCustomerDetailsByIdToShare = (req, res) => {
   ]).then(results => {
     // results[0].xxxxxx = "kkkkk"
     let customerDetailX = results[0];
-    // console.log(JSON.stringify(customerDetail));
+    // logger.info(JSON.stringify(customerDetail));
 
     const agentDetails = results[1];
-    // console.log(JSON.stringify(agentDetails));
+    // logger.info(JSON.stringify(agentDetails));
 
-    // console.log(propObj.customer_id);
+    // logger.info(propObj.customer_id);
 
     // customerDetailX.customer_details = null;
     customerDetailX.customer_details = {
@@ -510,7 +539,7 @@ const getCustomerDetailsByIdToShare = (req, res) => {
       mobile1: agentDetails.mobile,
       customer_id: propObj.customer_id
     }
-    console.log(customerDetailX);
+    logger.info(customerDetailX);
     res.send(JSON.stringify(customerDetailX));
     res.end();
     return;
@@ -520,7 +549,7 @@ const getCustomerDetailsByIdToShare = (req, res) => {
 
 const getPropertyDetailsByIdToShare = (req, res) => {
   const propObj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   // const propertyId = JSON.parse(JSON.stringify(req.body)).property_id;
   // const agentId = JSON.parse(JSON.stringify(req.body)).agent_id;
   // property_type: String,
@@ -548,8 +577,8 @@ const getPropertyDetailsByIdToShare = (req, res) => {
       "mobile1": agentDetails.mobile,
       "address": agentDetails.address,
     }
-    // console.log(JSON.stringify(propertyDetail));
-    // console.log(JSON.stringify(agentDetails));
+    // logger.info(JSON.stringify(propertyDetail));
+    // logger.info(JSON.stringify(agentDetails));
     res.send(JSON.stringify(propertyDetail));
     res.end();
     return;
@@ -575,7 +604,7 @@ const getUserProfileDeatails = async (req, res) => {
 }
 
 const generateOTP = (req, res) => {
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   const obj = JSON.parse(JSON.stringify(req.body));
   const mobile = obj.mobile;
   const OTP = obj.otp;
@@ -583,10 +612,10 @@ const generateOTP = (req, res) => {
   axios
     .get(`https://2factor.in/API/V1/${OTP_API}/SMS/${mobile}/${OTP}/FlickSickOTP1`)
     .then((response) => {
-      // console.log(response);
+      // logger.info(response);
       res.send(JSON.stringify('success'));
       res.end();
-      // console.log('response sent');
+      // logger.info('response sent');
       return;
     })
     .catch((err) => {
@@ -602,7 +631,7 @@ const generateOTP = (req, res) => {
 const getUserDetails = async (req, res) => {
   try {
     const obj = JSON.parse(JSON.stringify(req.body));
-    console.log(JSON.stringify(req.body));
+    logger.info(JSON.stringify(req.body));
     const mobileXX = obj.mobile;
     const idx = uniqueId();
     const countryCode = obj.country_code;
@@ -629,7 +658,7 @@ const getUserDetails = async (req, res) => {
       };
       try {
         const newUser = await User.create(userObj);
-        console.log('New User Created', newUser);
+        logger.info('New User Created', newUser);
         res.send(JSON.stringify(userObj));
         res.end();
         return;
@@ -655,7 +684,7 @@ const getUserDetails = async (req, res) => {
 // if exact search dont resturn any result then modify the search query
 
 const getGlobalSearchResult = async (req, res) => {
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   const obj = JSON.parse(JSON.stringify(req.body));
   const reqUserId = obj.req_user_id;
   const minePropertyList = [];
@@ -669,7 +698,7 @@ const getGlobalSearchResult = async (req, res) => {
         // Create an array of coordinates objects
         const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
 
-        console.log(coordinatesArray);
+        logger.info(coordinatesArray);
 
         // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
         const radiusInMiles = 55;
@@ -778,13 +807,13 @@ const getGlobalSearchResult = async (req, res) => {
             }
           ]);
           property.match_count = result[0].count;
-          console.log(result);
+          logger.info(result);
         }
 
         const otherPropertyDataAfterMasking = await replaceOwnerDetailsWithAgentDetails(otherPropertyList, reqUserId);
         const allPropertiesData = [...minePropertyList, ...otherPropertyDataAfterMasking];
 
-        console.log(JSON.stringify(allPropertiesData));
+        logger.info(JSON.stringify(allPropertiesData));
         res.send(allPropertiesData);
         res.end();
 
@@ -795,7 +824,7 @@ const getGlobalSearchResult = async (req, res) => {
         // Create an array of coordinates objects
         const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
 
-        console.log(coordinatesArray);
+        logger.info(coordinatesArray);
 
         // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
         const radiusInMiles = 55;
@@ -912,13 +941,13 @@ const getGlobalSearchResult = async (req, res) => {
             }
           ]);
           property.match_count = result[0].count;
-          console.log(result);
+          logger.info(result);
         }
 
         const otherPropertyDataAfterMasking = await replaceOwnerDetailsWithAgentDetails(otherPropertyList, reqUserId);
         const allPropertiesData = [...minePropertyList, ...otherPropertyDataAfterMasking];
 
-        console.log(JSON.stringify(allPropertiesData));
+        logger.info(JSON.stringify(allPropertiesData));
         res.send(allPropertiesData);
         res.end();
 
@@ -930,7 +959,7 @@ const getGlobalSearchResult = async (req, res) => {
         // Create an array of coordinates objects
         const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
 
-        console.log(coordinatesArray);
+        logger.info(coordinatesArray);
 
         // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
         const radiusInMiles = 55;
@@ -1059,14 +1088,14 @@ const getGlobalSearchResult = async (req, res) => {
             }
           ]);
           customer.match_count = result[0].count;
-          console.log(result);
+          logger.info(result);
         }
 
 
         const otherCustomerDataAfterMasking = await replaceCustomerDetailsWithAgentDetails(otherCustomerList, reqUserId);
         const allCustomersData = [...mineCustomerList, ...otherCustomerDataAfterMasking];
 
-        console.log(JSON.stringify(allCustomersData));
+        logger.info(JSON.stringify(allCustomersData));
         res.send(allCustomersData);
       } else if (obj.whatType.trim().toLowerCase() === "commercial".trim().toLowerCase()) {
 
@@ -1074,7 +1103,7 @@ const getGlobalSearchResult = async (req, res) => {
         // Create an array of coordinates objects
         const coordinatesArray = gLocations.map((gLocation) => gLocation.location.coordinates);
 
-        console.log(coordinatesArray);
+        logger.info(coordinatesArray);
 
         // Convert 5 miles to radians (Earth's radius is approximately 3963.2 miles)
         const radiusInMiles = 55;
@@ -1177,14 +1206,14 @@ const getGlobalSearchResult = async (req, res) => {
             }
           ]);
           customer.match_count = result[0].count;
-          console.log(result);
+          logger.info(result);
         }
 
 
         const otherCustomerDataAfterMasking = await replaceCustomerDetailsWithAgentDetails(otherCustomerList, reqUserId);
         const allCustomersData = [...mineCustomerList, ...otherCustomerDataAfterMasking];
 
-        console.log(JSON.stringify(allCustomersData));
+        logger.info(JSON.stringify(allCustomersData));
         res.send(allCustomersData);
       }
 
@@ -1209,7 +1238,7 @@ const searchResidentResult = (query) => {
 //2) if I am customer agent then I should be able to see meeting which means req_user_id =  customer_agent_id
 //3) if I am not customer agent then I should be able to see meeting which means req_user_id =  customer_agent_id
 const getCustomerReminderList = async (req, res) => {
-  console.log("getCustomerReminderList: " + JSON.stringify(req.body));
+  logger.info("getCustomerReminderList: " + JSON.stringify(req.body));
   const reqData = JSON.parse(JSON.stringify(req.body));
   const customerId = reqData.customer_id;
   const reqUserId = reqData.req_user_id;
@@ -1237,7 +1266,7 @@ const getCustomerReminderList = async (req, res) => {
 
 
 
-  console.log("getCustomerReminderList resp:  " + JSON.stringify(remiderList));
+  logger.info("getCustomerReminderList resp:  " + JSON.stringify(remiderList));
   res.send(JSON.stringify(remiderList));
   res.end();
   return;
@@ -1252,7 +1281,7 @@ const getCustomerReminderList = async (req, res) => {
 // 2) I am employee
 // I can see only those reminders which are created by me
 const getPropReminderList = async (req, res) => {
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   const reqData = JSON.parse(JSON.stringify(req.body));
   const propertyId = reqData.property_id;
   const reqUserId = reqData.req_user_id;// user id
@@ -1275,7 +1304,7 @@ const getPropReminderList = async (req, res) => {
         reminder.client_mobile = user.mobile;
       }
     }
-    console.log("getPropReminderList resp:  " + JSON.stringify(remiderList));
+    logger.info("getPropReminderList resp:  " + JSON.stringify(remiderList));
     res.send(JSON.stringify(remiderList));
     res.end();
     return;
@@ -1299,7 +1328,7 @@ const getPropReminderList = async (req, res) => {
         reminder.client_mobile = user.mobile;
       }
     }
-    console.log("getPropReminderList resp:  " + JSON.stringify(remiderList));
+    logger.info("getPropReminderList resp:  " + JSON.stringify(remiderList));
     res.send(JSON.stringify(remiderList));
     res.end();
     return;
@@ -1311,19 +1340,19 @@ const getPropReminderList = async (req, res) => {
 
 const checkLoginRole = (req, res) => {
   const mobileNumber = JSON.parse(JSON.stringify(req.body)).user_mobile;
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
 
   User.findOne({ mobile: mobileNumber }, function (err, data) {
     if (err) {
-      console.log(err);
+      logger.info(err);
       res.send(JSON.stringify("fail"));
       res.end();
       return;
     }
-    console.log("User data: " + data);
-    console.log("sending resp: " + data.length);
+    logger.info("User data: " + data);
+    logger.info("sending resp: " + data.length);
     if (data !== null) {
-      console.log("sending resp: " + data.user_type);
+      logger.info("sending resp: " + data.user_type);
       if (data.user_type === "agent") {
         const userDetails = {
           user_type: data.user_type, // employee or agent
@@ -1338,7 +1367,7 @@ const checkLoginRole = (req, res) => {
           works_for: data.id, // self user_id
           user_status: data.user_status
         };
-        console.log("sending resp");
+        logger.info("sending resp");
         res.send(JSON.stringify({ user_details: userDetails }));
         res.end();
         return;
@@ -1371,12 +1400,12 @@ const insertNewUserAsAgent = (res, mobileNumber, userType, accessRights) => {
   };
   User.collection.insertOne(userObj, function (err, data) {
     if (err) {
-      console.log(err);
+      logger.info(err);
       res.send(JSON.stringify("fail"));
       res.end();
       return;
     } else {
-      // console.log("addNewProperty" + JSON.stringify(data));
+      // logger.info("addNewProperty" + JSON.stringify(data));
       const userDetails = {
         user_type: userType, // employee or agent
         id: userId,
@@ -1415,12 +1444,12 @@ const insertNewUserAsEmployee = empObj => {
   // };
   User.collection.insertOne(empObj, function (err, data) {
     if (err) {
-      console.log(err);
+      logger.info(err);
       // res.send(JSON.stringify("fail"));
       // res.end();
       return false;
     } else {
-      console.log("Employee Added" + JSON.stringify(data));
+      logger.info("Employee Added" + JSON.stringify(data));
 
       // res.send(JSON.stringify({ user_details: empObj }));
       // res.end();
@@ -1432,14 +1461,14 @@ const insertNewUserAsEmployee = empObj => {
 const getEmployerDetails = agentIdsArray => {
   Agent.find({ agent_id: { $in: agentIdsArray } }, function (err, data) {
     if (err) {
-      console.log(err);
+      logger.info(err);
       res.send(JSON.stringify("fail"));
       res.end();
       return [];
     }
-    console.log("data: " + data);
+    logger.info("data: " + data);
     if (data.length !== 0) {
-      console.log("Agent is present: " + data);
+      logger.info("Agent is present: " + data);
 
       return data;
     } else {
@@ -1452,7 +1481,7 @@ const getEmployerDetails = agentIdsArray => {
 
 const updatePropertiesForEmployee = async (req, res) => {
   const userObj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   const reqUserId = userObj.req_user_id;
   const employeeId = userObj.employee_id;
   const employeeName = userObj.employee_name;
@@ -1732,10 +1761,10 @@ const removeEmployeeFromPropertyOrCustomer = async (whatToUpdateData, employeeId
 
 const getEmployeeList = async (req, res) => {
   const userObj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   try {
     const empList = await User.find({ works_for: userObj.req_user_id, user_type: "employee" }).sort({ user_id: -1 }).lean().exec();
-    console.log("EmployeeList:  " + JSON.stringify(empList));
+    logger.info("EmployeeList:  " + JSON.stringify(empList));
     res.send(JSON.stringify(empList));
     res.end();
     return;
@@ -1749,7 +1778,7 @@ const getEmployeeList = async (req, res) => {
 
 const addEmployee = async (req, res) => {
   const employeeDetails = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   // first check if any employee with that mobile number exist
   // first check if +91 is appended to the mobile number
   let mobileNumber = employeeDetails.emp_mobile;
@@ -1784,7 +1813,7 @@ const addEmployee = async (req, res) => {
       update_date_time: new Date(Date.now())
     };
     const result = await User.create(empObj);
-    console.log("New employee added : ", result);
+    logger.info("New employee added : ", result);
     res.send(JSON.stringify(result));
     res.end();
   } catch (err) {
@@ -1805,7 +1834,7 @@ const addEmployee = async (req, res) => {
 
 const updateEmployeeDetails = async (req, res) => {
   const employeeDetails = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   // first check if any employee with that mobile number exist
   // first check if +91 is appended to the mobile number
   const empId = employeeDetails.emp_id;
@@ -1842,7 +1871,7 @@ const updateEmployeeDetails = async (req, res) => {
     );
 
     if (result.modifiedCount > 0) {
-      console.log(`Employee with ID ${empId} updated successfully`);
+      logger.info(`Employee with ID ${empId} updated successfully`);
       res.status(200).send({
         successCode: "EMPLOYEE_UPDATED",
         message: "Employee details updated successfully"
@@ -1880,7 +1909,7 @@ const deleteEmployee = async (req, res) => {
 
   try {
     const employeeDetails = JSON.parse(JSON.stringify(req.body));
-    console.log(JSON.stringify(req.body));
+    logger.info(JSON.stringify(req.body));
     const employeeId = employeeDetails.employee_id;
 
     // Fetch the employee document
@@ -1965,7 +1994,7 @@ const deleteEmployee = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    console.log("Employee deleted successfully");
+    logger.info("Employee deleted successfully");
     res.send("success");
     res.end();
   } catch (err) {
@@ -1984,7 +2013,7 @@ const updateUserEmployeeList = (agentId, employeeId) => {
     { $addToSet: { employees: employeeId } },
     function (err, data) {
       if (err) {
-        console.log(err);
+        logger.info(err);
         // res.send(JSON.stringify("fail"));
         // res.end();
         return false;
@@ -2001,7 +2030,7 @@ const removeEmployee = (req, res) => {
   const removeEmpObj = JSON.parse(JSON.stringify(req.body));
   const agent_id = removeEmpObj.agent_id;
   const employee_id = removeEmpObj.employee_id;
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   User.collection
     .deleteOne({ id: employee_id })
     .then(
@@ -2012,19 +2041,19 @@ const removeEmployee = (req, res) => {
         );
       },
       err => {
-        console.log("err1: " + err);
+        logger.info("err1: " + err);
         res.send(JSON.stringify(err));
         res.end();
       }
     )
     .then(
       result => {
-        console.log("1");
+        logger.info("1");
         res.send(JSON.stringify("success"));
         res.end();
       },
       err => {
-        console.log("err2: " + err);
+        logger.info("err2: " + err);
         res.send(JSON.stringify(err));
         res.end();
       }
@@ -2084,7 +2113,7 @@ const reactivateAccount = (req, res) => {
         res.end();
       },
       err => {
-        console.log("err1: " + err);
+        logger.info("err1: " + err);
         res.send(JSON.stringify(err));
         res.end();
       }
@@ -2103,7 +2132,7 @@ const updateEmployeeEditRights = (req, res) => {
         res.end();
       },
       err => {
-        console.log("err1: " + err);
+        logger.info("err1: " + err);
         res.send(JSON.stringify(err));
         res.end();
       }
@@ -2130,7 +2159,7 @@ const updateUserProfile = (req, res) => {
         res.end();
       },
       err => {
-        console.log("err1: " + err);
+        logger.info("err1: " + err);
         res.send(JSON.stringify(err));
         res.end();
       }
@@ -2138,7 +2167,7 @@ const updateUserProfile = (req, res) => {
 };
 
 const getReminderList = async (req, res) => {
-  console.log("getReminderList 1: ") //req_user_id
+  logger.info("getReminderList 1: ") //req_user_id
   const agentIdDict = JSON.parse(JSON.stringify(req.body));
   const reqUserId = agentIdDict.req_user_id;// user id
   const agentId = agentIdDict.agent_id;// agent id
@@ -2189,7 +2218,7 @@ const getReminderList = async (req, res) => {
 
 
 const getReminderListByCustomerId = async (req, res) => {
-  console.log("getReminderListByCustomerId 1: ")
+  logger.info("getReminderListByCustomerId 1: ")
   // customer_id: customerData.customer_id,
   //   property_type: customerData.customer_locality.property_type,// Residential, commercial
   //   property_for: customerData.customer_locality.property_for,// Rent, sell
@@ -2199,7 +2228,7 @@ const getReminderListByCustomerId = async (req, res) => {
   const propertyType = customerDataDict.property_type;
   const propertyFor = customerDataDict.property_for;
   // first find cusomer and get reminder of the customer
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   let finalReminderDataArr = [];
   let reminderArr;
 
@@ -2252,7 +2281,7 @@ const addNewReminder = async (req, res) => {
   const reminderDetails = JSON.parse(JSON.stringify(req.body));
   const reminderId = uniqueId();
   reminderDetails["reminder_id"] = reminderId;
-  console.log("reminderDetails: " + JSON.stringify(reminderDetails));
+  logger.info("reminderDetails: " + JSON.stringify(reminderDetails));
 
   await Reminder.create(reminderDetails);
   if (reminderDetails.category_type === "Residential") {
@@ -2292,7 +2321,7 @@ const addNewReminder = async (req, res) => {
 
   }
 
-  console.log("reminderId: ", reminderId);
+  logger.info("reminderId: ", reminderId);
   res.send(JSON.stringify({ reminderId: reminderId }));
   res.end();
   return;
@@ -2302,7 +2331,7 @@ const addNewReminder = async (req, res) => {
 const getCommercialCustomerListings = async (req, res) => {
   try {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
-    // console.log(JSON.stringify(req.body));
+    // logger.info(JSON.stringify(req.body));
     const agent_id = agentDetails.agent_id;// works_for
     const reqUserId = agentDetails.req_user_id;// user id
 
@@ -2312,7 +2341,7 @@ const getCommercialCustomerListings = async (req, res) => {
 
       const data = [...commercialPropertyCustomerRent, ...commercialPropertyCustomerBuy];
 
-      console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
+      logger.info("ResidentialPropertyCustomer: ", JSON.stringify(data));
       res.send(data);
       res.end();
 
@@ -2323,7 +2352,7 @@ const getCommercialCustomerListings = async (req, res) => {
       const commercialPropertyCustomerRent = await CommercialPropertyCustomerRent.find({ customer_id: { $in: commercialPropertyCustomerRentIds } }).lean().exec();
       const commercialPropertyCustomerBuy = await CommercialPropertyCustomerBuy.find({ customer_id: { $in: commercialPropertyCustomerBuyIds } }).lean().exec();
       const data = [...commercialPropertyCustomerRent, ...commercialPropertyCustomerBuy];
-      console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
+      logger.info("ResidentialPropertyCustomer: ", JSON.stringify(data));
       res.send(data);
       res.end();
     }
@@ -2356,7 +2385,7 @@ const getCommercialPropertyListingsX = async (req, res) => {
       // Sort the merged array based on update_date_time
       allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
 
-      console.log(JSON.stringify(allProperties));
+      logger.info(JSON.stringify(allProperties));
       res.send(allProperties); // Send the response with the sorted data
       res.end(); // End the response
 
@@ -2369,7 +2398,7 @@ const getCommercialPropertyListingsX = async (req, res) => {
       const commercialPropertySellData = await CommercialPropertySell.find({ property_id: { $in: commercialPropertySellIds } }).lean().exec();
       const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
       allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
-      console.log(JSON.stringify(allProperties));
+      logger.info(JSON.stringify(allProperties));
       res.send(allProperties); // Send the response with the sorted data
       res.end(); // End the response
     }
@@ -2397,7 +2426,7 @@ const getCommercialPropertyListings = async (req, res) => {
       const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
       allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
 
-      console.log(JSON.stringify(allProperties));
+      logger.info(JSON.stringify(allProperties));
       res.send(allProperties);
       res.end();
     } else {
@@ -2424,7 +2453,7 @@ const getCommercialPropertyListings = async (req, res) => {
       const allProperties = [...commercialPropertyRentData, ...commercialPropertySellData];
       allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
 
-      console.log(JSON.stringify(allProperties));
+      logger.info(JSON.stringify(allProperties));
       res.send(allProperties);
       res.end();
     }
@@ -2438,7 +2467,7 @@ const getCommercialPropertyListings = async (req, res) => {
 const getResidentialCustomerList = async (req, res) => {
   try {
     const agentDetails = JSON.parse(JSON.stringify(req.body));
-    // console.log(JSON.stringify(req.body));
+    // logger.info(JSON.stringify(req.body));
     const agent_id = agentDetails.agent_id;// works_for
     const reqUserId = agentDetails.req_user_id;// user id
 
@@ -2448,7 +2477,7 @@ const getResidentialCustomerList = async (req, res) => {
 
       const data = [...residentialPropertyCustomerRent, ...residentialPropertyCustomerBuy];
 
-      console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
+      logger.info("ResidentialPropertyCustomer: ", JSON.stringify(data));
       res.send(data);
       res.end();
     } else if (agent_id !== reqUserId) {
@@ -2458,7 +2487,7 @@ const getResidentialCustomerList = async (req, res) => {
       const residentialPropertyCustomerRent = await ResidentialPropertyCustomerRent.find({ customer_id: { $in: residentialPropertyCustomerRentIds } }).lean().exec();
       const residentialPropertyCustomerBuy = await ResidentialPropertyCustomerBuy.find({ customer_id: { $in: residentialPropertyCustomerBuyIds } }).lean().exec();
       const data = [...residentialPropertyCustomerRent, ...residentialPropertyCustomerBuy];
-      console.log("ResidentialPropertyCustomer: ", JSON.stringify(data));
+      logger.info("ResidentialPropertyCustomer: ", JSON.stringify(data));
       res.send(data);
       res.end();
     }
@@ -3076,14 +3105,14 @@ const getMatchedCommercialProptiesList = async (req, res) => {
 
 const getCustomerListForMeeting = async (req, res) => {
   const queryObj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   const reqUserId = queryObj.req_user_id;
   const agent_id = queryObj.agent_id;
   const property_type = queryObj.property_type;
   const propertyId = queryObj.property_id;
   const propertyAgentId = queryObj.property_agent_id;
   let property_for = queryObj.property_for;
-  console.log("xxx", property_type);
+  logger.info("xxx", property_type);
   let CustomerModel;
   let MatchModel;
 
@@ -3161,7 +3190,7 @@ const getCustomerListForMeeting = async (req, res) => {
 
   const myCustomerList = removeDuplicates(myMatchedCustomerList, myCustomerListX, "customer_id");
   const finalData = [...myCustomerList, ...myMatchedCustomerList, ...otherCustomerList];
-  console.log(JSON.stringify(finalData));
+  logger.info(JSON.stringify(finalData));
   res.send(finalData);
   res.end();
 
@@ -3190,7 +3219,7 @@ const mergeDedupe = (arr1, arr2, prop) => {
 
 const getPropertyListingForMeeting = async (req, res) => {
   const agentDetails = JSON.parse(JSON.stringify(req.body));
-  console.log("getPropertyListingForMeeting: " + JSON.stringify(req.body));
+  logger.info("getPropertyListingForMeeting: " + JSON.stringify(req.body));
   const agent_id = agentDetails.agent_id;
   const property_type = agentDetails.property_type;
   const customerId = agentDetails.customer_id;
@@ -3324,7 +3353,7 @@ const getResidentialPropertyListings = async (req, res) => {
       // Sort the merged array based on update_date_time
       allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
 
-      console.log(JSON.stringify(allProperties));
+      logger.info(JSON.stringify(allProperties));
       res.send(allProperties); // Send the response with the sorted data
       res.end(); // End the response
 
@@ -3338,7 +3367,7 @@ const getResidentialPropertyListings = async (req, res) => {
       const allProperties = [...residentialPropertyRentData, ...residentialPropertySellData];
       // Sort the merged array based on update_date_time
       allProperties.sort((a, b) => new Date(b.update_date_time) - new Date(a.update_date_time));
-      console.log(JSON.stringify(allProperties));
+      logger.info(JSON.stringify(allProperties));
       res.send(allProperties); // Send the response with the sorted data
       res.end(); // End the response
 
@@ -3350,7 +3379,7 @@ const getResidentialPropertyListings = async (req, res) => {
 };
 
 const addNewCommercialProperty = async (req, res) => {
-  console.log("Prop details1: " + JSON.stringify(req.body));
+  logger.info("Prop details1: " + JSON.stringify(req.body));
   const obj = JSON.parse(JSON.stringify(req.body));
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
@@ -3366,7 +3395,7 @@ const addNewCommercialProperty = async (req, res) => {
   propertyDetails.image_urls = [];
 
   Object.keys(req.files).map((item, index) => {
-    console.log("item", item);
+    logger.info("item", item);
     const file = req.files[item];
 
     const fileName = getFileName(propertyDetails.agent_id, index);
@@ -3378,17 +3407,17 @@ const addNewCommercialProperty = async (req, res) => {
       // .resize(320, 240)
       .toFile(path, (err, info) => {
         if (err) {
-          console.log('sharp>>>', err);
+          logger.info('sharp>>>', err);
         }
         else {
-          console.log('resize ok !');
+          logger.info('resize ok !');
         }
       });
 
   })
   // storing files- END
 
-  // console.log("Prop details2: " + propertyDetails);
+  // logger.info("Prop details2: " + propertyDetails);
   const propertyId = uniqueId();
   const locationArea = propertyDetails.property_address.location_area
   const gLocation = locationArea.location;
@@ -3438,7 +3467,7 @@ const addNewCommercialProperty = async (req, res) => {
       };
 
       const savedProperty = await CommercialPropertyRent.create(propertyDetailsDict);
-      console.log("Property saved with create, and default:", savedProperty);
+      logger.info("Property saved with create, and default:", savedProperty);
 
     } else if (propertyDetails.property_for === "Sell") {
       propertyDetailsDict["sell_details"] = {
@@ -3449,7 +3478,7 @@ const addNewCommercialProperty = async (req, res) => {
       };
 
       const savedProperty = await CommercialPropertySell.create(propertyDetailsDict);
-      console.log("Property saved with create, and default:", savedProperty);
+      logger.info("Property saved with create, and default:", savedProperty);
     }
 
     res.send(JSON.stringify(propertyDetailsDict));
@@ -3463,13 +3492,13 @@ const addNewCommercialProperty = async (req, res) => {
 const addNewResidentialRentProperty = async (req, res) => {
 
   const obj = JSON.parse(JSON.stringify(req.body));
-  console.log("propertyFinalDetails: ", JSON.parse(obj.propertyFinalDetails))
+  logger.info("propertyFinalDetails: ", JSON.parse(obj.propertyFinalDetails))
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
   const dir = getDirectoryPath(propertyDetails.agent_id);
   const createDirPath = IMAGE_PATH_URL + dir;
 
-  console.log("createDirPath: ", createDirPath)
+  logger.info("createDirPath: ", createDirPath)
   if (!fs.existsSync(createDirPath)) {
     fs.mkdirSync(createDirPath, { recursive: true });
   }
@@ -3477,7 +3506,7 @@ const addNewResidentialRentProperty = async (req, res) => {
   // storing files- START
   propertyDetails.image_urls = [];
   Object.keys(req.files).map((item, index) => {
-    console.log("item", item);
+    logger.info("item", item);
     const file = req.files[item];
     const fileName = getFileName(propertyDetails.agent_id, index);
     // propertyDetails.agent_id + "_"+index+ "_"+ new Date(Date.now()).getTime() + ".jpeg";
@@ -3487,10 +3516,10 @@ const addNewResidentialRentProperty = async (req, res) => {
       // .resize(320, 240)
       .toFile(path, (err, info) => {
         if (err) {
-          console.log('sharp>>>', err);
+          logger.info('sharp>>>', err);
         }
         else {
-          console.log('resize ok !');
+          logger.info('resize ok !');
         }
       });
 
@@ -3559,7 +3588,7 @@ const addNewResidentialRentProperty = async (req, res) => {
       };
 
       const savedProperty = await ResidentialPropertyRent.create(propertyDetailsDict);
-      console.log("Property saved with create, and default:", savedProperty);
+      logger.info("Property saved with create, and default:", savedProperty);
 
     } else if (propertyDetails.property_for === "Sell") {
       propertyDetailsDict["sell_details"] = {
@@ -3570,7 +3599,7 @@ const addNewResidentialRentProperty = async (req, res) => {
       };
 
       const savedProperty = await ResidentialPropertySell.create(propertyDetailsDict);
-      console.log("Property saved with create, and default:", savedProperty);
+      logger.info("Property saved with create, and default:", savedProperty);
 
     }
     res.send(JSON.stringify(propertyDetailsDict));
@@ -3587,17 +3616,17 @@ const getFileName = (agent_id, index) => {
 
 const getDirectoryPath = (agent_id) => {
   const hashCode = Math.abs(hash(agent_id)).toString();
-  console.log("propertyDetails: ", agent_id)
-  console.log("hashCode: ", hashCode);
+  logger.info("propertyDetails: ", agent_id)
+  logger.info("hashCode: ", hashCode);
 
   const lastFive = hashCode.slice(- 5);
   const childOneDir = lastFive.slice(0, 2)
   const childTwoDir = lastFive.slice(2, 4)
   const childThreeDir = lastFive.slice(-1)
-  console.log("lastFive: ", lastFive);
-  console.log("childOneDir: ", childOneDir);
-  console.log("childTwoDir: ", childTwoDir);
-  console.log("childThreeDir: ", childThreeDir);
+  logger.info("lastFive: ", lastFive);
+  logger.info("childOneDir: ", childOneDir);
+  logger.info("childTwoDir: ", childTwoDir);
+  logger.info("childThreeDir: ", childThreeDir);
   const dir = "/" + childOneDir + "/" + childTwoDir + "/" + childThreeDir + "/";
   return dir;
 
@@ -3605,7 +3634,7 @@ const getDirectoryPath = (agent_id) => {
 
 
 const getTotalListingSummary = async (req, res) => {
-  console.log("Prop details1: " + JSON.stringify(req.body));
+  logger.info("Prop details1: " + JSON.stringify(req.body));
   const agentObj = JSON.parse(JSON.stringify(req.body));
   // first check if user is agent or employee
   // if agent he can see all properties/customers for him and his employees
@@ -3672,26 +3701,26 @@ const getTotalListingSummary = async (req, res) => {
 
 
 const getTotalListingSummaryX = (req, res) => {
-  console.log("Prop details1: " + JSON.stringify(req.body));
+  logger.info("Prop details1: " + JSON.stringify(req.body));
   const agentObj = JSON.parse(JSON.stringify(req.body));
   // calculate last 4 months starting time
   const today = new Date(Date.now());
   const todayDate = today.getDate();
-  console.log(todayDate);
-  console.log(32 - todayDate);
+  logger.info(todayDate);
+  logger.info(32 - todayDate);
   const daysToMinus = 120 - (31 - todayDate);
   var dateOffset = 24 * 60 * 60 * 1000 * 92;
   const x = new Date(Date.now()) - dateOffset;
-  console.log(new Date(x).getMonth());
+  logger.info(new Date(x).getMonth());
   var startDate = new Date(
     new Date(x).getFullYear(),
     new Date(x).getMonth(),
     1
   );
-  console.log(startDate.getDate());
-  console.log(startDate.getMonth());
+  logger.info(startDate.getDate());
+  logger.info(startDate.getMonth());
   const month = startDate.toLocaleString("default", { month: "long" });
-  console.log(month);
+  logger.info(month);
 
   Promise.all([
     ResidentialProperty.aggregate([
@@ -3753,9 +3782,9 @@ const getTotalListingSummaryX = (req, res) => {
       }
     });
     // const sum = results[2]
-    console.log(JSON.stringify({ residentialPropsObjArray }));
-    console.log(JSON.stringify({ commercialPropObjArray }));
-    console.log(JSON.stringify({ residentialPropsObj, commercialPropObj }));
+    logger.info(JSON.stringify({ residentialPropsObjArray }));
+    logger.info(JSON.stringify({ commercialPropObjArray }));
+    logger.info(JSON.stringify({ residentialPropsObj, commercialPropObj }));
     // res.status(200).json({ list, count, sum });
   });
 };
@@ -3763,9 +3792,9 @@ const getTotalListingSummaryX = (req, res) => {
 
 
 const addNewResidentialCustomer = async (req, res) => {
-  console.log("Prop details1: " + JSON.stringify(req.body));
+  logger.info("Prop details1: " + JSON.stringify(req.body));
   const customerDetails = JSON.parse(JSON.stringify(req.body));
-  // console.log("Prop details2: " + propertyDetails);
+  // logger.info("Prop details2: " + propertyDetails);
   const customerId = uniqueId();
   let residentialCustomerRentLocationDictArray = [];
   let residentialCustomerBuyLocationDictArray = [];
@@ -3883,7 +3912,7 @@ const addNewResidentialCustomer = async (req, res) => {
 
     const savedProperty = await ResidentialPropertyCustomerRent.create(customerDetailsDict);
     const createdDocuments = await ResidentialCustomerRentLocation.create(residentialCustomerRentLocationDictArray);
-    console.log("ResidentialPropertyCustomerRent created successfully:", createdDocuments);
+    logger.info("ResidentialPropertyCustomerRent created successfully:", createdDocuments);
 
   } else if (customerDetails.customer_locality.property_for.toLowerCase() === 'buy') {
 
@@ -3898,14 +3927,14 @@ const addNewResidentialCustomer = async (req, res) => {
 };
 
 const addNewCommercialCustomer = async (req, res) => {
-  console.log("Prop details1: " + JSON.stringify(req.body));
+  logger.info("Prop details1: " + JSON.stringify(req.body));
   const customerDetails = JSON.parse(JSON.stringify(req.body));
-  // console.log("Prop details2: " + propertyDetails);
+  // logger.info("Prop details2: " + propertyDetails);
   const customerId = uniqueId();
   // get location from location_area
   // const locationArray = [];
   // customerDetails.customer_locality.location_area.forEach((locationData, i) => {
-  //   console.log(locationData.location);
+  //   logger.info(locationData.location);
   //   locationArray.push(locationData.location);
   // });
 
@@ -4094,7 +4123,7 @@ const modifyCustomerDetails = async (reqUserId, customerDetails) => {
 
 
 const getCustomerAndMeetingDetailsX = async (req, res) => {
-  console.log("getCustomerAndMeetingDetails: " + JSON.stringify(req.body));
+  logger.info("getCustomerAndMeetingDetails: " + JSON.stringify(req.body));
   const queryObj = JSON.parse(JSON.stringify(req.body));
   const reqUserId = queryObj.req_user_id;
 
@@ -4205,7 +4234,7 @@ const getCustomerAndMeetingDetailsX = async (req, res) => {
 
 
 const getCustomerAndMeetingDetails = async (req, res) => {
-  console.log("getCustomerAndMeetingDetails: " + JSON.stringify(req.body));
+  logger.info("getCustomerAndMeetingDetails: " + JSON.stringify(req.body));
   const queryObj = JSON.parse(JSON.stringify(req.body));
   const reqUserId = queryObj.req_user_id;
 
@@ -4300,7 +4329,7 @@ const getCustomerAndMeetingDetails = async (req, res) => {
 };
 
 const getAllGlobalListingByLocations = (req, res) => {
-  console.log("getAllGlobalListingByLocations: " + JSON.stringify(req.body));
+  logger.info("getAllGlobalListingByLocations: " + JSON.stringify(req.body));
   const queryObj = JSON.parse(JSON.stringify(req.body));
   const selectedTab = queryObj.selectedTab; // property=0, customer=1
   const propertyTypeIndex = queryObj.propertyTypeIndex; // Residential=0, Commercial=1
@@ -4331,10 +4360,10 @@ const getAllGlobalListingByLocations = (req, res) => {
   // queryDoc.find(condition, function(err, data) {
   queryDoc.find(function (err, data) {
     if (err) {
-      console.log(err);
+      logger.info(err);
       return;
     } else {
-      // console.log("response datax1:  " + JSON.stringify(data));
+      // logger.info("response datax1:  " + JSON.stringify(data));
       res.send(JSON.stringify(data));
       res.end();
       return;
@@ -4350,16 +4379,16 @@ const sendMessage = (req, res) => {
   messageDetails["message_id"] = messageId;
   messageDetails["create_date_time"] = create_date_time;
   messageDetails["update_date_time"] = update_date_time;
-  console.log("messageDetails: " + JSON.stringify(messageDetails));
+  logger.info("messageDetails: " + JSON.stringify(messageDetails));
 
   Message.collection.insertOne(messageDetails, function (err, data) {
     if (err) {
-      console.log(err);
+      logger.info(err);
       res.send(JSON.stringify("fail"));
       res.end();
       return;
     } else {
-      console.log("message Added" + JSON.stringify(data));
+      logger.info("message Added" + JSON.stringify(data));
       res.send(JSON.stringify({ messageId: messageId }));
       res.end();
       return;
@@ -4369,16 +4398,16 @@ const sendMessage = (req, res) => {
 
 const getMessagesList = (req, res) => {
   const userObj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   Message.find(
     { "receiver_details.id": userObj.agent_id },
 
     function (err, data) {
       if (err) {
-        console.log(err);
+        logger.info(err);
         return;
       } else {
-        console.log("response datax2:  " + JSON.stringify(data));
+        logger.info("response datax2:  " + JSON.stringify(data));
         res.send(JSON.stringify(data));
         res.end();
         return;
@@ -4389,7 +4418,7 @@ const getMessagesList = (req, res) => {
 
 const getSubjectDetails = (req, res) => {
   const subObj = JSON.parse(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  logger.info(JSON.stringify(req.body));
   let docName;
   if (subObj.subject_category === "property") {
     if (subObj.subject_type === "Residential") {
@@ -4399,10 +4428,10 @@ const getSubjectDetails = (req, res) => {
     }
     docName.findOne({ property_id: subObj.subject_id }, (err, data) => {
       if (err) {
-        console.log(err);
+        logger.info(err);
         return;
       }
-      console.log(JSON.stringify(data));
+      logger.info(JSON.stringify(data));
       res.send(data);
       res.end();
     });
@@ -4415,10 +4444,10 @@ const getSubjectDetails = (req, res) => {
 
     docName.findOne({ customer_id: subObj.subject_id }, (err, data) => {
       if (err) {
-        console.log(err);
+        logger.info(err);
         return;
       }
-      console.log(JSON.stringify(data));
+      logger.info(JSON.stringify(data));
       res.send(data);
       res.end();
     });

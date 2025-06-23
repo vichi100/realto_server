@@ -21,5 +21,7 @@ module.exports = {
   PORT: process.env.PORT || 3000,
   DB_URL: process.env.DB_URL,
   IMAGE_PATH_URL: process.env.IMAGE_PATH_URL,
-  OTP_API: process.env.OTP_API
+  OTP_API: process.env.OTP_API,
+  LOG_DIR_PATH: process.env.LOG_DIR_PATH,
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 };

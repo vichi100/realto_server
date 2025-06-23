@@ -252,3 +252,27 @@ npm install --production
 # Start your application (using PM2 for process management)
 pm2 start npm --name "your-app-v1.0.0" -- start
 
+
+### RUN APPLICATION USING PM2
+
+npm run start:pm2:dev
+
+SETUP IN package.json:
+"scripts": {
+  "start:pm2:dev": "NODE_ENV=development ENVFILE=.env.development pm2 start app.js --name realto_server",
+  "start:pm2:prod": "NODE_ENV=production ENVFILE=.env.production pm2 start app.js --name realto_server",
+  "stop:pm2": "pm2 stop realto_server",
+  "restart:pm2": "pm2 restart realto_server"
+}
+
+
+### RUN IN DEV ENV VS-CODE IDE 
+NODE_ENV=development node app.js
+
+
+
+
+
+
+
+
