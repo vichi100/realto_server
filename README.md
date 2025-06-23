@@ -227,3 +227,28 @@ db.commercial_customer_buys.updateMany(
 ### deleting employee is not delting from customers
 ### how employee who created meeting will able to see his meeting .... meeting creator id .. verify this logic - MUST CHECK ITS NOT WORKING........0.
 
+
+
+
+
+
+### Deploying a Node.js Application from GitHub Tags to a VPS ###
+
+Manual Deployment via SSH
+
+# Clone your repository (if not already done)
+git clone https://github.com/vichi100/realto_server.git
+cd your-repo
+
+# Fetch all tags from remote
+git fetch --tags
+
+# Checkout the specific tag you want to deploy
+git checkout tags/v1.0.0 -b release-v1.0.0
+
+# Install dependencies
+npm install --production
+
+# Start your application (using PM2 for process management)
+pm2 start npm --name "your-app-v1.0.0" -- start
+

@@ -9,12 +9,15 @@ const { nanoid, customAlphabet } = require('nanoid');
 const axios = require('axios');
 const sharp = require('sharp');
 var fs = require('fs');
+
+const { PORT, DB_URL, NODE_ENV, IMAGE_PATH_URL,  OTP_API} = require('./config/env');
+
 // const multer = require('multer');
 
 // https://in.pinterest.com/pin/677299231444826508/
 
 // 2 Factor API
-const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
+// const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
 
 
 const CommercialPropertyRent = require("./models/commercialPropertyRent");
@@ -62,9 +65,9 @@ const Message = require("./models/message");
 const { json } = require("body-parser");
 const commercialPropertyRent = require("./models/commercialPropertyRent");
 
-const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
-const IMAGE_PATH_PROD = "/root/realto/images";
-const IMAGE_PATH_URL = IMAGE_PATH_DEV;
+// const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
+// const IMAGE_PATH_PROD = "/root/realto/images";
+// const IMAGE_PATH_URL = IMAGE_PATH_DEV;
 
 const matchRoutes = require('./routes/matchRoutes');
 
@@ -117,12 +120,13 @@ mongoose
   .connect(
     // "mongodb+srv://vichi:vichi123@cluster0-1ys3l.gcp.mongodb.net/test?retryWrites=true&w=majority"
     // "mongodb+srv://vichi:vichi123@cluster0.dx3cf.mongodb.net/propM?retryWrites=true&w=majority"
-    "mongodb://realto:realto123@207.180.239.115:27017/realtodb"
+    // "mongodb://realto:realto123@207.180.239.115:27017/realtodb"
+    DB_URL
 
   )
   .then(() => {
     // app.listen(6000 ,'0.0.0.0');
-    app.listen(7002, "0.0.0.0", () => {
+    app.listen(PORT, "0.0.0.0", () => {
       console.log("server is listening on 7000 port");
     });
 
