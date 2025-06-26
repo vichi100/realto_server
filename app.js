@@ -12,7 +12,11 @@ var fs = require('fs');
 const dotenv = require('dotenv');
 const logger = require('./logger');
 
-const { PORT, DB_URL, NODE_ENV, IMAGE_PATH_URL,  OTP_API} = require('./config/env');
+const https = require("https");
+const http = require("http");
+
+
+const { PORT, DB_URL, NODE_ENV, IMAGE_PATH_URL, OTP_API } = require('./config/env');
 
 
 // const multer = require('multer');
@@ -78,6 +82,10 @@ const app = express();
 
 dotenv.config();
 
+
+
+
+
 // Middleware example
 app.use((req, res, next) => {
   logger.info(`Request: ${req.method} ${req.url}`);
@@ -98,6 +106,15 @@ app.get('/error', (req, res) => {
     res.status(500).send('Something went wrong');
   }
 });
+
+
+// For Health Check
+app.get('/health', (req, res) => {
+  res.send('OK');
+});
+
+
+
 
 
 
@@ -145,23 +162,57 @@ app.use(bodyParser.json());
 // });
 
 // start: Connect to DB   mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.8
+
+
+
+// "mongodb+srv://vichi:vichi123@cluster0-1ys3l.gcp.mongodb.net/test?retryWrites=true&w=majority"
+// "mongodb+srv://vichi:vichi123@cluster0.dx3cf.mongodb.net/propM?retryWrites=true&w=majority"
+// "mongodb://realto:realto123@207.180.239.115:27017/realtodb"
 mongoose
-  .connect(
-    // "mongodb+srv://vichi:vichi123@cluster0-1ys3l.gcp.mongodb.net/test?retryWrites=true&w=majority"
-    // "mongodb+srv://vichi:vichi123@cluster0.dx3cf.mongodb.net/propM?retryWrites=true&w=majority"
-    // "mongodb://realto:realto123@207.180.239.115:27017/realtodb"
-    DB_URL
-
-  )
+  .connect(DB_URL)
   .then(() => {
-    // app.listen(6000 ,'0.0.0.0');
-    app.listen(PORT, "0.0.0.0", () => {
-      logger.info("server is listening on 7000 port");
-    });
+    logger.info("MongoDB connected successfully");
 
-    logger.info("MongoDB connected...server listening at 7000");
+    // Conditional server setup based on environment
+    if (NODE_ENV !== "development") {
+      // Run with HTTPS in production, qa, or uat
+      const options = {
+        key: fs.readFileSync("/etc/ssl/private/selfsigned.key"),
+        cert: fs.readFileSync("/etc/ssl/private/selfsigned.crt"),
+      };
+
+      https.createServer(options, app).listen(PORT || 3000, () => {
+        logger.info(`HTTPS server running on port ${PORT || 3000}`);
+      });
+    } else {
+      // Run with HTTP in development
+      http.createServer(app).listen(PORT || 3000, () => {
+        logger.info(`HTTP server running on port ${PORT || 3000}`);
+      });
+    }
   })
-  .catch(err => logger.info(err));
+  .catch((err) => {
+    logger.error(`Failed to connect to MongoDB: ${err}`);
+  });
+
+
+// mongoose
+//   .connect(
+//     // "mongodb+srv://vichi:vichi123@cluster0-1ys3l.gcp.mongodb.net/test?retryWrites=true&w=majority"
+//     // "mongodb+srv://vichi:vichi123@cluster0.dx3cf.mongodb.net/propM?retryWrites=true&w=majority"
+//     // "mongodb://realto:realto123@207.180.239.115:27017/realtodb"
+//     DB_URL
+
+//   )
+//   .then(() => {
+//     // app.listen(6000 ,'0.0.0.0');
+//     app.listen(PORT, "0.0.0.0", () => {
+//       logger.info("server is listening on 7000 port");
+//     });
+
+//     logger.info("MongoDB connected...server listening at 7000");
+//   })
+//   .catch(err => logger.info(err));
 
 // end: Connect to DB
 
@@ -1844,19 +1895,19 @@ const updateEmployeeDetails = async (req, res) => {
   if (!mobileNumber.startsWith("+91")) {
     mobileNumber = "+91" + mobileNumber;
   }
-  
+
 
   try {
 
     // first verfy if mobile number is already exist then dont update
     // Check if the mobile number is already registered
-  const emp = await User.findOne({ mobile: mobileNumber }).lean().exec();
-  if (emp) {
-    return res.status(409).send({
-      errorCode: "EMPLOYEE_EXISTS",
-      message: "This mobile number is already registered"
-    }); // 409 Conflict with custom error code
-  }
+    const emp = await User.findOne({ mobile: mobileNumber }).lean().exec();
+    if (emp) {
+      return res.status(409).send({
+        errorCode: "EMPLOYEE_EXISTS",
+        message: "This mobile number is already registered"
+      }); // 409 Conflict with custom error code
+    }
     // Update the employee details
     const result = await User.updateOne(
       { id: empId }, // Find the user by empId

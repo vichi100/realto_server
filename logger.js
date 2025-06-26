@@ -26,3 +26,11 @@ const logger = winston.createLogger({
 });
 
 module.exports = logger;
+
+
+// Log Errors with Stack Trace
+// try {
+//   throw new Error('Sample crash');
+// } catch (err) {
+//   logger.error(`Error occurred: ${err.stack}`);
+// }
