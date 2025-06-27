@@ -1,14 +1,15 @@
 {
-  "name": "realto_server",
+  "name": "realto-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:pm2:dev": "NODE_ENV=development ENVFILE=.env.development pm2 start app.js --name realto_server",
-    "start:pm2:prod": "NODE_ENV=production ENVFILE=.env.production pm2 start app.js --name realto_server",
-    "start:pm2:qa": "NODE_ENV=qa ENVFILE=.env.qa pm2 start app.js --name realto_server",
-    "start:pm2:uat": "NODE_ENV=uat ENVFILE=.env.uat pm2 start app.js --name realto_server",
-    "restart:pm2": "pm2 restart realto_server",
+    "start:pm2:dev": "NODE_ENV=development ENVFILE=.env.development pm2 start app.js --name realto-server",
+    "start:pm2:prod": "NODE_ENV=production ENVFILE=.env.production pm2 start app.js --name realto-server",
+    "start:pm2:qa": "NODE_ENV=qa ENVFILE=.env.qa pm2 start app.js --name realto-server",
+    "start:pm2:uat": "NODE_ENV=uat ENVFILE=.env.uat pm2 start app.js --name realto-server",
+    "stop:pm2": "pm2 stop realto-server",
+    "restart:pm2": "pm2 restart realto-server",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js"
   },
