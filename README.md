@@ -256,6 +256,7 @@ pm2 start npm --name "your-app-v1.0.0" -- start
 ### RUN APPLICATION USING PM2
 
 npm run start:pm2:dev
+npm run start:pm2:production
 
 SETUP IN package.json:
 "scripts": {
@@ -268,6 +269,23 @@ SETUP IN package.json:
 
 ### RUN IN DEV ENV VS-CODE IDE 
 NODE_ENV=development node app.js
+
+
+### MONGODB REPLICA SETUP ON VPS SERVERS ###
+
+1) install mongo db on each server
+2) configure /etc/mongodb.conf for replica set
+3) change bind ip to 0.0.0.0
+4) create key store file and place it to other servers
+5) Confirm Ports Open to External Clients
+sudo ufw allow 27017
+6) 
+
+
+### SSL Https Security
+1) we have https between realto app and load balancer server
+2) we have ssl connectio among load balalcer and other node js server app - No
+3) we have ssl connection among node js and mongodb - No  
 
 
 
