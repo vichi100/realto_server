@@ -16,7 +16,7 @@ const propertySchema = new mongoose.Schema({
   },
   customer_locality: {
     city: String,
-    location_area: [],
+    location_area: { type: Array, default: [] },
     property_type: String, // residential, commercial
     property_for: String, // rent ,sell
     preferred_tenants: String,// "Family", "Bachelors"

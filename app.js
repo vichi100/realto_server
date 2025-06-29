@@ -185,6 +185,7 @@ mongoose
         logger.info(`HTTPS server running on port ${PORT || 3000}`);
       });
     } else {
+      logger.info(`In Dev env, connecting on port ${PORT || 3000}`);
       // Run with HTTP in development
       http.createServer(app).listen(PORT || 3000, () => {
         logger.info(`HTTP server running on port ${PORT || 3000}`);
@@ -224,6 +225,31 @@ const uniqueId = () => {
   logger.info(uniqueNumber); // Example: 171051387612387
   return uniqueNumber;
 }
+
+app.post('/deleteResidentialProperty', function (req, res) {
+  logger.info('deleteResidentialProperty');
+  deleteResidentialProperty(req, res);
+});
+
+app.post('/deleteCommercialProperty', function (req, res) {
+  logger.info('deleteCommercialProperty');
+  deleteCommercialProperty(req, res);
+});
+
+app.post('/deleteResidintialCustomer', function (req, res) {
+  logger.info('deleteResidintialCustomer');
+  deleteResidintialCustomer(req, res);
+});
+
+app.post('/deleteCommercialCustomer', function (req, res) {
+  logger.info('deleteCommercialCustomer');
+  deleteCommercialCustomer(req, res); 
+});
+
+
+
+
+
 
 // app.post('/matchedResidentialCustomerRentList', matchRoutes);
 
@@ -1527,6 +1553,197 @@ const getEmployerDetails = agentIdsArray => {
       insertNewAgent();
     }
   });
+};
+
+
+const deleteResidentialProperty = async (req, res) => {
+  logger.info(JSON.stringify(req.body));
+  const reqData = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = reqData.req_user_id;
+  const itemToDelete = reqData.dataToDelete;
+  const propertyId = itemToDelete.property_id;
+  const propertyAgentId = itemToDelete.agent_id;
+  // first check if request user is agent or employee
+  // if agent he can delete the property
+  // if employee then he can delete if he has admin right
+  const user = await User.findOne({ id: reqUserId }).lean().exec();
+  if (user) {
+    // checks if reqUserId works for propertyAgentId
+    if (user.works_for !== propertyAgentId) {
+      logger.info("Unauthorized access: User does not work for the property agent");
+      res.status(403).send("Unauthorized access");
+      res.end();
+      return;
+    }
+  }
+  // 
+  if ((user.user_type === "agent" && reqUserId === propertyAgentId)
+    || (user.user_type === "employee" && user.employee_role === "admin")) {
+    // User is an agent or an employee with admin rights
+    try {
+      // Delete the property from ResidentialPropertyRent and ResidentialPropertySell collections
+      if (itemToDelete.property_type === "Residential" && itemToDelete.property_for === "Rent") {
+        await ResidentialPropertyRent.deleteOne({ property_id: propertyId });
+        // Also delete from the match collections if they exist
+        await ResidentialRentPropertyMatch.deleteMany({ property_id: propertyId });
+      } else if (itemToDelete.property_type === "Residential" && itemToDelete.property_for === "Sell") {
+        await ResidentialPropertySell.deleteOne({ property_id: propertyId });
+        // Also delete from the match collections if they exist
+        await ResidentialBuyPropertyMatchBuy.deleteMany({ property_id: propertyId });
+      }
+      res.status(200).send("success");
+      res.end();
+      logger.info("Property deleted successfully");
+    } catch (err) {
+      logger.error(`Error deleting property: ${err}`);
+      res.status(500).send("Internal Server Error");
+    }
+  } else {
+    logger.info("Unauthorized access");
+    res.status(403).send("Unauthorized access");
+  }
+
+}
+
+const deleteCommercialProperty = async (req, res) => {
+  logger.info(JSON.stringify(req.body));
+  const reqData = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = reqData.req_user_id;
+  const itemToDelete = reqData.dataToDelete;  
+  const propertyId = itemToDelete.property_id;
+  const propertyAgentId = itemToDelete.agent_id;
+  // first check if request user is agent or employee
+  // if agent he can delete the property
+  // if employee then he can delete if he has admin right
+  const user = await User.findOne({ id: reqUserId }).lean().exec();
+  if (user) {
+    // checks if reqUserId works for propertyAgentId
+    if (user.works_for !== propertyAgentId) {
+      logger.info("Unauthorized access: User does not work for the property agent");
+      res.status(403).send("Unauthorized access");
+      res.end();
+      return;
+    }
+  }
+  if ((user.user_type === "agent" && reqUserId === propertyAgentId)
+    || (user.user_type === "employee" && user.employee_role === "admin")) {
+    // User is an agent or an employee with admin rights
+    try {
+      // Delete the property from CommercialPropertyRent and CommercialPropertySell collections
+      if (itemToDelete.property_type === "Commercial" && itemToDelete.property_for === "Rent") {
+        await CommercialPropertyRent.deleteOne({ property_id: propertyId });
+        // Also delete from the match collections if they exist
+        await CommercialRentPropertyMatch.deleteMany({ property_id: propertyId });
+      } else if (itemToDelete.property_type === "Commercial" && itemToDelete.property_for === "Sell") {
+        await CommercialPropertySell.deleteOne({ property_id: propertyId });
+        // Also delete from the match collections if they exist
+        await CommercialBuyPropertyMatch.deleteMany({ property_id: propertyId });
+      }
+      res.status(200).send("success");
+      res.end();
+      logger.info("Property deleted successfully");
+    } catch (err) {
+      logger.error(`Error deleting property: ${err}`);
+      res.status(500).send("Internal Server Error");
+    }
+  } else {
+    logger.info("Unauthorized access");
+    res.status(403).send("Unauthorized access");
+  }
+};  
+
+const deleteResidintialCustomer = async (req, res) => {
+  logger.info(JSON.stringify(req.body));
+  const reqData = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = reqData.req_user_id;
+  const itemToDelete = reqData.dataToDelete;
+  const customerId = itemToDelete.customer_id;
+  const customerAgentId = itemToDelete.agent_id;
+  // first check if request user is agent or employee
+  // if agent he can delete the customer
+  // if employee then he can delete if he has admin right
+  const user = await User.findOne({ id: reqUserId }).lean().exec();
+  if (user) {
+    // checks if reqUserId works for customerAgentId
+    if (user.works_for !== customerAgentId) {
+      logger.info("Unauthorized access: User does not work for the customer agent");
+      res.status(403).send("Unauthorized access");
+      res.end();
+      return;
+    }
+  }
+  if ((user.user_type === "agent" && reqUserId === customerAgentId)
+    || (user.user_type === "employee" && user.employee_role === "admin")) {
+    // User is an agent or an employee with admin rights
+    try {
+      // Delete the customer from ResidentialPropertyCustomerRent and ResidentialPropertyCustomerBuy collections
+      if (itemToDelete.customer_locality.property_type === "Residential" && itemToDelete.customer_locality.property_for === "Rent") {
+        await ResidentialPropertyCustomerRent.deleteOne({ customer_id: customerId });
+        // Also delete from the match collections if they exist
+        await ResidentialRentCustomerMatch.deleteMany({ customer_id: customerId });
+      } else if (itemToDelete.customer_locality.property_type === "Residential" && itemToDelete.customer_locality.property_for === "Buy") {
+        await ResidentialPropertyCustomerBuy.deleteOne({ customer_id: customerId });
+        // Also delete from the match collections if they exist
+        await ResidentialBuyCustomerMatch.deleteMany({ customer_id: customerId });
+      }
+      res.status(200).send("success");
+      res.end();
+      logger.info("Customer deleted successfully");
+    } catch (err) {
+      logger.error(`Error deleting customer: ${err}`);
+      res.status(500).send("Internal Server Error");
+    }
+  } else {
+    logger.info("Unauthorized access");
+    res.status(403).send("Unauthorized access");
+  }
+};
+
+const deleteCommercialCustomer = async (req, res) => {
+  logger.info(JSON.stringify(req.body));
+  const reqData = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = reqData.req_user_id;
+  const itemToDelete = reqData.dataToDelete;
+  const customerId = itemToDelete.customer_id;
+  const customerAgentId = itemToDelete.agent_id;
+  // first check if request user is agent or employee
+  // if agent he can delete the customer
+  // if employee then he can delete if he has admin right
+  const user = await User.findOne({ id: reqUserId }).lean().exec();
+  if (user) {
+    // checks if reqUserId works for customerAgentId    
+    if (user.works_for !== customerAgentId) {
+      logger.info("Unauthorized access: User does not work for the customer agent");
+      res.status(403).send("Unauthorized access");
+      res.end();
+      return;
+    }
+  }
+  if ((user.user_type === "agent" && reqUserId === customerAgentId)
+    || (user.user_type === "employee" && user.employee_role === "admin")) {
+    // User is an agent or an employee with admin rights
+    try {
+      // Delete the customer from CommercialPropertyCustomerRent and CommercialPropertyCustomerBuy collections
+      if (itemToDelete.customer_locality.property_type === "Commercial" && itemToDelete.customer_locality.property_for ===  "Rent") {
+        await CommercialPropertyCustomerRent.deleteOne({ customer_id: customerId });
+        // Also delete from the match collections if they exist
+        await CommercialRentCustomerMatch.deleteMany({ customer_id: customerId });
+      } else if (itemToDelete.customer_locality.property_type === "Commercial" && itemToDelete.customer_locality.property_for === "Buy") {
+        await CommercialPropertyCustomerBuy.deleteOne({ customer_id: customerId });
+        // Also delete from the match collections if they exist
+        await CommercialBuyCustomerMatch.deleteMany({ customer_id: customerId });
+      }
+      res.status(200).send("success");
+      res.end();
+      logger.info("Customer deleted successfully");
+    } catch (err) { 
+      logger.error(`Error deleting customer: ${err}`);
+      res.status(500).send("Internal Server Error");
+    }
+  } else {
+    logger.info("Unauthorized access");   
+    res.status(403).send("Unauthorized access");
+  }
 };
 
 
@@ -3543,7 +3760,9 @@ const addNewCommercialProperty = async (req, res) => {
 const addNewResidentialRentProperty = async (req, res) => {
 
   const obj = JSON.parse(JSON.stringify(req.body));
+  logger.info("Test message");
   logger.info("propertyFinalDetails: ", JSON.parse(obj.propertyFinalDetails))
+  console.info("propertyFinalDetails: ", JSON.parse(obj.propertyFinalDetails))
   const propertyDetails = JSON.parse(obj.propertyFinalDetails)
 
   const dir = getDirectoryPath(propertyDetails.agent_id);
@@ -3983,11 +4202,11 @@ const addNewCommercialCustomer = async (req, res) => {
   // logger.info("Prop details2: " + propertyDetails);
   const customerId = uniqueId();
   // get location from location_area
-  // const locationArray = [];
-  // customerDetails.customer_locality.location_area.forEach((locationData, i) => {
-  //   logger.info(locationData.location);
-  //   locationArray.push(locationData.location);
-  // });
+  const locationArray = [];
+  customerDetails.customer_locality.location_area.forEach((locationData, i) => {
+    logger.info(locationData.location);
+    locationArray.push(locationData.location);
+  });
 
   // const locationArray = customerDetails.customer_locality.location_area.map(locationData => ({
   //   type: "Point",

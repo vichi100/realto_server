@@ -60,7 +60,7 @@ const propertySchema = new mongoose.Schema({
   },
 
 
-  image_urls: { type: [String], default: [] },
+  image_urls: { type: [{ url: String }], default: [] }, 
   reminders: { type: [String], default: [] },
   assigned_to_employee:{ type: [String], default: [] },
   assigned_to_employee_name:{ type: [String], default: [] },

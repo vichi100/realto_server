@@ -1,31 +1,39 @@
-const winston = require('winston');
-require('winston-daily-rotate-file');
-const { LOG_DIR_PATH, LOG_LEVEL} = require('./config/env');
+const winston = require("winston");
+const path = require("path");
+const fs = require("fs");
 
-// Absolute path for external logs
-const logDirectory =LOG_DIR_PATH;//'/var/log/realto-api';
+const LOG_DIR = process.env.LOG_DIR_PATH || "logs";
+const LOG_LEVEL = process.env.LOG_LEVEL || "info";
 
-const transport = new winston.transports.DailyRotateFile({
-  filename: `${logDirectory}/app-%DATE%.log`,
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '14d',
+// Ensure log directory exists
+if (!fs.existsSync(LOG_DIR)) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+}
+
+// Enhanced formatter to include metadata objects
+const formatWithMetadata = winston.format.printf(info => {
+  const { timestamp, level, message, ...rest } = info;
+  const restString = Object.keys(rest).length ? " " + JSON.stringify(rest) : "";
+  return `${timestamp} [${level.toUpperCase()}]: ${message}${restString}`;
 });
 
 const logger = winston.createLogger({
   level: LOG_LEVEL,
   format: winston.format.combine(
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.printf(info => `${info.timestamp} [${info.level.toUpperCase()}]: ${info.message}`)
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    formatWithMetadata
   ),
   transports: [
-    transport,
     new winston.transports.Console(),
+    new winston.transports.File({
+      filename: path.join(LOG_DIR, "realto-app.log"),
+      level: LOG_LEVEL,
+    }),
   ],
 });
 
 module.exports = logger;
+
 
 
 // Log Errors with Stack Trace

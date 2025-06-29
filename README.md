@@ -270,6 +270,8 @@ SETUP IN package.json:
 ### RUN IN DEV ENV VS-CODE IDE 
 NODE_ENV=development node app.js
 
+NODE_ENV=development node app.js
+
 
 ### MONGODB REPLICA SETUP ON VPS SERVERS ###
 
