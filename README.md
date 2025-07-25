@@ -290,6 +290,10 @@ sudo ufw allow 27017
 3) we have ssl connection among node js and mongodb - No  
 
 
+#### start node js server
+NODE_ENV=development node app.js
+
+
 
 
 

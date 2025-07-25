@@ -243,7 +243,7 @@ app.post('/deleteResidintialCustomer', function (req, res) {
 
 app.post('/deleteCommercialCustomer', function (req, res) {
   logger.info('deleteCommercialCustomer');
-  deleteCommercialCustomer(req, res); 
+  deleteCommercialCustomer(req, res);
 });
 
 
@@ -1609,7 +1609,7 @@ const deleteCommercialProperty = async (req, res) => {
   logger.info(JSON.stringify(req.body));
   const reqData = JSON.parse(JSON.stringify(req.body));
   const reqUserId = reqData.req_user_id;
-  const itemToDelete = reqData.dataToDelete;  
+  const itemToDelete = reqData.dataToDelete;
   const propertyId = itemToDelete.property_id;
   const propertyAgentId = itemToDelete.agent_id;
   // first check if request user is agent or employee
@@ -1650,7 +1650,7 @@ const deleteCommercialProperty = async (req, res) => {
     logger.info("Unauthorized access");
     res.status(403).send("Unauthorized access");
   }
-};  
+};
 
 const deleteResidintialCustomer = async (req, res) => {
   logger.info(JSON.stringify(req.body));
@@ -1724,7 +1724,7 @@ const deleteCommercialCustomer = async (req, res) => {
     // User is an agent or an employee with admin rights
     try {
       // Delete the customer from CommercialPropertyCustomerRent and CommercialPropertyCustomerBuy collections
-      if (itemToDelete.customer_locality.property_type === "Commercial" && itemToDelete.customer_locality.property_for ===  "Rent") {
+      if (itemToDelete.customer_locality.property_type === "Commercial" && itemToDelete.customer_locality.property_for === "Rent") {
         await CommercialPropertyCustomerRent.deleteOne({ customer_id: customerId });
         // Also delete from the match collections if they exist
         await CommercialRentCustomerMatch.deleteMany({ customer_id: customerId });
@@ -1736,12 +1736,12 @@ const deleteCommercialCustomer = async (req, res) => {
       res.status(200).send("success");
       res.end();
       logger.info("Customer deleted successfully");
-    } catch (err) { 
+    } catch (err) {
       logger.error(`Error deleting customer: ${err}`);
       res.status(500).send("Internal Server Error");
     }
   } else {
-    logger.info("Unauthorized access");   
+    logger.info("Unauthorized access");
     res.status(403).send("Unauthorized access");
   }
 };
@@ -3413,10 +3413,11 @@ const getCustomerListForMeeting = async (req, res) => {
     "customer_locality.property_type": property_type,
     "customer_locality.property_for": property_for
   }).lean().exec();
+  
   // find other agent customers which are matched with this property
   const matchedData = await MatchModel.findOne({ property_id: propertyId, }).lean().exec();
   // create a dict each for my matched and other matched this dict will contain customer_id and matched percentage
-  const myMatchedCustomerDictList = matchedData.matched_customer_id_mine;
+  const myMatchedCustomerDictList = matchedData ? matchedData.matched_customer_id_mine: [];
   const myMatchedCustomerMap = {};
   const myMatchedCustomerIdList = [];
   for (let myMatchedCustomerDict of myMatchedCustomerDictList) {
@@ -3430,7 +3431,7 @@ const getCustomerListForMeeting = async (req, res) => {
     myMatchedCustomer.matched_percentage = myMatchedCustomerMap[myMatchedCustomer.customer_id.toString()];
   }
 
-  const otherMatchedCustomerDictList = matchedData.matched_customer_id_other;
+  const otherMatchedCustomerDictList = matchedData ? matchedData.matched_customer_id_other : [];
   const otherMatchedCustomerMap = {};
   // const otherMatchedCustomerIdList = [];
   for (let otherMatchedCustomerDict of otherMatchedCustomerDictList) {
@@ -3439,7 +3440,7 @@ const getCustomerListForMeeting = async (req, res) => {
   }
   let otherCustomerList = []
   if (matchedData) {
-    const otherAgentCustomerDictList = matchedData.matched_customer_id_other;
+    const otherAgentCustomerDictList = matchedData ? matchedData.matched_customer_id_other : [];
     const otherAgentCustomerList = [];
     for (let otherAgentCustomerDict of otherAgentCustomerDictList) {
       otherAgentCustomerList.push(otherAgentCustomerDict.customer_id);
@@ -3775,25 +3776,27 @@ const addNewResidentialRentProperty = async (req, res) => {
 
   // storing files- START
   propertyDetails.image_urls = [];
-  Object.keys(req.files).map((item, index) => {
-    logger.info("item", item);
-    const file = req.files[item];
-    const fileName = getFileName(propertyDetails.agent_id, index);
-    // propertyDetails.agent_id + "_"+index+ "_"+ new Date(Date.now()).getTime() + ".jpeg";
-    const path = createDirPath + fileName
-    propertyDetails.image_urls.push({ url: dir + fileName });
-    sharp(file.data)
-      // .resize(320, 240)
-      .toFile(path, (err, info) => {
-        if (err) {
-          logger.info('sharp>>>', err);
-        }
-        else {
-          logger.info('resize ok !');
-        }
-      });
+  if (req.files && Object.keys(req.files).length > 0) {
+    Object.keys(req.files).map((item, index) => {
+      logger.info("item", item);
+      const file = req.files[item];
+      const fileName = getFileName(propertyDetails.agent_id, index);
+      // propertyDetails.agent_id + "_"+index+ "_"+ new Date(Date.now()).getTime() + ".jpeg";
+      const path = createDirPath + fileName
+      propertyDetails.image_urls.push({ url: dir + fileName });
+      sharp(file.data)
+        // .resize(320, 240)
+        .toFile(path, (err, info) => {
+          if (err) {
+            logger.info('sharp>>>', err);
+          }
+          else {
+            logger.info('resize ok !');
+          }
+        });
 
-  })
+    })
+  }
   // storing files- END
   const locationArea = propertyDetails.property_address.location_area
   const gLocation = locationArea.location;
@@ -4566,8 +4569,8 @@ const getCustomerAndMeetingDetails = async (req, res) => {
   //2) create map so we dont have itrate multiple time
   //3) itrate thriugh propertyDetail and where match asign matched_percentage
   const matchPropertiesForCustomer = await matchModel.findOne({ customer_id: customerDetails.customer_id }).lean().exec();
-  const mineMatchedPropertyList = matchPropertiesForCustomer.matched_property_id_mine;
-  const otherMatchedPropertyList = matchPropertiesForCustomer.matched_property_id_other;
+  const mineMatchedPropertyList = matchPropertiesForCustomer ? matchPropertiesForCustomer.matched_property_id_mine : [];
+  const otherMatchedPropertyList = matchPropertiesForCustomer ? matchPropertiesForCustomer.matched_property_id_other: [];
   const mineMatchedPropertyMap = {};
   for (let mineMatchedProperty of mineMatchedPropertyList) {
     mineMatchedPropertyMap[mineMatchedProperty.property_id.toString()] = mineMatchedProperty.matched_percentage.toString();
