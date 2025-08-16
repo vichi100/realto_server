@@ -3370,6 +3370,7 @@ const getMatchedCommercialProptiesList = async (req, res) => {
 
 
 //1) if property agaent id and req_user_id is diffrent then show customer list only of req_user_id
+//2) if it is others property id then I will just show customer list of mine matched customers.
 
 const getCustomerListForMeeting = async (req, res) => {
   const queryObj = JSON.parse(JSON.stringify(req.body));
@@ -3454,11 +3455,29 @@ const getCustomerListForMeeting = async (req, res) => {
         otherCustomer.customer_details.mobile1 = otherAgent.mobile;
         otherCustomer.matched_percentage = otherMatchedCustomerMap[otherCustomer.customer_id.toString()];
       }
+    }else if (reqUserId !== propertyAgentId) {
+      // if reqUserId is not same as propertyAgentId then we will show only those customers which are matched with this property and agent id is same as reqUserId
+      otherCustomerList = await CustomerModel.find({ customer_id: { $in: otherAgentCustomerList } }).lean().exec();
+      for (let otherCustomer of otherCustomerList) {
+        const otherAgent = await User.findOne({ id: otherCustomer.agent_id }).lean().exec();
+        // otherCustomer.customer_details.name = otherAgent.name;
+        // otherCustomer.customer_details.mobile1 = otherAgent.mobile;
+        otherCustomer.matched_percentage = otherMatchedCustomerMap[otherCustomer.customer_id.toString()];
+      }
+      // filter out those customers whose agent id is not same as reqUserId
+      otherCustomerList = otherCustomerList.filter(customer => customer.agent_id === reqUserId);
     }
   }
 
   const myCustomerList = removeDuplicates(myMatchedCustomerList, myCustomerListX, "customer_id");
-  const finalData = [...myCustomerList, ...myMatchedCustomerList, ...otherCustomerList];
+  var finalData = [];
+  if(propertyAgentId && propertyAgentId !== reqUserId) {
+
+   finalData = [...otherCustomerList];
+  } else {
+     finalData = [...myCustomerList, ...myMatchedCustomerList, ...otherCustomerList];
+  }
+  // finalData = [ ...myMatchedCustomerList, ...otherCustomerList];
   logger.info(JSON.stringify(finalData));
   res.send(finalData);
   res.end();
@@ -3487,6 +3506,148 @@ const mergeDedupe = (arr1, arr2, prop) => {
 // show my matched properties + others matched property
 
 const getPropertyListingForMeeting = async (req, res) => {
+  const agentDetails = JSON.parse(JSON.stringify(req.body));
+  logger.info("getPropertyListingForMeeting: " + JSON.stringify(req.body));
+  const agent_id = agentDetails.agent_id;
+  const property_type = agentDetails.property_type;
+  const customerId = agentDetails.customer_id;
+  const customerAgentId = agentDetails.agent_id_of_client;
+  const reqUserId = agentDetails.req_user_id;
+  let property_for = agentDetails.property_for;
+
+  let PropertyModel;
+  let MatchModel;
+
+  if (property_type === "Residential") {
+    if (property_for === "Buy") {
+      property_for = "Sell";
+    }
+    if (property_for === "Rent") {
+      PropertyModel = ResidentialPropertyRent;
+      MatchModel = ResidentialRentCustomerMatch;
+    } else if (property_for === "Sell") {
+      PropertyModel = ResidentialPropertySell;
+      MatchModel = ResidentialBuyCustomerMatch;
+    }
+  } else if (property_type === "Commercial") {
+    if (property_for === "Buy") {
+      property_for = "Sell";
+    }
+    if (property_for === "Rent") {
+      PropertyModel = CommercialPropertyRent;
+      MatchModel = CommercialRentCustomerMatch;
+    } else if (property_for === "Sell") {
+      PropertyModel = CommercialPropertySell;
+      MatchModel = CommercialBuyCustomerMatch;
+    }
+  }
+
+  // const myPropertyRentListX = await PropertyModel.find({ agent_id: agent_id, property_type: property_type, property_for: property_for }).lean().exec();
+  // find the list of properties which are matched with this customer but from other agents
+  // There is possiblity that matched job is not run yet then we need to give users those properties which are matched with this customer from his own list
+  const matchedData = await MatchModel.findOne({ customer_id: customerId }).lean().exec();
+  // I have matched data now  my properties and other agent properties
+  // 1) now if reqUserId is same as customerAgentId then I will show all matched properties
+  // 2) now if reqUserId is not same as customerAgentId then I will show all matched properties which agent id is same as reqUserId
+
+  const otherPropertyListAfterMasking = [];
+  let myMatchedPropertyList = []
+
+  if (matchedData) {
+    // to find out mine
+    const myMatchedPropertyDictList = matchedData.matched_property_id_mine;
+    const myMatchedPropertyIdList = [];
+    const myMatchedPropertyMap = {};
+    if (reqUserId === customerAgentId) {
+      for (let myMatchedPropertyDict of myMatchedPropertyDictList) {
+        myMatchedPropertyIdList.push(myMatchedPropertyDict.property_id);
+        myMatchedPropertyMap[myMatchedPropertyDict.property_id.toString()] = myMatchedPropertyDict.matched_percentage.toString();
+      }
+      myMatchedPropertyList = await PropertyModel.find({ property_id: { $in: myMatchedPropertyIdList } }).lean().exec();
+      // update myMatchedPropertyList with matched percentage
+      for (let myMatchedProperty of myMatchedPropertyList) {
+        myMatchedProperty["matched_percentage"] = myMatchedPropertyMap[myMatchedProperty.property_id.toString()]
+      }
+    }
+
+
+    // to find out others
+    const otherAgentPropertyDictList = matchedData.matched_property_id_other;
+    let otherAgentPropertyList = [];
+    const otherMatchedPropertyMap = {};
+    for (let otherAgentPropertyDict of otherAgentPropertyDictList) {
+      otherAgentPropertyList.push(otherAgentPropertyDict.property_id);
+      otherMatchedPropertyMap[otherAgentPropertyDict.property_id.toString()] = otherAgentPropertyDict.matched_percentage.toString();
+    }
+    if (reqUserId === customerAgentId) {
+      const otherPropertyList = await PropertyModel.find({ property_id: { $in: otherAgentPropertyList } }).lean().exec();
+      for (let otherProperty of otherPropertyList) {
+        otherProperty["matched_percentage"] = otherMatchedPropertyMap[otherProperty.property_id.toString()];
+        const otherAgent = await User.findOne({ id: otherProperty.agent_id }).lean().exec();
+        // remove those agent properties which are deleted.
+        if (otherAgent) {
+          otherProperty.property_address = {
+            city: otherProperty.property_address.city,
+            main_text: otherProperty.property_address.main_text,
+            formatted_address: otherProperty.property_address.formatted_address,
+            flat_number: "",
+            building_name: "",
+            landmark_or_street: otherProperty.property_address.landmark_or_street,
+          }
+          otherProperty.owner_details = {
+            name: otherAgent.name ? otherAgent.name : "Agent",
+            mobile1: otherAgent.mobile,
+            address: "Please contact agent and refer to property id: " + otherProperty.property_id?.slice(-6)
+          }
+          otherPropertyListAfterMasking.push(otherProperty);
+        }
+
+      }
+    }
+
+    if (reqUserId !== customerAgentId) {
+      const otherPropertyList = await PropertyModel.find({ property_id: { $in: otherAgentPropertyList } }).lean().exec();
+      for (let otherProperty of otherPropertyList) {
+        otherProperty["matched_percentage"] = otherMatchedPropertyMap[otherProperty.property_id.toString()];
+        const otherAgent = await User.findOne({ id: otherProperty.agent_id }).lean().exec();
+        // remove those agent properties which are deleted.
+        if (otherAgent) {
+          otherProperty.property_address = {
+            city: otherProperty.property_address.city,
+            main_text: otherProperty.property_address.main_text,
+            formatted_address: otherProperty.property_address.formatted_address,
+            
+            landmark_or_street: otherProperty.property_address.landmark_or_street,
+          }
+          otherProperty.owner_details = {
+            name: otherAgent.name ? otherAgent.name : "Agent",
+            mobile1: otherAgent.mobile,
+            address: "Please contact agent and refer to property id: " + otherProperty.property_id?.slice(-6)
+          }
+          otherPropertyListAfterMasking.push(otherProperty);
+        }
+
+      }
+      // if reqUserId is not same as customerAgentId then I will show only my matched properties
+      myMatchedPropertyList = myMatchedPropertyList.filter(property => property.agent_id === reqUserId);
+      // and other agent properties will be empty
+      otherAgentPropertyList = [];
+      
+    }
+
+  }
+  // the aregument order sud be first matched data list then all data list so matched data will be added in final merge list
+  // const myPropertyRentList = mergeDedupe(myMatchedPropertyList, myPropertyRentListX, "property_id");
+  // const myPropertyRentList = removeDuplicates(myMatchedPropertyList, myPropertyRentListX, "property_id");
+  const finalData = [ ...myMatchedPropertyList, ...otherPropertyListAfterMasking];
+  res.send(JSON.stringify(finalData));
+  res.end();
+
+
+};
+
+
+const getPropertyListingForMeetingX = async (req, res) => {
   const agentDetails = JSON.parse(JSON.stringify(req.body));
   logger.info("getPropertyListingForMeeting: " + JSON.stringify(req.body));
   const agent_id = agentDetails.agent_id;
@@ -3593,6 +3754,7 @@ const getPropertyListingForMeeting = async (req, res) => {
 
 
 };
+
 
 // this will remove duplicates from list2 based on propertyName
 // and will return the list2

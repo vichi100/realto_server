@@ -203,7 +203,7 @@ schedule.scheduleJob('*/10 * * * * *', async () => {
       }
     }
 
-    const existingMatch = await residentialBuyPropertyMatch.findOne({ property_id: property.property_id });
+    const existingMatch = await residentialBuyPropertyMatch.findOne({ property_id: property.property_id }).lean().exec();
 
     if (existingMatch) {
       // Update existing match
