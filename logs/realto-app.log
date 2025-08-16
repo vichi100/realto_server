@@ -15978,3 +15978,87 @@
 2025-08-16 16:57:12 [INFO]: xxx
 2025-08-16 16:57:14 [INFO]: [{"_id":"688d6b06b1d00f7f5b3aed6b","customer_id":"17540984386485671520167","agent_id":"17540975855844954575117","customer_status":1,"match_count":2,"customer_details":{"name":"Customer Rent Commercial 1","mobile1":"99330577777","address":"juhu mumbai"},"customer_locality":{"city":"Mumbai","location_area":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"property_type":"Commercial","property_for":"Rent"},"customer_property_details":{"building_type":"Mall","parking_type":"Must","property_used_for":"Shop","property_size":500},"customer_rent_details":{"expected_rent":30000,"expected_deposit":150000,"available_from":"2025-08-01T18:30:00.000Z"},"reminders":[],"assigned_to_employee":[],"assigned_to_employee_name":[],"create_date_time":"2025-08-02T01:33:58.649Z","update_date_time":"2025-08-02T01:33:58.649Z","location":[],"__v":0,"matched_percentage":"85"}]
 2025-08-16 16:57:14 [INFO]: [{"_id":"688d6b06b1d00f7f5b3aed6b","customer_id":"17540984386485671520167","agent_id":"17540975855844954575117","customer_status":1,"match_count":2,"customer_details":{"name":"Customer Rent Commercial 1","mobile1":"99330577777","address":"juhu mumbai"},"customer_locality":{"city":"Mumbai","location_area":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"property_type":"Commercial","property_for":"Rent"},"customer_property_details":{"building_type":"Mall","parking_type":"Must","property_used_for":"Shop","property_size":500},"customer_rent_details":{"expected_rent":30000,"expected_deposit":150000,"available_from":"2025-08-01T18:30:00.000Z"},"reminders":[],"assigned_to_employee":[],"assigned_to_employee_name":[],"create_date_time":"2025-08-02T01:33:58.649Z","update_date_time":"2025-08-02T01:33:58.649Z","location":[],"__v":0,"matched_percentage":"85"}]
+2025-08-16 16:57:54 [INFO]: Request: POST /commercialCustomerList
+2025-08-16 16:57:54 [INFO]: commercial customer Listings
+2025-08-16 16:57:55 [INFO]: ResidentialPropertyCustomer: 
+2025-08-16 16:57:58 [INFO]: Request: POST /residentialCustomerList
+2025-08-16 16:57:58 [INFO]: residentialCustomerList
+2025-08-16 16:57:59 [INFO]: ResidentialPropertyCustomer: 
+2025-08-16 16:58:00 [INFO]: Request: POST /getTotalListingSummary
+2025-08-16 16:58:00 [INFO]: getTotalListingSummary
+2025-08-16 16:58:00 [INFO]: Prop details1: {"req_user_id":"17540975855844954575117","agent_id":"17540975855844954575117"}
+2025-08-16 16:58:00 [INFO]: Request: POST /getUserProfileDeatails
+2025-08-16 16:58:00 [INFO]: getUserProfileDeatails
+2025-08-16 16:58:08 [INFO]: Request: POST /getTotalListingSummary
+2025-08-16 16:58:08 [INFO]: getTotalListingSummary
+2025-08-16 16:58:08 [INFO]: Prop details1: {"req_user_id":"17540975855844954575117","agent_id":"17540975855844954575117"}
+2025-08-16 16:58:11 [INFO]: Request: POST /employeeList
+2025-08-16 16:58:11 [INFO]: getEmployeeList
+2025-08-16 16:58:11 [INFO]: {"req_user_id":"17540975855844954575117","agent_id":"17540975855844954575117"}
+2025-08-16 16:58:11 [INFO]: Request: POST /employeeList
+2025-08-16 16:58:11 [INFO]: getEmployeeList
+2025-08-16 16:58:11 [INFO]: {"req_user_id":"17540975855844954575117","agent_id":"17540975855844954575117"}
+2025-08-16 16:58:12 [INFO]: EmployeeList:  []
+2025-08-16 16:58:12 [INFO]: EmployeeList:  []
+2025-08-16 16:58:16 [INFO]: Request: POST /getTotalListingSummary
+2025-08-16 16:58:16 [INFO]: getTotalListingSummary
+2025-08-16 16:58:16 [INFO]: Prop details1: {"req_user_id":"17540975855844954575117","agent_id":"17540975855844954575117"}
+2025-08-16 16:58:16 [INFO]: Request: POST /getUserProfileDeatails
+2025-08-16 16:58:16 [INFO]: getUserProfileDeatails
+2025-08-16 16:58:43 [INFO]: Request: POST /getReminderList
+2025-08-16 16:58:43 [INFO]: getReminderList
+2025-08-16 16:58:43 [INFO]: getReminderList 1: 
+2025-08-16 16:58:43 [INFO]: Request: POST /getReminderList
+2025-08-16 16:58:43 [INFO]: getReminderList
+2025-08-16 16:58:43 [INFO]: getReminderList 1: 
+2025-08-16 16:58:46 [INFO]: Request: POST /residentialCustomerList
+2025-08-16 16:58:46 [INFO]: residentialCustomerList
+2025-08-16 16:58:47 [INFO]: ResidentialPropertyCustomer: 
+2025-08-16 16:58:48 [INFO]: Request: POST /residentialPropertyListings
+2025-08-16 16:58:48 [INFO]: residential property Listings
+2025-08-16 16:58:48 [INFO]: [{"_id":"688d68f8b1d00f7f5b3aed2a","property_id":"17540979124748107526830","agent_id":"17540975855844954575117","property_type":"Residential","property_for":"Sell","property_status":1,"match_count":2,"owner_details":{"name":"RSP1","mobile1":"9833022221","address":"juhu mumbai"},"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"property_address":{"city":"Mumbai","main_text":"Juhu Beach","formatted_address":"Juhu Beach, Maharashtra, India","flat_number":"RSP1 F1 Wing 1","building_name":"RSP1 Building 1","landmark_or_street":"RSP1 Landmark 1","pin":"123"},"property_details":{"house_type":"Apartment","bhk_type":"2BHK","washroom_numbers":2,"furnishing_status":"Semi","parking_type":"Car","parking_number":"2","property_age":"6-10","floor_number":20,"total_floor":25,"lift":"Yes","property_size":500},"sell_details":{"expected_sell_price":25000000,"maintenance_charge":2500,"available_from":"2025-08-01T18:30:00.000Z","negotiable":"Yes"},"image_urls":[{"url":"/64/43/2/17540975855844954575117_0_1754097912466.jpeg","_id":"688d68f8b1d00f7f5b3aed2b"}],"reminders":[],"assigned_to_employee":[],"assigned_to_employee_name":[],"create_date_time":"2025-08-02T01:25:12.474Z","update_date_time":"2025-08-02T01:25:12.474Z","__v":0},{"_id":"688d685cb1d00f7f5b3aed1f","property_id":"17540977564506112968284","agent_id":"17540975855844954575117","property_type":"Residential","property_for":"Rent","property_status":1,"match_count":2,"owner_details":{"name":"RRP1","mobile1":"9833011111","address":"juhu mumbai"},"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"property_address":{"city":"Mumbai","main_text":"Juhu Beach","formatted_address":"Juhu Beach, Maharashtra, India","flat_number":"RRP1 F1 Wing 1","building_name":"RRP1 Building 1","landmark_or_street":"RRP1 Landmark 1","pin":"123"},"property_details":{"house_type":"Apartment","bhk_type":"2BHK","washroom_numbers":"2","furnishing_status":"Semi","parking_type":"Car","parking_number":"2","property_age":"6-10","floor_number":20,"total_floor":25,"lift":"Yes","property_size":500},"rent_details":{"expected_rent":30000,"expected_deposit":150000,"available_from":"2025-08-01T18:30:00.000Z","preferred_tenants":"Any","non_veg_allowed":"Yes"},"image_urls":[{"url":"/64/43/2/17540975855844954575117_0_1754097756436.jpeg","_id":"688d685cb1d00f7f5b3aed20"}],"reminders":[],"assigned_to_employee":[],"assigned_to_employee_name":[],"create_date_time":"2025-08-02T01:22:36.451Z","update_date_time":"2025-08-02T01:22:36.451Z","__v":0}]
+2025-08-16 17:00:22 [INFO]: Request: POST /getGlobalSearchResult
+2025-08-16 17:00:22 [INFO]: getGlobalSearchResult
+2025-08-16 17:00:22 [INFO]: {"req_user_id":"17540975855844954575117","city":"Mumbai","selectedLocationArray":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"lookingFor":"Property","whatType":"Residential","purpose":"Rent","selectedBHK":["1RK","2BHK"],"selectedRequiredFor":["Shop"],"selectedBuildingType":["Mall"],"priceRange":[],"priceRangeCr":[1000000,50000000],"reqWithin":"2025-08-23T11:30:22.448Z","tenant":"Any"}
+2025-08-16 17:00:22 [INFO]: 72.8264476,19.0974187
+2025-08-16 17:01:37 [INFO]: Request: POST /getGlobalSearchResult
+2025-08-16 17:01:37 [INFO]: getGlobalSearchResult
+2025-08-16 17:01:37 [INFO]: {"req_user_id":"17540975855844954575117","city":"Mumbai","selectedLocationArray":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"lookingFor":"Property","whatType":"Residential","purpose":"Rent","selectedBHK":["1RK","2BHK"],"selectedRequiredFor":["Shop"],"selectedBuildingType":["Mall"],"priceRange":[],"priceRangeCr":[1000000,50000000],"reqWithin":"2025-08-23T11:31:37.880Z","tenant":"Any"}
+2025-08-16 17:01:37 [INFO]: 72.8264476,19.0974187
+2025-08-16 17:05:52 [INFO]: Request: POST /getGlobalSearchResult
+2025-08-16 17:08:34 [INFO]: MongoDB connected successfully
+2025-08-16 17:08:34 [INFO]: In Dev env, connecting on port 7002
+2025-08-16 17:08:34 [INFO]: HTTP server running on port 7002
+2025-08-16 17:08:37 [INFO]: Request: POST /getGlobalSearchResult
+2025-08-16 17:08:37 [INFO]: getGlobalSearchResult
+2025-08-16 17:08:37 [INFO]: {"req_user_id":"17540975855844954575117","city":"Mumbai","selectedLocationArray":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"lookingFor":"Property","whatType":"Residential","purpose":"Rent","selectedBHK":["1RK","2BHK"],"selectedRequiredFor":["Shop"],"selectedBuildingType":["Mall"],"priceRange":[],"priceRangeCr":[1000000,50000000],"reqWithin":"2025-08-23T11:38:37.592Z","tenant":"Any"}
+2025-08-16 17:08:37 [INFO]: 72.8264476,19.0974187
+2025-08-16 17:08:41 [INFO]: [object Object]
+2025-08-16 17:08:41 [INFO]: [{"_id":"688d685cb1d00f7f5b3aed1f","property_id":"17540977564506112968284","agent_id":"17540975855844954575117","property_type":"Residential","property_for":"Rent","property_status":1,"match_count":2,"owner_details":{"name":"RRP1","mobile1":"9833011111","address":"juhu mumbai"},"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"property_address":{"city":"Mumbai","main_text":"Juhu Beach","formatted_address":"Juhu Beach, Maharashtra, India","flat_number":"RRP1 F1 Wing 1","building_name":"RRP1 Building 1","landmark_or_street":"RRP1 Landmark 1","pin":"123"},"property_details":{"house_type":"Apartment","bhk_type":"2BHK","washroom_numbers":"2","furnishing_status":"Semi","parking_type":"Car","parking_number":"2","property_age":"6-10","floor_number":20,"total_floor":25,"lift":"Yes","property_size":500},"rent_details":{"expected_rent":30000,"expected_deposit":150000,"available_from":"2025-08-01T18:30:00.000Z","preferred_tenants":"Any","non_veg_allowed":"Yes"},"image_urls":[{"url":"/64/43/2/17540975855844954575117_0_1754097756436.jpeg","_id":"688d685cb1d00f7f5b3aed20"}],"reminders":[],"assigned_to_employee":[],"assigned_to_employee_name":[],"create_date_time":"2025-08-02T01:22:36.451Z","update_date_time":"2025-08-02T01:22:36.451Z","__v":0},{"_id":"688d6c37b1d00f7f5b3aed8e","property_id":"17540987438825906141198","agent_id":"17540985575614634602997","property_type":"Residential","property_for":"Rent","property_status":1,"match_count":1,"owner_details":{"name":"Agent","mobile1":"+919000000002","address":"Please contact agent and refer to property id: 141198"},"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"property_address":{"city":"Mumbai","main_text":"Juhu Beach","formatted_address":"Juhu Beach, Maharashtra, India","flat_number":"","building_name":"","landmark_or_street":"RRP2 Landmark 2"},"property_details":{"house_type":"Apartment","bhk_type":"2BHK","washroom_numbers":"2","furnishing_status":"Semi","parking_type":"Car","parking_number":"2","property_age":"6-10","floor_number":20,"total_floor":25,"lift":"Yes","property_size":500},"rent_details":{"expected_rent":30000,"expected_deposit":150000,"available_from":"2025-08-01T18:30:00.000Z","preferred_tenants":"Any","non_veg_allowed":"Yes"},"image_urls":[{"url":"/51/41/9/17540985575614634602997_0_1754098743819.jpeg","_id":"688d6c38b1d00f7f5b3aed8f"}],"reminders":[],"assigned_to_employee":[],"assigned_to_employee_name":[],"create_date_time":"2025-08-02T01:39:03.886Z","update_date_time":"2025-08-02T01:39:03.886Z","__v":0}]
+2025-08-16 17:08:41 [INFO]: Request: GET /64/43/2/17540975855844954575117_0_1754097756436.jpeg
+2025-08-16 17:08:42 [INFO]: Request: GET /51/41/9/17540985575614634602997_0_1754098743819.jpeg
+2025-08-16 17:10:13 [INFO]: Request: POST /getGlobalSearchResult
+2025-08-16 17:10:13 [INFO]: getGlobalSearchResult
+2025-08-16 17:10:13 [INFO]: {"req_user_id":"17540975855844954575117","city":"Mumbai","selectedLocationArray":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"lookingFor":"Customer","whatType":"Residential","purpose":"Rent","selectedBHK":["1RK","2BHK"],"selectedRequiredFor":["Shop"],"selectedBuildingType":["Mall"],"priceRange":[],"priceRangeCr":[1000000,50000000],"reqWithin":"2025-08-23T11:40:13.647Z","tenant":"Any"}
+2025-08-16 17:10:13 [INFO]: 72.8264476,19.0974187
+2025-08-16 17:11:51 [INFO]: MongoDB connected successfully
+2025-08-16 17:11:51 [INFO]: In Dev env, connecting on port 7002
+2025-08-16 17:11:51 [INFO]: HTTP server running on port 7002
+2025-08-16 17:11:54 [INFO]: Request: POST /getGlobalSearchResult
+2025-08-16 17:11:54 [INFO]: getGlobalSearchResult
+2025-08-16 17:11:54 [INFO]: {"req_user_id":"17540975855844954575117","city":"Mumbai","selectedLocationArray":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"lookingFor":"Customer","whatType":"Residential","purpose":"Rent","selectedBHK":["1RK","2BHK"],"selectedRequiredFor":["Shop"],"selectedBuildingType":["Mall"],"priceRange":[],"priceRangeCr":[1000000,50000000],"reqWithin":"2025-08-23T11:41:54.629Z","tenant":"Any"}
+2025-08-16 17:11:54 [INFO]: 72.8264476,19.0974187
+2025-08-16 17:11:57 [INFO]: [object Object]
+2025-08-16 17:11:57 [INFO]: [{"_id":"688d6a71b1d00f7f5b3aed53","customer_id":"17540982896212906678800","agent_id":"17540975855844954575117","customer_status":1,"match_count":2,"customer_details":{"name":"Customer Rent Residential 1","mobile1":"9933055555","address":"juhu mumbai"},"customer_locality":{"city":"Mumbai","location_area":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"property_type":"Residential","property_for":"Rent","preferred_tenants":"Family"},"customer_property_details":{"house_type":"Apartment","bhk_type":"2BHK","furnishing_status":"Semi","parking_type":"Car","lift":"Yes"},"customer_rent_details":{"expected_rent":30000,"expected_deposit":150000,"available_from":"2025-08-01T18:30:00.000Z"},"reminders":[],"assigned_to_employee":[],"assigned_to_employee_name":[],"create_date_time":"2025-08-02T01:31:29.632Z","update_date_time":"2025-08-02T01:31:29.632Z","__v":0},{"_id":"688d6e6eb1d00f7f5b3aedc2","customer_id":"17540993103730161755667","agent_id":"17540985575614634602997","customer_status":1,"match_count":1,"customer_details":{"name":"Agent","mobile1":"+919000000002","address":"Please contact agent and refer to customer Id: 755667"},"customer_locality":{"city":"Mumbai","location_area":[{"location":{"type":"Point","coordinates":[72.8264476,19.0974187]},"main_text":"Juhu Beach"}],"property_type":"Residential","property_for":"Rent","preferred_tenants":"Family"},"customer_property_details":{"house_type":"Apartment","bhk_type":"2BHK","furnishing_status":"Semi","parking_type":"Car","lift":"Yes"},"customer_rent_details":{"expected_rent":30000,"expected_deposit":150000,"available_from":"2025-08-01T18:30:00.000Z"},"reminders":[],"assigned_to_employee":[],"assigned_to_employee_name":[],"create_date_time":"2025-08-02T01:48:30.379Z","update_date_time":"2025-08-02T01:48:30.381Z","__v":0}]
+2025-08-16 17:12:17 [INFO]: Request: POST /matchedResidentialProptiesRentList
+2025-08-16 17:12:17 [INFO]: matchedResidentialProptiesRentList
+2025-08-16 17:12:19 [INFO]: Request: GET /64/43/2/17540975855844954575117_0_1754097756436.jpeg
+2025-08-16 17:12:29 [INFO]: Request: POST /matchedResidentialProptiesRentList
+2025-08-16 17:12:29 [INFO]: matchedResidentialProptiesRentList
+2025-08-16 17:12:30 [INFO]: Request: GET /64/43/2/17540975855844954575117_0_1754097756436.jpeg
+2025-08-16 17:12:33 [INFO]: Request: GET /51/41/9/17540985575614634602997_0_1754098743819.jpeg
+2025-08-16 17:12:42 [INFO]: Request: GET /51/41/9/17540985575614634602997_0_1754098743819.jpeg
+2025-08-16 17:12:42 [INFO]: Request: POST /getPropReminderList
+2025-08-16 17:12:42 [INFO]: getPropReminderList
+2025-08-16 17:12:42 [INFO]: {"req_user_id":"17540975855844954575117","agent_id":"17540975855844954575117","property_id":"17540987438825906141198"}
+2025-08-16 17:12:43 [INFO]: getPropReminderList resp:  []

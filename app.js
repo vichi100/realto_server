@@ -805,9 +805,15 @@ const getGlobalSearchResult = async (req, res) => {
               $gte: obj.priceRange[0] || 0, // Greater than or equal to min price
               $lte: obj.priceRange[1] || Infinity, // Less than or equal to max price
             },
+            // $expr: {
+            //   $lte: [
+            //     { $dateFromString: { dateString: "$rent_details.available_from" } }, // Convert string to Date
+            //     new Date(obj.reqWithin) // Compare with reqWithin date
+            //   ]
+            // },
             $expr: {
               $lte: [
-                { $dateFromString: { dateString: "$rent_details.available_from" } }, // Convert string to Date
+                "$rent_details.available_from", // The field is already a Date object
                 new Date(obj.reqWithin) // Compare with reqWithin date
               ]
             },
@@ -936,7 +942,7 @@ const getGlobalSearchResult = async (req, res) => {
             },
             $expr: {
               $lte: [
-                { $dateFromString: { dateString: "$rent_details.available_from" } }, // Convert string to Date
+                "$rent_details.available_from", // The field is already a Date object
                 new Date(obj.reqWithin) // Compare with reqWithin date
               ]
             },
@@ -1085,7 +1091,7 @@ const getGlobalSearchResult = async (req, res) => {
             // "customer_rent_details.available_from": obj.reqWithin,
             $expr: {
               $lte: [
-                { $dateFromString: { dateString: "$customer_rent_details.available_from" } }, // Convert string to Date
+                "$rent_details.available_from", // The field is already a Date object
                 new Date(obj.reqWithin) // Compare with reqWithin date
               ]
             },
@@ -1226,7 +1232,7 @@ const getGlobalSearchResult = async (req, res) => {
             // "customer_rent_details.available_from": obj.reqWithin,
             $expr: {
               $lte: [
-                { $dateFromString: { dateString: "$customer_rent_details.available_from" } }, // Convert string to Date
+                "$rent_details.available_from", // The field is already a Date object
                 new Date(obj.reqWithin) // Compare with reqWithin date
               ]
             },
@@ -3414,11 +3420,11 @@ const getCustomerListForMeeting = async (req, res) => {
     "customer_locality.property_type": property_type,
     "customer_locality.property_for": property_for
   }).lean().exec();
-  
+
   // find other agent customers which are matched with this property
   const matchedData = await MatchModel.findOne({ property_id: propertyId, }).lean().exec();
   // create a dict each for my matched and other matched this dict will contain customer_id and matched percentage
-  const myMatchedCustomerDictList = matchedData ? matchedData.matched_customer_id_mine: [];
+  const myMatchedCustomerDictList = matchedData ? matchedData.matched_customer_id_mine : [];
   const myMatchedCustomerMap = {};
   const myMatchedCustomerIdList = [];
   for (let myMatchedCustomerDict of myMatchedCustomerDictList) {
@@ -3455,7 +3461,7 @@ const getCustomerListForMeeting = async (req, res) => {
         otherCustomer.customer_details.mobile1 = otherAgent.mobile;
         otherCustomer.matched_percentage = otherMatchedCustomerMap[otherCustomer.customer_id.toString()];
       }
-    }else if (reqUserId !== propertyAgentId) {
+    } else if (reqUserId !== propertyAgentId) {
       // if reqUserId is not same as propertyAgentId then we will show only those customers which are matched with this property and agent id is same as reqUserId
       otherCustomerList = await CustomerModel.find({ customer_id: { $in: otherAgentCustomerList } }).lean().exec();
       for (let otherCustomer of otherCustomerList) {
@@ -3471,11 +3477,11 @@ const getCustomerListForMeeting = async (req, res) => {
 
   const myCustomerList = removeDuplicates(myMatchedCustomerList, myCustomerListX, "customer_id");
   var finalData = [];
-  if(propertyAgentId && propertyAgentId !== reqUserId) {
+  if (propertyAgentId && propertyAgentId !== reqUserId) {
 
-   finalData = [...otherCustomerList];
+    finalData = [...otherCustomerList];
   } else {
-     finalData = [...myCustomerList, ...myMatchedCustomerList, ...otherCustomerList];
+    finalData = [...myCustomerList, ...myMatchedCustomerList, ...otherCustomerList];
   }
   // finalData = [ ...myMatchedCustomerList, ...otherCustomerList];
   logger.info(JSON.stringify(finalData));
@@ -3616,7 +3622,7 @@ const getPropertyListingForMeeting = async (req, res) => {
             city: otherProperty.property_address.city,
             main_text: otherProperty.property_address.main_text,
             formatted_address: otherProperty.property_address.formatted_address,
-            
+
             landmark_or_street: otherProperty.property_address.landmark_or_street,
           }
           otherProperty.owner_details = {
@@ -3632,14 +3638,14 @@ const getPropertyListingForMeeting = async (req, res) => {
       myMatchedPropertyList = myMatchedPropertyList.filter(property => property.agent_id === reqUserId);
       // and other agent properties will be empty
       otherAgentPropertyList = [];
-      
+
     }
 
   }
   // the aregument order sud be first matched data list then all data list so matched data will be added in final merge list
   // const myPropertyRentList = mergeDedupe(myMatchedPropertyList, myPropertyRentListX, "property_id");
   // const myPropertyRentList = removeDuplicates(myMatchedPropertyList, myPropertyRentListX, "property_id");
-  const finalData = [ ...myMatchedPropertyList, ...otherPropertyListAfterMasking];
+  const finalData = [...myMatchedPropertyList, ...otherPropertyListAfterMasking];
   res.send(JSON.stringify(finalData));
   res.end();
 
@@ -4732,7 +4738,7 @@ const getCustomerAndMeetingDetails = async (req, res) => {
   //3) itrate thriugh propertyDetail and where match asign matched_percentage
   const matchPropertiesForCustomer = await matchModel.findOne({ customer_id: customerDetails.customer_id }).lean().exec();
   const mineMatchedPropertyList = matchPropertiesForCustomer ? matchPropertiesForCustomer.matched_property_id_mine : [];
-  const otherMatchedPropertyList = matchPropertiesForCustomer ? matchPropertiesForCustomer.matched_property_id_other: [];
+  const otherMatchedPropertyList = matchPropertiesForCustomer ? matchPropertiesForCustomer.matched_property_id_other : [];
   const mineMatchedPropertyMap = {};
   for (let mineMatchedProperty of mineMatchedPropertyList) {
     mineMatchedPropertyMap[mineMatchedProperty.property_id.toString()] = mineMatchedProperty.matched_percentage.toString();
