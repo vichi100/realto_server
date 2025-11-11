@@ -2122,10 +2122,10 @@ const updateEmployeeDetails = async (req, res) => {
 
   try {
 
-    // first verfy if mobile number is already exist then dont update
+    // first verfy if mobile number is already exist then only update
     // Check if the mobile number is already registered
-    const emp = await User.findOne({ mobile: mobileNumber }).lean().exec();
-    if (emp) {
+    const emp = await User.findOne({ id: empId }).lean().exec();
+    if (!emp) {
       return res.status(409).send({
         errorCode: "EMPLOYEE_EXISTS",
         message: "This mobile number is already registered"
