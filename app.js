@@ -231,9 +231,20 @@ app.post('/deleteResidentialProperty', function (req, res) {
   deleteResidentialProperty(req, res);
 });
 
+app.post('/closeResidentialProperty', function (req, res) {
+  logger.info('closeResidentialProperty');
+  closeResidentialProperty(req, res);
+});
+
+
 app.post('/deleteCommercialProperty', function (req, res) {
   logger.info('deleteCommercialProperty');
   deleteCommercialProperty(req, res);
+});
+
+app.post('/closeCommercialProperty', function (req, res) {
+  logger.info('closeCommercialProperty');
+  closeCommercialProperty(req, res);
 });
 
 app.post('/deleteResidintialCustomer', function (req, res) {
@@ -241,13 +252,20 @@ app.post('/deleteResidintialCustomer', function (req, res) {
   deleteResidintialCustomer(req, res);
 });
 
+app.post('/closeResidintialCustomer', function (req, res) {
+  logger.info('closeResidintialCustomer');
+  closeResidintialCustomer(req, res);
+});
+
 app.post('/deleteCommercialCustomer', function (req, res) {
   logger.info('deleteCommercialCustomer');
   deleteCommercialCustomer(req, res);
 });
 
-
-
+app.post('/closeCommercialCustomer', function (req, res) {
+  logger.info('closeCommercialCustomer');
+  closeCommercialCustomer(req, res);
+});
 
 
 
@@ -1611,6 +1629,88 @@ const deleteResidentialProperty = async (req, res) => {
 
 }
 
+
+
+const closeResidentialProperty = async (req, res) => {
+  logger.info(JSON.stringify(req.body));
+  const reqData = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = reqData.req_user_id;
+  const itemToClose = reqData.dataToClose;
+  const propertyId = itemToClose.property_id;
+  const propertyAgentId = itemToClose.agent_id;
+  const propertyStaus = itemToClose.property_status;
+  var newStaus = 0;
+  if(propertyStaus === 0){
+    newStaus = 1;
+  } else{
+    newStaus = 0;
+  }
+  // first check if request user is agent or employee
+  // if agent he can delete the property
+  // if employee then he can delete if he has admin right
+  const user = await User.findOne({ id: reqUserId }).lean().exec();
+  if (user) {
+    // checks if reqUserId works for propertyAgentId
+    if (user.works_for !== propertyAgentId) {
+      logger.info("Unauthorized access: User does not work for the property agent");
+      res.status(403).send("Unauthorized access");
+      res.end();
+      return;
+    }
+  }
+  // 
+  if ((user.user_type === "agent" && reqUserId === propertyAgentId)
+    || (user.user_type === "employee" )) {
+    // User is an agent or an employee with admin rights
+    try {
+      // Delete the property from ResidentialPropertyRent and ResidentialPropertySell collections
+      if (itemToClose.property_type === "Residential" && itemToClose.property_for === "Rent") {
+        const result = await ResidentialPropertyRent.updateOne(
+          // Filter
+          { property_id: propertyId },
+          // Update
+          {
+            $set: {
+              property_status: newStaus,// Mark as closed
+              is_close_successfully: "yes",
+              update_date_time: new Date() // Optional: Update the timestamp
+            }
+          }
+        );
+        console.log("Update result:", result);
+        // Also delete from the match collections if they exist
+        await ResidentialRentPropertyMatch.deleteMany({ property_id: propertyId });
+      } else if (itemToClose.property_type === "Residential" && itemToClose.property_for === "Sell") {
+        const result = await ResidentialPropertySell.updateOne(
+          // Filter
+          { property_id: propertyId },
+          // Update
+          {
+            $set: {
+              property_status: newStaus,// Mark as closed
+              is_close_successfully: "yes",
+              update_date_time: new Date() // Optional: Update the timestamp
+            }
+          }
+        );
+        console.log("Update result:", result);
+        // Also delete from the match collections if they exist
+        await ResidentialBuyPropertyMatchBuy.deleteMany({ property_id: propertyId });
+      }
+      res.status(200).send("success");
+      res.end();
+      logger.info("Property closed successfully");
+    } catch (err) {
+      logger.error(`Error closing property: ${err}`);
+      res.status(500).send("Internal Server Error");
+    }
+  } else {
+    logger.info("Unauthorized access");
+    res.status(403).send("Unauthorized access");
+  }
+
+}
+
 const deleteCommercialProperty = async (req, res) => {
   logger.info(JSON.stringify(req.body));
   const reqData = JSON.parse(JSON.stringify(req.body));
@@ -1642,6 +1742,85 @@ const deleteCommercialProperty = async (req, res) => {
         await CommercialRentPropertyMatch.deleteMany({ property_id: propertyId });
       } else if (itemToDelete.property_type === "Commercial" && itemToDelete.property_for === "Sell") {
         await CommercialPropertySell.deleteOne({ property_id: propertyId });
+        // Also delete from the match collections if they exist
+        await CommercialBuyPropertyMatch.deleteMany({ property_id: propertyId });
+      }
+      res.status(200).send("success");
+      res.end();
+      logger.info("Property deleted successfully");
+    } catch (err) {
+      logger.error(`Error deleting property: ${err}`);
+      res.status(500).send("Internal Server Error");
+    }
+  } else {
+    logger.info("Unauthorized access");
+    res.status(403).send("Unauthorized access");
+  }
+};
+
+const closeCommercialProperty = async (req, res) => {
+  logger.info(JSON.stringify(req.body));
+  const reqData = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = reqData.req_user_id;
+  const itemToClose = reqData.dataToClose;
+  const propertyId = itemToClose.property_id;
+  const propertyAgentId = itemToClose.agent_id;
+  const propertyStaus = itemToClose.property_status;
+  var newStaus = 0;
+  if(propertyStaus === 0){
+    newStaus = 1;
+  } else{
+    newStaus = 0;
+  }
+  // first check if request user is agent or employee
+  // if agent he can delete the property
+  // if employee then he can delete if he has admin right
+  const user = await User.findOne({ id: reqUserId }).lean().exec();
+  if (user) {
+    // checks if reqUserId works for propertyAgentId
+    if (user.works_for !== propertyAgentId) {
+      logger.info("Unauthorized access: User does not work for the property agent");
+      res.status(403).send("Unauthorized access");
+      res.end();
+      return;
+    }
+  }
+  if ((user.user_type === "agent" && reqUserId === propertyAgentId)
+    || (user.user_type === "employee")) {
+    // User is an agent or an employee with admin rights
+    try {
+      // Delete the property from CommercialPropertyRent and CommercialPropertySell collections
+      if (itemToClose.property_type === "Commercial" && itemToClose.property_for === "Rent") {
+        const result = await CommercialPropertyRent.updateOne(
+          // Filter
+          { property_id: propertyId },
+          // Update
+          {
+            $set: {
+              property_status: newStaus,// Mark as closed
+              is_close_successfully: "yes",
+              update_date_time: new Date() // Optional: Update the timestamp
+            }
+          }
+        );
+        console.log("Update result:", result);
+        // Also delete from the match collections if they exist
+        await CommercialRentPropertyMatch.deleteMany({ property_id: propertyId });
+      } else if (itemToClose.property_type === "Commercial" && itemToClose.property_for === "Sell") {
+
+        const result = await CommercialPropertySell.updateOne(
+          // Filter
+          { property_id: propertyId },
+          // Update
+          {
+            $set: {
+              property_status: newStaus,// Mark as closed
+              is_close_successfully: "yes",
+              update_date_time: new Date() // Optional: Update the timestamp
+            }
+          }
+        );
+        console.log("Update result:", result);
         // Also delete from the match collections if they exist
         await CommercialBuyPropertyMatch.deleteMany({ property_id: propertyId });
       }
@@ -1705,6 +1884,87 @@ const deleteResidintialCustomer = async (req, res) => {
   }
 };
 
+
+const closeResidintialCustomer = async (req, res) => {
+  logger.info(JSON.stringify(req.body));
+  const reqData = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = reqData.req_user_id;
+  const itemToClose = reqData.dataToClose;
+  const customerId = itemToClose.customer_id;
+  const customerAgentId = itemToClose.agent_id;
+  const customerStaus = itemToClose.customer_status;
+  var newStaus = 0;
+  if(customerStaus === 0){
+    newStaus = 1;
+  } else{
+    newStaus = 0;
+  }
+  // first check if request user is agent or employee
+  // if agent he can delete the customer
+  // if employee then he can delete if he has admin right
+  const user = await User.findOne({ id: reqUserId }).lean().exec();
+  if (user) {
+    // checks if reqUserId works for customerAgentId
+    if (user.works_for !== customerAgentId) {
+      logger.info("Unauthorized access: User does not work for the customer agent");
+      res.status(403).send("Unauthorized access");
+      res.end();
+      return;
+    }
+  }
+  if ((user.user_type === "agent" && reqUserId === customerAgentId)
+    || (user.user_type === "employee" )) {
+    // User is an agent or an employee with admin rights
+    try {
+      // Delete the customer from ResidentialPropertyCustomerRent and ResidentialPropertyCustomerBuy collections
+      if (itemToClose.customer_locality.property_type === "Residential" && itemToClose.customer_locality.property_for === "Rent") {
+
+        const result = await ResidentialPropertyCustomerRent.updateOne(
+          // Filter
+          { customer_id: customerId },
+          // Update
+          {
+            $set: {
+              customer_status: newStaus,// Mark as closed
+              is_close_successfully: "yes",
+              update_date_time: new Date() // Optional: Update the timestamp
+            }
+          }
+        );
+        console.log("Update result:", result);
+        // Also delete from the match collections if they exist
+        await ResidentialRentCustomerMatch.deleteMany({ customer_id: customerId });
+      } else if (itemToClose.customer_locality.property_type === "Residential" && itemToClose.customer_locality.property_for === "Buy") {
+
+        const result = await ResidentialPropertyCustomerBuy.updateOne(
+          // Filter
+          { customer_id: customerId },
+          // Update
+          {
+            $set: {
+              customer_status: newStaus,// Mark as closed
+              is_close_successfully: "yes",
+              update_date_time: new Date() // Optional: Update the timestamp
+            }
+          }
+        );
+        console.log("Update result:", result);
+        // Also delete from the match collections if they exist
+        await ResidentialBuyCustomerMatch.deleteMany({ customer_id: customerId });
+      }
+      res.status(200).send("success");
+      res.end();
+      logger.info("Customer deleted successfully");
+    } catch (err) {
+      logger.error(`Error deleting customer: ${err}`);
+      res.status(500).send("Internal Server Error");
+    }
+  } else {
+    logger.info("Unauthorized access");
+    res.status(403).send("Unauthorized access");
+  }
+};
+
 const deleteCommercialCustomer = async (req, res) => {
   logger.info(JSON.stringify(req.body));
   const reqData = JSON.parse(JSON.stringify(req.body));
@@ -1736,6 +1996,86 @@ const deleteCommercialCustomer = async (req, res) => {
         await CommercialRentCustomerMatch.deleteMany({ customer_id: customerId });
       } else if (itemToDelete.customer_locality.property_type === "Commercial" && itemToDelete.customer_locality.property_for === "Buy") {
         await CommercialPropertyCustomerBuy.deleteOne({ customer_id: customerId });
+        // Also delete from the match collections if they exist
+        await CommercialBuyCustomerMatch.deleteMany({ customer_id: customerId });
+      }
+      res.status(200).send("success");
+      res.end();
+      logger.info("Customer deleted successfully");
+    } catch (err) {
+      logger.error(`Error deleting customer: ${err}`);
+      res.status(500).send("Internal Server Error");
+    }
+  } else {
+    logger.info("Unauthorized access");
+    res.status(403).send("Unauthorized access");
+  }
+};
+
+const closeCommercialCustomer = async (req, res) => {
+  logger.info(JSON.stringify(req.body));
+  const reqData = JSON.parse(JSON.stringify(req.body));
+  const reqUserId = reqData.req_user_id;
+  const itemToClose = reqData.dataToClose;
+  const customerId = itemToClose.customer_id;
+  const customerAgentId = itemToClose.agent_id;
+  const customerStaus = itemToClose.customer_status;
+  var newStaus = 0;
+  if(customerStaus === 0){
+    newStaus = 1;
+  } else{
+    newStaus = 0;
+  }
+  // first check if request user is agent or employee
+  // if agent he can delete the customer
+  // if employee then he can delete if he has admin right
+  const user = await User.findOne({ id: reqUserId }).lean().exec();
+  if (user) {
+    // checks if reqUserId works for customerAgentId    
+    if (user.works_for !== customerAgentId) {
+      logger.info("Unauthorized access: User does not work for the customer agent");
+      res.status(403).send("Unauthorized access");
+      res.end();
+      return;
+    }
+  }
+  if ((user.user_type === "agent" && reqUserId === customerAgentId)
+    || (user.user_type === "employee" )) {
+    // User is an agent or an employee with admin rights
+    try {
+      // Delete the customer from CommercialPropertyCustomerRent and CommercialPropertyCustomerBuy collections
+      if (itemToClose.customer_locality.property_type === "Commercial" && itemToClose.customer_locality.property_for === "Rent") {
+
+        const result = await CommercialPropertyCustomerRent.updateOne(
+          // Filter
+          { customer_id: customerId },
+          // Update
+          {
+            $set: {
+              customer_status: newStaus,// Mark as closed
+              is_close_successfully: "yes",
+              update_date_time: new Date() // Optional: Update the timestamp
+            }
+          }
+        );
+        console.log("Update result:", result);
+        // Also delete from the match collections if they exist
+        await CommercialRentCustomerMatch.deleteMany({ customer_id: customerId });
+      } else if (itemToClose.customer_locality.property_type === "Commercial" && itemToClose.customer_locality.property_for === "Buy") {
+
+        const result = await CommercialPropertyCustomerBuy.updateOne(
+          // Filter
+          { customer_id: customerId },
+          // Update
+          {
+            $set: {
+              customer_status: newStaus,// Mark as closed
+              is_close_successfully: "yes",
+              update_date_time: new Date() // Optional: Update the timestamp
+            }
+          }
+        );
+        console.log("Update result:", result);
         // Also delete from the match collections if they exist
         await CommercialBuyCustomerMatch.deleteMany({ customer_id: customerId });
       }
