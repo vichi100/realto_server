@@ -1679,7 +1679,7 @@ const closeResidentialProperty = async (req, res) => {
         );
         console.log("Update result:", result);
         // Also delete from the match collections if they exist
-        await ResidentialRentPropertyMatch.deleteMany({ property_id: propertyId });
+        // await ResidentialRentPropertyMatch.deleteMany({ property_id: propertyId });
       } else if (itemToClose.property_type === "Residential" && itemToClose.property_for === "Sell") {
         const result = await ResidentialPropertySell.updateOne(
           // Filter
@@ -1695,7 +1695,7 @@ const closeResidentialProperty = async (req, res) => {
         );
         console.log("Update result:", result);
         // Also delete from the match collections if they exist
-        await ResidentialBuyPropertyMatchBuy.deleteMany({ property_id: propertyId });
+        // await ResidentialBuyPropertyMatchBuy.deleteMany({ property_id: propertyId });
       }
       res.status(200).send("success");
       res.end();
@@ -1805,7 +1805,7 @@ const closeCommercialProperty = async (req, res) => {
         );
         console.log("Update result:", result);
         // Also delete from the match collections if they exist
-        await CommercialRentPropertyMatch.deleteMany({ property_id: propertyId });
+        // await CommercialRentPropertyMatch.deleteMany({ property_id: propertyId });
       } else if (itemToClose.property_type === "Commercial" && itemToClose.property_for === "Sell") {
 
         const result = await CommercialPropertySell.updateOne(
@@ -1822,7 +1822,7 @@ const closeCommercialProperty = async (req, res) => {
         );
         console.log("Update result:", result);
         // Also delete from the match collections if they exist
-        await CommercialBuyPropertyMatch.deleteMany({ property_id: propertyId });
+        // await CommercialBuyPropertyMatch.deleteMany({ property_id: propertyId });
       }
       res.status(200).send("success");
       res.end();
@@ -1933,7 +1933,7 @@ const closeResidintialCustomer = async (req, res) => {
         );
         console.log("Update result:", result);
         // Also delete from the match collections if they exist
-        await ResidentialRentCustomerMatch.deleteMany({ customer_id: customerId });
+        // await ResidentialRentCustomerMatch.deleteMany({ customer_id: customerId });
       } else if (itemToClose.customer_locality.property_type === "Residential" && itemToClose.customer_locality.property_for === "Buy") {
 
         const result = await ResidentialPropertyCustomerBuy.updateOne(
@@ -1950,7 +1950,7 @@ const closeResidintialCustomer = async (req, res) => {
         );
         console.log("Update result:", result);
         // Also delete from the match collections if they exist
-        await ResidentialBuyCustomerMatch.deleteMany({ customer_id: customerId });
+        // await ResidentialBuyCustomerMatch.deleteMany({ customer_id: customerId });
       }
       res.status(200).send("success");
       res.end();
@@ -2060,7 +2060,7 @@ const closeCommercialCustomer = async (req, res) => {
         );
         console.log("Update result:", result);
         // Also delete from the match collections if they exist
-        await CommercialRentCustomerMatch.deleteMany({ customer_id: customerId });
+        // await CommercialRentCustomerMatch.deleteMany({ customer_id: customerId });
       } else if (itemToClose.customer_locality.property_type === "Commercial" && itemToClose.customer_locality.property_for === "Buy") {
 
         const result = await CommercialPropertyCustomerBuy.updateOne(
@@ -2077,7 +2077,7 @@ const closeCommercialCustomer = async (req, res) => {
         );
         console.log("Update result:", result);
         // Also delete from the match collections if they exist
-        await CommercialBuyCustomerMatch.deleteMany({ customer_id: customerId });
+        // await CommercialBuyCustomerMatch.deleteMany({ customer_id: customerId });
       }
       res.status(200).send("success");
       res.end();
