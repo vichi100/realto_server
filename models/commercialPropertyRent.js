@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const encryptFieldsPlugin = require('../plugins/encryptFieldsPlugin');
 // var ObjectId = Schema.ObjectId;
 
 const propertySchema = new mongoose.Schema({
@@ -10,9 +11,9 @@ const propertySchema = new mongoose.Schema({
   is_close_successfully: String, // yes, no
   match_count: { type: Number, default: 0 },
   owner_details: {
-    name: String,
-    mobile1: String,
-    address: String
+    name: mongoose.Schema.Types.Mixed,
+    mobile1: mongoose.Schema.Types.Mixed,
+    address: mongoose.Schema.Types.Mixed
   },
 
   location: {
@@ -29,12 +30,12 @@ const propertySchema = new mongoose.Schema({
 
   property_address: {
     city: String,
-    main_text: String,
-    formatted_address: String,
-    flat_number: String,
-    building_name: String,
-    landmark_or_street: String,
-    pin: String
+    main_text: mongoose.Schema.Types.Mixed,
+    formatted_address: mongoose.Schema.Types.Mixed,
+    flat_number: mongoose.Schema.Types.Mixed,
+    building_name: mongoose.Schema.Types.Mixed,
+    landmark_or_street: mongoose.Schema.Types.Mixed,
+    pin: mongoose.Schema.Types.Mixed
   },
 
   property_details: {
@@ -63,8 +64,28 @@ const propertySchema = new mongoose.Schema({
   update_date_time: {
     type: Date
   }
-});
+}, { minimize: false });
 
 propertySchema.index({ location: "2dsphere" });
+
+// APPLY PLUGIN — list of fields to encrypt
+propertySchema.plugin(encryptFieldsPlugin, {
+  paths: [
+    'owner_details.name',
+    'owner_details.mobile1',
+    'owner_details.address',
+
+    // safe-to-encrypt address fields (city is intentionally excluded)
+    'property_address.main_text',
+    'property_address.formatted_address',
+    'property_address.landmark_or_street',
+    'property_address.flat_number',
+    'property_address.building_name',
+    'property_address.pin',
+
+    // optional: sensitive arrays
+    // 'reminders'  // uncomment if you want to encrypt reminders
+  ]
+});
 
 module.exports = mongoose.model("commercial_property_rent", propertySchema);

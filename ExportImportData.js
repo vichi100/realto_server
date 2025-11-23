@@ -14,7 +14,8 @@ const MONGODB_URI =  "mongodb://realto:realto123@207.180.239.115:27017/realtodb"
 const DB_NAME = 'realtodb'; // <--- IMPORTANT: Change this to your database name
 
 // The name of the file where data will be stored
-const BACKUP_FILE_NAME = 'mongodb_backup_converted.json';
+const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+const BACKUP_FILE_NAME = `mongodb_backup_converted_${currentDate}.json`;
 // Resolve the full path for the backup file
 const BACKUP_FILE_PATH = path.join(__dirname, BACKUP_FILE_NAME);
 
@@ -153,10 +154,10 @@ async function importData() {
 // For a full cycle, you would run exportData() first, then importData().
 
 // To export data:
-// exportData();
+exportData();
 
 // To import data (make sure you have a backup file first):
-importData();
+// importData();
 
 // Example of how you might run both sequentially (for testing, be careful with data!):
 /*

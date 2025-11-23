@@ -1,0 +1,2182 @@
+{
+  "commercial_rent_property_matches": [
+    {
+      "_id": "688dfb75a64381603be73950",
+      "property_id": "17540990702206712186849",
+      "agent_id": "17540985575614634602997",
+      "match_count": 2,
+      "matched_customer_id_mine": [
+        {
+          "matched_percentage": 85,
+          "customer_id": "17540994553215807804551",
+          "distance": 0,
+          "_id": "688dfb75a64381603be73951"
+        }
+      ],
+      "matched_customer_id_other": [
+        {
+          "matched_percentage": 85,
+          "customer_id": "17540984386485671520167",
+          "agent_id": "17540975855844954575117",
+          "distance": 0,
+          "_id": "688dfb75a64381603be73952"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.958Z",
+      "__v": 0
+    },
+    {
+      "_id": "691997ecb10e7a5a625d6ee0",
+      "property_id": "17540980545334591056863",
+      "agent_id": "17540975855844954575117",
+      "match_count": 2,
+      "matched_customer_id_mine": [
+        {
+          "matched_percentage": 85,
+          "customer_id": "17540984386485671520167",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ee1"
+        }
+      ],
+      "matched_customer_id_other": [
+        {
+          "matched_percentage": 85,
+          "customer_id": "17540994553215807804551",
+          "agent_id": "17540985575614634602997",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ee2"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:11.402Z",
+      "__v": 0
+    }
+  ],
+  "commercial_buy_customer_matches": [
+    {
+      "_id": "688dfb73a64381603be738f7",
+      "customer_id": "17540995242537358319044",
+      "agent_id": "17540985575614634602997",
+      "matched_property_id_mine": [
+        {
+          "matched_percentage": 75,
+          "property_id": "17540992316184722329604",
+          "distance": 0,
+          "_id": "688dfb74a64381603be73942"
+        }
+      ],
+      "matched_property_id_other": [
+        {
+          "matched_percentage": 75,
+          "property_id": "17540982054654164909779",
+          "agent_id": "17540975855844954575117",
+          "distance": 0,
+          "_id": "688dfb73a64381603be738f8"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.493Z",
+      "__v": 0
+    },
+    {
+      "_id": "691997ebb10e7a5a625d6eb7",
+      "customer_id": "17540985141939882066539",
+      "agent_id": "17540975855844954575117",
+      "matched_property_id_mine": [
+        {
+          "matched_percentage": 75,
+          "property_id": "17540982054654164909779",
+          "distance": 0,
+          "_id": "691997ebb10e7a5a625d6eb8"
+        }
+      ],
+      "matched_property_id_other": [
+        {
+          "matched_percentage": 75,
+          "property_id": "17540992316184722329604",
+          "agent_id": "17540985575614634602997",
+          "distance": 0,
+          "_id": "691997edb10e7a5a625d6f05"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.027Z",
+      "__v": 0
+    }
+  ],
+  "residential_property_sells": [
+    {
+      "_id": "688d68f8b1d00f7f5b3aed2a",
+      "property_id": "17540979124748107526830",
+      "agent_id": "17540975855844954575117",
+      "property_type": "Residential",
+      "property_for": "Sell",
+      "property_status": 1,
+      "match_count": 2,
+      "owner_details": {
+        "name": "RSP1",
+        "mobile1": "9833022221",
+        "address": "juhu mumbai"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "property_address": {
+        "city": "Mumbai",
+        "main_text": "Juhu Beach",
+        "formatted_address": "Juhu Beach, Maharashtra, India",
+        "flat_number": "RSP1 F1 Wing 1",
+        "building_name": "RSP1 Building 1",
+        "landmark_or_street": "RSP1 Landmark 1",
+        "pin": "123"
+      },
+      "property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "washroom_numbers": 2,
+        "furnishing_status": "Semi",
+        "parking_type": "Car",
+        "parking_number": "2",
+        "property_age": "6-10",
+        "floor_number": 20,
+        "total_floor": 25,
+        "lift": "Yes",
+        "property_size": 500
+      },
+      "sell_details": {
+        "expected_sell_price": 25000000,
+        "maintenance_charge": 2500,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "negotiable": "Yes"
+      },
+      "image_urls": [
+        {
+          "url": "/64/43/2/17540975855844954575117_0_1754097912466.jpeg",
+          "_id": "688d68f8b1d00f7f5b3aed2b"
+        }
+      ],
+      "reminders": [
+        "17568290600106662153321",
+        "17570584009401707698292",
+        "17619425099311831566435",
+        "17620847039791067586895"
+      ],
+      "assigned_to_employee": [
+        "17628348127817002631512",
+        "17628358534686530384725",
+        "17628453610254709648811",
+        "17628454782755172363669"
+      ],
+      "assigned_to_employee_name": [
+        "Emp View 1",
+        "Emp Add 1",
+        "Emp Master 1",
+        "Emp Admin 1"
+      ],
+      "create_date_time": "2025-08-02T01:25:12.474Z",
+      "update_date_time": "2025-11-15T04:26:48.999Z",
+      "__v": 0,
+      "is_close_successfully": "yes"
+    },
+    {
+      "_id": "688d6cebb1d00f7f5b3aed99",
+      "property_id": "17540989230594732581147",
+      "agent_id": "17540985575614634602997",
+      "property_type": "Residential",
+      "property_for": "Sell",
+      "property_status": 1,
+      "match_count": 2,
+      "owner_details": {
+        "name": "RSP2",
+        "mobile1": "9833022222",
+        "address": "juhu mumbai"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "property_address": {
+        "city": "Mumbai",
+        "main_text": "Juhu Beach",
+        "formatted_address": "Juhu Beach, Maharashtra, India",
+        "flat_number": "RSP2 F2 Wing 2",
+        "building_name": "RSP2 Building 2",
+        "landmark_or_street": "RSP2 Landmark 2",
+        "pin": "123"
+      },
+      "property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "washroom_numbers": 2,
+        "furnishing_status": "Semi",
+        "parking_type": "Car",
+        "parking_number": "2",
+        "property_age": "6-10",
+        "floor_number": 20,
+        "total_floor": 25,
+        "lift": "Yes",
+        "property_size": 500
+      },
+      "sell_details": {
+        "expected_sell_price": 25000000,
+        "maintenance_charge": 2500,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "negotiable": "Yes"
+      },
+      "image_urls": [
+        {
+          "url": "/51/41/9/17540985575614634602997_0_1754098923006.jpeg",
+          "_id": "688d6cebb1d00f7f5b3aed9a"
+        }
+      ],
+      "reminders": [],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:42:03.060Z",
+      "update_date_time": "2025-08-02T01:42:03.060Z",
+      "__v": 0
+    }
+  ],
+  "residential_property_rents": [
+    {
+      "_id": "688d685cb1d00f7f5b3aed1f",
+      "property_id": "17540977564506112968284",
+      "agent_id": "17540975855844954575117",
+      "property_type": "Residential",
+      "property_for": "Rent",
+      "property_status": 1,
+      "match_count": 2,
+      "owner_details": {
+        "name": "RRP1",
+        "mobile1": "9833011111",
+        "address": "juhu mumbai"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "property_address": {
+        "city": "Mumbai",
+        "main_text": "Juhu Beach",
+        "formatted_address": "Juhu Beach, Maharashtra, India",
+        "flat_number": "RRP1 F1 Wing 1",
+        "building_name": "RRP1 Building 1",
+        "landmark_or_street": "RRP1 Landmark 1",
+        "pin": "123"
+      },
+      "property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "washroom_numbers": "2",
+        "furnishing_status": "Semi",
+        "parking_type": "Car",
+        "parking_number": "2",
+        "property_age": "6-10",
+        "floor_number": 20,
+        "total_floor": 25,
+        "lift": "Yes",
+        "property_size": 500
+      },
+      "rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "preferred_tenants": "Any",
+        "non_veg_allowed": "Yes"
+      },
+      "image_urls": [
+        {
+          "url": "/64/43/2/17540975855844954575117_0_1754097756436.jpeg",
+          "_id": "688d685cb1d00f7f5b3aed20"
+        }
+      ],
+      "reminders": [
+        "17570612000850693347474",
+        "17570720308771254955655",
+        "17615426193727990899127",
+        "17616128258929118697161",
+        "17619405517057077975472",
+        "17620812801952718509581"
+      ],
+      "assigned_to_employee": [
+        "17628348127817002631512"
+      ],
+      "assigned_to_employee_name": [
+        "Emp View 1"
+      ],
+      "create_date_time": "2025-08-02T01:22:36.451Z",
+      "update_date_time": "2025-11-15T07:42:12.182Z",
+      "__v": 0,
+      "is_close_successfully": "yes"
+    },
+    {
+      "_id": "688d6c37b1d00f7f5b3aed8e",
+      "property_id": "17540987438825906141198",
+      "agent_id": "17540985575614634602997",
+      "property_type": "Residential",
+      "property_for": "Rent",
+      "property_status": 1,
+      "match_count": 2,
+      "owner_details": {
+        "name": "RRP2",
+        "mobile1": "9833011112",
+        "address": "juhu mumbai"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "property_address": {
+        "city": "Mumbai",
+        "main_text": "Juhu Beach",
+        "formatted_address": "Juhu Beach, Maharashtra, India",
+        "flat_number": "RRP2 F2 Wing 2",
+        "building_name": "RRP2 Building 2",
+        "landmark_or_street": "RRP2 Landmark 2",
+        "pin": "123"
+      },
+      "property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "washroom_numbers": "2",
+        "furnishing_status": "Semi",
+        "parking_type": "Car",
+        "parking_number": "2",
+        "property_age": "6-10",
+        "floor_number": 20,
+        "total_floor": 25,
+        "lift": "Yes",
+        "property_size": 500
+      },
+      "rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "preferred_tenants": "Any",
+        "non_veg_allowed": "Yes"
+      },
+      "image_urls": [
+        {
+          "url": "/51/41/9/17540985575614634602997_0_1754098743819.jpeg",
+          "_id": "688d6c38b1d00f7f5b3aed8f"
+        }
+      ],
+      "reminders": [
+        "17632098585462421772271",
+        "17632129641193894647870"
+      ],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:39:03.886Z",
+      "update_date_time": "2025-08-02T01:39:03.886Z",
+      "__v": 0
+    }
+  ],
+  "residential_buy_property_matches": [
+    {
+      "_id": "688dfb75a64381603be73954",
+      "property_id": "17540989230594732581147",
+      "agent_id": "17540985575614634602997",
+      "match_count": 2,
+      "matched_customer_id_mine": [
+        {
+          "matched_percentage": 66,
+          "customer_id": "17540993810197106215818",
+          "distance": 0,
+          "_id": "688dfb75a64381603be73955"
+        }
+      ],
+      "matched_customer_id_other": [
+        {
+          "matched_percentage": 66,
+          "customer_id": "17540983561968008568630",
+          "agent_id": "17540975855844954575117",
+          "distance": 0,
+          "_id": "688dfb75a64381603be73956"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.782Z",
+      "__v": 0
+    },
+    {
+      "_id": "691997ecb10e7a5a625d6ecc",
+      "property_id": "17540979124748107526830",
+      "agent_id": "17540975855844954575117",
+      "match_count": 2,
+      "matched_customer_id_mine": [
+        {
+          "matched_percentage": 66,
+          "customer_id": "17540983561968008568630",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ecd"
+        }
+      ],
+      "matched_customer_id_other": [
+        {
+          "matched_percentage": 66,
+          "customer_id": "17540993810197106215818",
+          "agent_id": "17540985575614634602997",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ece"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:11.324Z",
+      "__v": 0
+    }
+  ],
+  "residential_customer_rents": [
+    {
+      "_id": "688d6a71b1d00f7f5b3aed53",
+      "customer_id": "17540982896212906678800",
+      "agent_id": "17540975855844954575117",
+      "customer_status": 1,
+      "match_count": 2,
+      "customer_details": {
+        "name": "Customer Rent Residential 1",
+        "mobile1": "9933055555",
+        "address": "juhu mumbai"
+      },
+      "customer_locality": {
+        "city": "Mumbai",
+        "location_area": [
+          {
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                72.8264476,
+                19.0974187
+              ]
+            },
+            "main_text": "Juhu Beach"
+          }
+        ],
+        "property_type": "Residential",
+        "property_for": "Rent",
+        "preferred_tenants": "Family"
+      },
+      "customer_property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "furnishing_status": "Semi",
+        "parking_type": "Car",
+        "lift": "Yes"
+      },
+      "customer_rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z"
+      },
+      "reminders": [
+        "17620593594119749097530",
+        "17620812801952718509581",
+        "17632129641193894647870"
+      ],
+      "assigned_to_employee": [
+        "17628348127817002631512",
+        "17628358534686530384725",
+        "17628453610254709648811",
+        "17628454782755172363669"
+      ],
+      "assigned_to_employee_name": [
+        "Emp View 1",
+        "Emp Add 1",
+        "Emp Master 1",
+        "Emp Admin 1"
+      ],
+      "create_date_time": "2025-08-02T01:31:29.632Z",
+      "update_date_time": "2025-11-15T08:04:54.903Z",
+      "__v": 0,
+      "is_close_successfully": "yes"
+    },
+    {
+      "_id": "688d6e6eb1d00f7f5b3aedc2",
+      "customer_id": "17540993103730161755667",
+      "agent_id": "17540985575614634602997",
+      "customer_status": 1,
+      "match_count": 2,
+      "customer_details": {
+        "name": "Customer Rent Residential 2",
+        "mobile1": "9933055552",
+        "address": "Juhu Mumbai"
+      },
+      "customer_locality": {
+        "city": "Mumbai",
+        "location_area": [
+          {
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                72.8264476,
+                19.0974187
+              ]
+            },
+            "main_text": "Juhu Beach"
+          }
+        ],
+        "property_type": "Residential",
+        "property_for": "Rent",
+        "preferred_tenants": "Family"
+      },
+      "customer_property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "furnishing_status": "Semi",
+        "parking_type": "Car",
+        "lift": "Yes"
+      },
+      "customer_rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z"
+      },
+      "reminders": [
+        "17570612000850693347474",
+        "17570720308771254955655",
+        "17615426193727990899127",
+        "17616128258929118697161",
+        "17619405517057077975472",
+        "17632098585462421772271"
+      ],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:48:30.379Z",
+      "update_date_time": "2025-08-02T01:48:30.381Z",
+      "__v": 0
+    }
+  ],
+  "commercial_customer_rents": [
+    {
+      "_id": "688d6b06b1d00f7f5b3aed6b",
+      "customer_id": "17540984386485671520167",
+      "agent_id": "17540975855844954575117",
+      "customer_status": 0,
+      "match_count": 2,
+      "customer_details": {
+        "name": "Customer Rent Commercial 1",
+        "mobile1": "99330577777",
+        "address": "juhu mumbai"
+      },
+      "customer_locality": {
+        "city": "Mumbai",
+        "location_area": [
+          {
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                72.8264476,
+                19.0974187
+              ]
+            },
+            "main_text": "Juhu Beach"
+          }
+        ],
+        "property_type": "Commercial",
+        "property_for": "Rent"
+      },
+      "customer_property_details": {
+        "building_type": "Mall",
+        "parking_type": "Must",
+        "property_used_for": "Shop",
+        "property_size": 500
+      },
+      "customer_rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z"
+      },
+      "reminders": [
+        "17620999352263702798490"
+      ],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:33:58.649Z",
+      "update_date_time": "2025-11-15T08:08:53.418Z",
+      "location": [],
+      "__v": 0,
+      "is_close_successfully": "yes"
+    },
+    {
+      "_id": "688d6effb1d00f7f5b3aedda",
+      "customer_id": "17540994553215807804551",
+      "agent_id": "17540985575614634602997",
+      "customer_status": 1,
+      "match_count": 2,
+      "customer_details": {
+        "name": "Customer Rent Commercial 2",
+        "mobile1": "99330677772",
+        "address": "juhu mumbai"
+      },
+      "customer_locality": {
+        "city": "Mumbai",
+        "location_area": [
+          {
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                72.8264476,
+                19.0974187
+              ]
+            },
+            "main_text": "Juhu Beach"
+          }
+        ],
+        "property_type": "Commercial",
+        "property_for": "Rent"
+      },
+      "customer_property_details": {
+        "building_type": "Mall",
+        "parking_type": "Must",
+        "property_used_for": "Shop",
+        "property_size": 500
+      },
+      "customer_rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z"
+      },
+      "reminders": [
+        "17619504523383768777075"
+      ],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:50:55.322Z",
+      "update_date_time": "2025-08-02T01:50:55.322Z",
+      "location": [],
+      "__v": 0
+    }
+  ],
+  "residential_customer_buys": [
+    {
+      "_id": "688d6ab4b1d00f7f5b3aed5f",
+      "customer_id": "17540983561968008568630",
+      "agent_id": "17540975855844954575117",
+      "customer_status": 1,
+      "match_count": 2,
+      "customer_details": {
+        "name": "Customer Buy Residential 1",
+        "mobile1": "9933066666",
+        "address": "juhu mumbai"
+      },
+      "customer_locality": {
+        "city": "Mumbai",
+        "location_area": [
+          {
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                72.8264476,
+                19.0974187
+              ]
+            },
+            "main_text": "Juhu Beach"
+          }
+        ],
+        "property_type": "Residential",
+        "property_for": "Buy"
+      },
+      "customer_property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "furnishing_status": "Semi",
+        "parking_type": "Car",
+        "lift": "Yes"
+      },
+      "customer_buy_details": {
+        "expected_buy_price": 30000000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "maintenance_charge": 0
+      },
+      "reminders": [
+        "17568290600106662153321",
+        "17570584009401707698292",
+        "17620847039791067586895"
+      ],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:32:36.198Z",
+      "update_date_time": "2025-11-13T16:45:23.344Z",
+      "__v": 0,
+      "is_close_successfully": "yes"
+    },
+    {
+      "_id": "688d6eb5b1d00f7f5b3aedce",
+      "customer_id": "17540993810197106215818",
+      "agent_id": "17540985575614634602997",
+      "customer_status": 1,
+      "match_count": 2,
+      "customer_details": {
+        "name": "Customer Buy Residential 2",
+        "mobile1": "9933066662",
+        "address": "Juhu Mumbai"
+      },
+      "customer_locality": {
+        "city": "Mumbai",
+        "location_area": [
+          {
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                72.8264476,
+                19.0974187
+              ]
+            },
+            "main_text": "Juhu Beach"
+          }
+        ],
+        "property_type": "Residential",
+        "property_for": "Buy"
+      },
+      "customer_property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "furnishing_status": "Semi",
+        "parking_type": "Car",
+        "lift": "Yes"
+      },
+      "customer_buy_details": {
+        "expected_buy_price": 30000000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "maintenance_charge": 0
+      },
+      "reminders": [
+        "17619425099311831566435"
+      ],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:49:41.020Z",
+      "update_date_time": "2025-08-02T01:49:41.020Z",
+      "__v": 0
+    }
+  ],
+  "residential_customer_buy_locations": [
+    {
+      "_id": "688d6ab4b1d00f7f5b3aed61",
+      "customer_id": "17540983561968008568630",
+      "agent_id": "17540975855844954575117",
+      "customer_status": 1,
+      "customer_property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "furnishing_status": "Semi",
+        "parking_type": "Car"
+      },
+      "customer_buy_details": {
+        "expected_buy_price": 30000000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "maintenance_charge": 0
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "__v": 0
+    },
+    {
+      "_id": "688d6eb5b1d00f7f5b3aedd0",
+      "customer_id": "17540993810197106215818",
+      "agent_id": "17540985575614634602997",
+      "customer_status": 1,
+      "customer_property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "furnishing_status": "Semi",
+        "parking_type": "Car"
+      },
+      "customer_buy_details": {
+        "expected_buy_price": 30000000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "maintenance_charge": 0
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "__v": 0
+    }
+  ],
+  "commercial_customer_buy_locations": [
+    {
+      "_id": "688d6b52b1d00f7f5b3aed7b",
+      "customer_id": "17540985141939882066539",
+      "agent_id": "17540975855844954575117",
+      "customer_status": 1,
+      "customer_property_details": {
+        "building_type": "Mall",
+        "property_used_for": "Shop",
+        "property_size": "500",
+        "parking_type": "Must"
+      },
+      "customer_buy_details": {
+        "expected_buy_price": 30000000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "maintenance_charge": 0
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "__v": 0
+    },
+    {
+      "_id": "688d6f44b1d00f7f5b3aedea",
+      "customer_id": "17540995242537358319044",
+      "agent_id": "17540985575614634602997",
+      "customer_status": 1,
+      "customer_property_details": {
+        "building_type": "Mall",
+        "property_used_for": "Shop",
+        "property_size": "500",
+        "parking_type": "Must"
+      },
+      "customer_buy_details": {
+        "expected_buy_price": 30000000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "maintenance_charge": 0
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "__v": 0
+    }
+  ],
+  "residential_rent_customer_matches": [
+    {
+      "_id": "688dfb73a64381603be738ee",
+      "customer_id": "17540993103730161755667",
+      "agent_id": "17540985575614634602997",
+      "match_count": 2,
+      "matched_property_id_mine": [
+        {
+          "matched_percentage": 84,
+          "property_id": "17540987438825906141198",
+          "distance": 0,
+          "_id": "688dfb74a64381603be73937"
+        }
+      ],
+      "matched_property_id_other": [
+        {
+          "matched_percentage": 84,
+          "property_id": "17540977564506112968284",
+          "agent_id": "17540975855844954575117",
+          "distance": 0,
+          "_id": "688dfb73a64381603be738ef"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.266Z",
+      "__v": 0
+    },
+    {
+      "_id": "691997ebb10e7a5a625d6ea6",
+      "customer_id": "17540982896212906678800",
+      "agent_id": "17540975855844954575117",
+      "match_count": 2,
+      "matched_property_id_mine": [
+        {
+          "matched_percentage": 84,
+          "property_id": "17540977564506112968284",
+          "distance": 0,
+          "_id": "691997ebb10e7a5a625d6ea7"
+        }
+      ],
+      "matched_property_id_other": [
+        {
+          "matched_percentage": 84,
+          "property_id": "17540987438825906141198",
+          "agent_id": "17540985575614634602997",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ef1"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:11.844Z",
+      "__v": 0
+    }
+  ],
+  "messages": [],
+  "residential_rent_property_matches": [
+    {
+      "_id": "688dfb75a64381603be7394c",
+      "property_id": "17540987438825906141198",
+      "agent_id": "17540985575614634602997",
+      "match_count": 2,
+      "matched_customer_id_mine": [
+        {
+          "matched_percentage": 84,
+          "customer_id": "17540993103730161755667",
+          "distance": 0,
+          "_id": "688dfb75a64381603be7394d"
+        }
+      ],
+      "matched_customer_id_other": [
+        {
+          "matched_percentage": 84,
+          "customer_id": "17540982896212906678800",
+          "agent_id": "17540975855844954575117",
+          "distance": 0,
+          "_id": "688dfb75a64381603be7394e"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.687Z",
+      "__v": 0
+    },
+    {
+      "_id": "691997ecb10e7a5a625d6ed3",
+      "property_id": "17540977564506112968284",
+      "agent_id": "17540975855844954575117",
+      "match_count": 2,
+      "matched_customer_id_mine": [
+        {
+          "matched_percentage": 84,
+          "customer_id": "17540982896212906678800",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ed4"
+        }
+      ],
+      "matched_customer_id_other": [
+        {
+          "matched_percentage": 84,
+          "customer_id": "17540993103730161755667",
+          "agent_id": "17540985575614634602997",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ed5"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:11.274Z",
+      "__v": 0
+    }
+  ],
+  "residential_buy_customer_matches": [
+    {
+      "_id": "688dfb73a64381603be738f4",
+      "customer_id": "17540993810197106215818",
+      "agent_id": "17540985575614634602997",
+      "match_count": 2,
+      "matched_property_id_mine": [
+        {
+          "matched_percentage": 66,
+          "property_id": "17540989230594732581147",
+          "distance": 0,
+          "_id": "688dfb74a64381603be7393b"
+        }
+      ],
+      "matched_property_id_other": [
+        {
+          "matched_percentage": 66,
+          "property_id": "17540979124748107526830",
+          "agent_id": "17540975855844954575117",
+          "distance": 0,
+          "_id": "688dfb73a64381603be738f5"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.345Z",
+      "__v": 0
+    },
+    {
+      "_id": "691997ebb10e7a5a625d6ea3",
+      "customer_id": "17540983561968008568630",
+      "agent_id": "17540975855844954575117",
+      "match_count": 2,
+      "matched_property_id_mine": [
+        {
+          "matched_percentage": 66,
+          "property_id": "17540979124748107526830",
+          "distance": 0,
+          "_id": "691997ebb10e7a5a625d6ea4"
+        }
+      ],
+      "matched_property_id_other": [
+        {
+          "matched_percentage": 66,
+          "property_id": "17540989230594732581147",
+          "agent_id": "17540985575614634602997",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ee9"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:11.908Z",
+      "__v": 0
+    }
+  ],
+  "reminders": [
+    {
+      "_id": "68b71584b7e252aef660a030",
+      "reminder_id": "17568290600106662153321",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540975855844954575117",
+      "category_ids": [
+        "17540979124748107526830"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Sell",
+      "reminder_for": "Call",
+      "client_id": "17540983561968008568630",
+      "client_name": "Customer Buy Residential 1",
+      "client_mobile": "9933066666",
+      "meeting_date": "2025-09-27T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "68ba9560595d5bd057d6d552",
+      "reminder_id": "17570584009401707698292",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540975855844954575117",
+      "category_ids": [
+        "17540979124748107526830"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Sell",
+      "reminder_for": "Call",
+      "client_id": "17540983561968008568630",
+      "client_name": "Customer Buy Residential 1",
+      "client_mobile": "9933066666",
+      "meeting_date": "2025-09-27T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "68baa050595d5bd057d6d591",
+      "reminder_id": "17570612000850693347474",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540977564506112968284"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540993103730161755667",
+      "client_name": "Agent",
+      "client_mobile": "+919000000002",
+      "meeting_date": "2025-09-27T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "68baca9e595d5bd057d6d612",
+      "reminder_id": "17570720308771254955655",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540977564506112968284"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540993103730161755667",
+      "client_name": "Agent",
+      "client_mobile": "+919000000002",
+      "meeting_date": "2025-09-27T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "68ff01db1b90e00fd137ec20",
+      "reminder_id": "17615426193727990899127",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540977564506112968284"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540993103730161755667",
+      "client_name": "Agent",
+      "client_mobile": "+919000000002",
+      "meeting_date": "2025-10-26T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "69001419d4f210cc967ea6ee",
+      "reminder_id": "17616128258929118697161",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540977564506112968284"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540993103730161755667",
+      "client_name": "Agent",
+      "client_mobile": "+919000000002",
+      "meeting_date": "2025-10-27T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "69051447da5bcb3eee957c38",
+      "reminder_id": "17619405517057077975472",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540977564506112968284"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540993103730161755667",
+      "client_name": "Agent",
+      "client_mobile": "+919000000002",
+      "meeting_date": "2025-10-31T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "69051bedda5bcb3eee957c82",
+      "reminder_id": "17619425099311831566435",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540979124748107526830"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Sell",
+      "reminder_for": "Call",
+      "client_id": "17540993810197106215818",
+      "client_name": "Agent",
+      "client_mobile": "+919000000002",
+      "meeting_date": "2025-10-31T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "69053af4da5bcb3eee957cb5",
+      "reminder_id": "17619504523383768777075",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540980545334591056863"
+      ],
+      "category": "property",
+      "category_type": "Commercial",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540994553215807804551",
+      "client_name": "Agent",
+      "client_mobile": "+919000000002",
+      "meeting_date": "2025-10-31T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "69053f22da5bcb3eee957cf5",
+      "reminder_id": "17619515223685623225932",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540982054654164909779"
+      ],
+      "category": "property",
+      "category_type": "Commercial",
+      "category_for": "Sell",
+      "reminder_for": "Call",
+      "client_id": "17540995242537358319044",
+      "client_name": "Agent",
+      "client_mobile": "+919000000002",
+      "meeting_date": "2025-10-31T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "6906e45f5d2b64644b48fad7",
+      "reminder_id": "17620593594119749097530",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540975855844954575117",
+      "category_ids": [],
+      "category": "customer",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540982896212906678800",
+      "client_name": "Customer Rent Residential 1",
+      "client_mobile": "9933055555",
+      "meeting_date": "2025-11-01T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "69073a005d2b64644b48fb40",
+      "reminder_id": "17620812801952718509581",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540975855844954575117",
+      "category_ids": [
+        "17540977564506112968284"
+      ],
+      "category": "customer",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540982896212906678800",
+      "client_name": "Customer Rent Residential 1",
+      "client_mobile": "9933055555",
+      "meeting_date": "2025-11-03T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "6907475f5d2b64644b48fbef",
+      "reminder_id": "17620847039791067586895",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540975855844954575117",
+      "category_ids": [
+        "17540979124748107526830"
+      ],
+      "category": "customer",
+      "category_type": "Residential",
+      "category_for": "Buy",
+      "reminder_for": "Call",
+      "client_id": "17540983561968008568630",
+      "client_name": "Customer Buy Residential 1",
+      "client_mobile": "9933066666",
+      "meeting_date": "2025-11-01T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "690782df5d2b64644b48fc3e",
+      "reminder_id": "17620999352263702798490",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540975855844954575117",
+      "category_ids": [
+        "17540980545334591056863"
+      ],
+      "category": "customer",
+      "category_type": "Commercial",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540984386485671520167",
+      "client_name": "Customer Rent Commercial 1",
+      "client_mobile": "99330577777",
+      "meeting_date": "2025-11-01T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "6908734f5d2b64644b48fca5",
+      "reminder_id": "17621614878868085586888",
+      "meeting_creator_id": "17540975855844954575117",
+      "agent_id_of_client": "17540975855844954575117",
+      "category_ids": [
+        "17540982054654164909779"
+      ],
+      "category": "customer",
+      "category_type": "Commercial",
+      "category_for": "Buy",
+      "reminder_for": "Call",
+      "client_id": "17540985141939882066539",
+      "client_name": "Customer Buy Commercial 1",
+      "client_mobile": "9933088888",
+      "meeting_date": "2025-11-02T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "69187282209e14d004ec24cf",
+      "reminder_id": "17632098585462421772271",
+      "meeting_creator_id": "17540985575614634602997",
+      "agent_id_of_client": "17540985575614634602997",
+      "category_ids": [
+        "17540987438825906141198"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540993103730161755667",
+      "client_name": "Customer Rent Residential 2",
+      "client_mobile": "9933055552",
+      "meeting_date": "2025-11-26T18:30:00.000Z",
+      "meeting_time": "11:30 AM",
+      "__v": 0
+    },
+    {
+      "_id": "69187ea4209e14d004ec2576",
+      "reminder_id": "17632129641193894647870",
+      "meeting_creator_id": "17540985575614634602997",
+      "agent_id_of_client": "17540975855844954575117",
+      "category_ids": [
+        "17540987438825906141198"
+      ],
+      "category": "property",
+      "category_type": "Residential",
+      "category_for": "Rent",
+      "reminder_for": "Call",
+      "client_id": "17540982896212906678800",
+      "client_name": "Agent",
+      "client_mobile": "+919000000001",
+      "meeting_date": "2025-11-27T18:30:00.000Z",
+      "meeting_time": "11:20 AM",
+      "__v": 0
+    }
+  ],
+  "commercial_property_rents": [
+    {
+      "_id": "688d6986b1d00f7f5b3aed35",
+      "property_id": "17540980545334591056863",
+      "agent_id": "17540975855844954575117",
+      "property_type": "Commercial",
+      "property_for": "Rent",
+      "property_status": 0,
+      "match_count": 2,
+      "owner_details": {
+        "name": "CRP1",
+        "mobile1": "9833033331",
+        "address": "juhu mumbai"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "property_address": {
+        "city": "Mumbai",
+        "main_text": "Juhu Beach",
+        "formatted_address": "Juhu Beach, Maharashtra, India",
+        "flat_number": "",
+        "building_name": "CRP1 Building 1",
+        "landmark_or_street": "CRP1 Landmark 1",
+        "pin": "123"
+      },
+      "property_details": {
+        "property_used_for": "Shop",
+        "building_type": "Mall",
+        "ideal_for": [],
+        "parking_type": "Public",
+        "property_age": "6-10",
+        "power_backup": "Yes",
+        "property_size": 500
+      },
+      "rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z"
+      },
+      "image_urls": [
+        {
+          "url": "/64/43/2/17540975855844954575117_0_1754098054521.jpeg",
+          "_id": "688d6986b1d00f7f5b3aed36"
+        }
+      ],
+      "reminders": [
+        "17619504523383768777075",
+        "17620999352263702798490"
+      ],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:27:34.534Z",
+      "update_date_time": "2025-11-15T07:44:17.578Z",
+      "__v": 0,
+      "is_close_successfully": "yes"
+    },
+    {
+      "_id": "688d6d7eb1d00f7f5b3aeda4",
+      "property_id": "17540990702206712186849",
+      "agent_id": "17540985575614634602997",
+      "property_type": "Commercial",
+      "property_for": "Rent",
+      "property_status": 1,
+      "match_count": 2,
+      "owner_details": {
+        "name": "CRP2",
+        "mobile1": "9833033332",
+        "address": "juhu mumbai"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "property_address": {
+        "city": "Mumbai",
+        "main_text": "Juhu Beach",
+        "formatted_address": "Juhu Beach, Maharashtra, India",
+        "flat_number": "",
+        "building_name": "CRP2 Building 2",
+        "landmark_or_street": "CRP2 Landmark 2",
+        "pin": "123"
+      },
+      "property_details": {
+        "property_used_for": "Shop",
+        "building_type": "Mall",
+        "ideal_for": [],
+        "parking_type": "Public",
+        "property_age": "6-10",
+        "power_backup": "Yes",
+        "property_size": 500
+      },
+      "rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z"
+      },
+      "image_urls": [
+        {
+          "url": "/51/41/9/17540985575614634602997_0_1754099070180.jpeg",
+          "_id": "688d6d7eb1d00f7f5b3aeda5"
+        }
+      ],
+      "reminders": [],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:44:30.221Z",
+      "update_date_time": "2025-08-02T01:44:30.221Z",
+      "__v": 0
+    }
+  ],
+  "commercial_rent_customer_matches": [
+    {
+      "_id": "688dfb73a64381603be738f1",
+      "customer_id": "17540994553215807804551",
+      "agent_id": "17540985575614634602997",
+      "match_count": 2,
+      "matched_property_id_mine": [
+        {
+          "matched_percentage": 85,
+          "property_id": "17540990702206712186849",
+          "distance": 0,
+          "_id": "688dfb74a64381603be7393f"
+        }
+      ],
+      "matched_property_id_other": [
+        {
+          "matched_percentage": 85,
+          "property_id": "17540980545334591056863",
+          "agent_id": "17540975855844954575117",
+          "distance": 0,
+          "_id": "688dfb73a64381603be738f2"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.491Z",
+      "__v": 0
+    },
+    {
+      "_id": "691997ebb10e7a5a625d6eaf",
+      "customer_id": "17540984386485671520167",
+      "agent_id": "17540975855844954575117",
+      "match_count": 2,
+      "matched_property_id_mine": [
+        {
+          "matched_percentage": 85,
+          "property_id": "17540980545334591056863",
+          "distance": 0,
+          "_id": "691997ebb10e7a5a625d6eb0"
+        }
+      ],
+      "matched_property_id_other": [
+        {
+          "matched_percentage": 85,
+          "property_id": "17540990702206712186849",
+          "agent_id": "17540985575614634602997",
+          "distance": 0,
+          "_id": "691997edb10e7a5a625d6f00"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.026Z",
+      "__v": 0
+    }
+  ],
+  "agents": [],
+  "commercial_buy_property_matches": [
+    {
+      "_id": "688dfb75a64381603be73958",
+      "property_id": "17540992316184722329604",
+      "agent_id": "17540985575614634602997",
+      "matched_customer_id_mine": [
+        {
+          "matched_percentage": 75,
+          "customer_id": "17540995242537358319044",
+          "distance": 0,
+          "_id": "688dfb75a64381603be73959"
+        }
+      ],
+      "matched_customer_id_other": [
+        {
+          "matched_percentage": 75,
+          "customer_id": "17540985141939882066539",
+          "agent_id": "17540975855844954575117",
+          "distance": 0,
+          "_id": "688dfb75a64381603be7395a"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:12.961Z",
+      "__v": 0
+    },
+    {
+      "_id": "691997ecb10e7a5a625d6ee4",
+      "property_id": "17540982054654164909779",
+      "agent_id": "17540975855844954575117",
+      "matched_customer_id_mine": [
+        {
+          "matched_percentage": 75,
+          "customer_id": "17540985141939882066539",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ee5"
+        }
+      ],
+      "matched_customer_id_other": [
+        {
+          "matched_percentage": 75,
+          "customer_id": "17540995242537358319044",
+          "agent_id": "17540985575614634602997",
+          "distance": 0,
+          "_id": "691997ecb10e7a5a625d6ee6"
+        }
+      ],
+      "update_date_time": "2025-11-16T09:26:11.405Z",
+      "__v": 0
+    }
+  ],
+  "users": [
+    {
+      "_id": "688d67b1b1d00f7f5b3aed17",
+      "user_type": "agent",
+      "id": "17540975855844954575117",
+      "works_for": "17540975855844954575117",
+      "expo_token": "",
+      "name": null,
+      "mobile": "+919000000001",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [],
+      "assigned_residential_sell_properties": [],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [],
+      "assigned_residential_rent_customers": [],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [],
+      "user_status": "active",
+      "create_date_time": "2025-08-02T01:19:45.764Z",
+      "update_date_time": "2025-08-02T01:19:45.764Z",
+      "__v": 0
+    },
+    {
+      "_id": "688d6b7db1d00f7f5b3aed86",
+      "user_type": "agent",
+      "id": "17540985575614634602997",
+      "works_for": "17540985575614634602997",
+      "expo_token": "",
+      "name": null,
+      "mobile": "+919000000002",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [],
+      "assigned_residential_sell_properties": [],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [],
+      "assigned_residential_rent_customers": [],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [],
+      "user_status": "active",
+      "create_date_time": "2025-08-02T01:35:57.736Z",
+      "update_date_time": "2025-08-02T01:35:57.736Z",
+      "__v": 0
+    },
+    {
+      "_id": "689f896a541256d038da84cb",
+      "user_type": "agent",
+      "id": "17552858661027327020131",
+      "works_for": "17552858661027327020131",
+      "expo_token": "",
+      "name": null,
+      "mobile": "+919833097594",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [],
+      "assigned_residential_sell_properties": [],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [],
+      "assigned_residential_rent_customers": [],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [],
+      "user_status": "active",
+      "create_date_time": "2025-08-15T19:24:26.422Z",
+      "update_date_time": "2025-08-15T19:24:26.422Z",
+      "__v": 0
+    },
+    {
+      "_id": "68a0701aa26c747e79d05223",
+      "user_type": "agent",
+      "id": "17553449217900434174316",
+      "works_for": "17553449217900434174316",
+      "expo_token": "",
+      "name": null,
+      "mobile": "+9190000000001",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [],
+      "assigned_residential_sell_properties": [],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [],
+      "assigned_residential_rent_customers": [],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [],
+      "user_status": "active",
+      "create_date_time": "2025-08-16T11:48:42.119Z",
+      "update_date_time": "2025-08-16T11:48:42.119Z",
+      "__v": 0
+    },
+    {
+      "_id": "68fe5128d26f14674a19f44e",
+      "user_type": "agent",
+      "id": "17614973844996300754612",
+      "works_for": "17614973844996300754612",
+      "expo_token": "",
+      "name": null,
+      "mobile": "+919833097595",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [],
+      "assigned_residential_sell_properties": [],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [],
+      "assigned_residential_rent_customers": [],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [],
+      "user_status": "active",
+      "create_date_time": "2025-10-26T16:49:44.736Z",
+      "update_date_time": "2025-10-26T16:49:44.736Z",
+      "__v": 0
+    },
+    {
+      "_id": "6912b97c511e5df692cbad1c",
+      "user_type": "employee",
+      "id": "17628348127817002631512",
+      "works_for": "17540975855844954575117",
+      "expo_token": null,
+      "name": "Emp View 1",
+      "mobile": "+915555555511",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [
+        "17540977564506112968284"
+      ],
+      "assigned_residential_sell_properties": [
+        "17540979124748107526830"
+      ],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [
+        "17540982054654164909779"
+      ],
+      "assigned_residential_rent_customers": [
+        "17540982896212906678800"
+      ],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [
+        "17540985141939882066539"
+      ],
+      "employee_role": "view",
+      "user_status": "active",
+      "create_date_time": "2025-11-11T04:20:12.781Z",
+      "update_date_time": "2025-11-15T11:39:43.390Z",
+      "__v": 0
+    },
+    {
+      "_id": "6912bd8d511e5df692cbad67",
+      "user_type": "employee",
+      "id": "17628358534686530384725",
+      "works_for": "17540975855844954575117",
+      "expo_token": null,
+      "name": "Emp Add 1",
+      "mobile": "+915555555522",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [],
+      "assigned_residential_sell_properties": [
+        "17540979124748107526830"
+      ],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [
+        "17540982054654164909779"
+      ],
+      "assigned_residential_rent_customers": [
+        "17540982896212906678800"
+      ],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [
+        "17540985141939882066539"
+      ],
+      "employee_role": "add",
+      "user_status": "active",
+      "create_date_time": "2025-11-11T04:37:33.470Z",
+      "update_date_time": "2025-11-14T01:31:55.707Z",
+      "__v": 0
+    },
+    {
+      "_id": "6912e2b1590741921c6b52c9",
+      "user_type": "employee",
+      "id": "17628453610254709648811",
+      "works_for": "17540975855844954575117",
+      "expo_token": null,
+      "name": "Emp Master 1",
+      "mobile": "+915555555533",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [],
+      "assigned_residential_sell_properties": [
+        "17540979124748107526830"
+      ],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [
+        "17540982054654164909779"
+      ],
+      "assigned_residential_rent_customers": [
+        "17540982896212906678800"
+      ],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [
+        "17540985141939882066539"
+      ],
+      "employee_role": "master",
+      "user_status": "active",
+      "create_date_time": "2025-11-11T07:16:01.026Z",
+      "update_date_time": "2025-11-14T01:36:16.169Z",
+      "__v": 0
+    },
+    {
+      "_id": "6912e326590741921c6b52e2",
+      "user_type": "employee",
+      "id": "17628454782755172363669",
+      "works_for": "17540975855844954575117",
+      "expo_token": null,
+      "name": "Emp Admin 1",
+      "mobile": "+915555555544",
+      "country_code": "+91",
+      "employee_ids": [],
+      "liked_properties": [],
+      "liked_customers": [],
+      "assigned_residential_rent_properties": [],
+      "assigned_residential_sell_properties": [
+        "17540979124748107526830"
+      ],
+      "assigned_commercial_rent_properties": [],
+      "assigned_commercial_sell_properties": [
+        "17540982054654164909779"
+      ],
+      "assigned_residential_rent_customers": [
+        "17540982896212906678800"
+      ],
+      "assigned_residential_buy_customers": [],
+      "assigned_commercial_rent_customers": [],
+      "assigned_commercial_buy_customers": [
+        "17540985141939882066539"
+      ],
+      "employee_role": "admin",
+      "user_status": "active",
+      "create_date_time": "2025-11-11T07:17:58.275Z",
+      "update_date_time": "2025-11-14T02:01:35.116Z",
+      "__v": 0
+    }
+  ],
+  "employees": [],
+  "commercial_property_sells": [
+    {
+      "_id": "688d6a1db1d00f7f5b3aed42",
+      "property_id": "17540982054654164909779",
+      "agent_id": "17540975855844954575117",
+      "property_type": "Commercial",
+      "property_for": "Sell",
+      "property_status": 1,
+      "match_count": 2,
+      "owner_details": {
+        "name": "CSP1",
+        "mobile1": "9833044441",
+        "address": "juhu mumbai"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "property_address": {
+        "city": "Mumbai",
+        "main_text": "Juhu Beach",
+        "formatted_address": "Juhu Beach, Maharashtra, India",
+        "flat_number": "",
+        "building_name": "CSP1 Building 1",
+        "landmark_or_street": "CSP1 Landmark 1",
+        "pin": "123"
+      },
+      "property_details": {
+        "property_used_for": "Shop",
+        "building_type": "Mall",
+        "ideal_for": [],
+        "parking_type": "Public",
+        "property_age": "6-10",
+        "power_backup": "Yes",
+        "property_size": 500
+      },
+      "sell_details": {
+        "expected_sell_price": 30000000,
+        "maintenance_charge": 1500,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "negotiable": "Yes"
+      },
+      "image_urls": [
+        {
+          "url": "/64/43/2/17540975855844954575117_0_1754098205454.jpeg",
+          "_id": "688d6a1db1d00f7f5b3aed43"
+        }
+      ],
+      "reminders": [
+        "17619515223685623225932",
+        "17621614878868085586888"
+      ],
+      "assigned_to_employee": [
+        "17628348127817002631512",
+        "17628358534686530384725",
+        "17628453610254709648811",
+        "17628454782755172363669"
+      ],
+      "assigned_to_employee_name": [
+        "Emp View 1",
+        "Emp Add 1",
+        "Emp Master 1",
+        "Emp Admin 1"
+      ],
+      "create_date_time": "2025-08-02T01:30:05.466Z",
+      "update_date_time": "2025-11-15T04:03:38.678Z",
+      "__v": 0,
+      "is_close_successfully": "yes"
+    },
+    {
+      "_id": "688d6e1fb1d00f7f5b3aedb1",
+      "property_id": "17540992316184722329604",
+      "agent_id": "17540985575614634602997",
+      "property_type": "Commercial",
+      "property_for": "Sell",
+      "property_status": 1,
+      "match_count": 2,
+      "owner_details": {
+        "name": "CSP2",
+        "mobile1": "9833044442",
+        "address": "juhu mumbai"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "property_address": {
+        "city": "Mumbai",
+        "main_text": "Juhu Beach",
+        "formatted_address": "Juhu Beach, Maharashtra, India",
+        "flat_number": "",
+        "building_name": "CSP2 Building 2",
+        "landmark_or_street": "CSP2 Landmark 2",
+        "pin": "123"
+      },
+      "property_details": {
+        "property_used_for": "Shop",
+        "building_type": "Mall",
+        "ideal_for": [],
+        "parking_type": "Public",
+        "property_age": "6-10",
+        "power_backup": "Yes",
+        "property_size": 500
+      },
+      "sell_details": {
+        "expected_sell_price": 30000000,
+        "maintenance_charge": 1500,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "negotiable": "Yes"
+      },
+      "image_urls": [
+        {
+          "url": "/51/41/9/17540985575614634602997_0_1754099231566.jpeg",
+          "_id": "688d6e1fb1d00f7f5b3aedb2"
+        }
+      ],
+      "reminders": [],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:47:11.619Z",
+      "update_date_time": "2025-08-02T01:47:11.619Z",
+      "__v": 0
+    }
+  ],
+  "commercial_customer_rent_locations": [
+    {
+      "_id": "688d6b06b1d00f7f5b3aed6d",
+      "customer_id": "17540984386485671520167",
+      "agent_id": "17540975855844954575117",
+      "customer_status": 1,
+      "customer_property_details": {
+        "building_type": "Mall",
+        "property_used_for": "Shop",
+        "property_size": 500,
+        "parking_type": "Must"
+      },
+      "customer_rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "__v": 0
+    },
+    {
+      "_id": "688d6effb1d00f7f5b3aeddc",
+      "customer_id": "17540994553215807804551",
+      "agent_id": "17540985575614634602997",
+      "customer_status": 1,
+      "customer_property_details": {
+        "building_type": "Mall",
+        "property_used_for": "Shop",
+        "property_size": 500,
+        "parking_type": "Must"
+      },
+      "customer_rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "__v": 0
+    }
+  ],
+  "residential_customer_rent_locations": [
+    {
+      "_id": "688d6a71b1d00f7f5b3aed55",
+      "customer_id": "17540982896212906678800",
+      "agent_id": "17540975855844954575117",
+      "customer_status": 1,
+      "customer_property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "furnishing_status": "Semi",
+        "parking_type": "Car"
+      },
+      "customer_rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "preferred_tenants": "Family"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "__v": 0
+    },
+    {
+      "_id": "688d6e6eb1d00f7f5b3aedc4",
+      "customer_id": "17540993103730161755667",
+      "agent_id": "17540985575614634602997",
+      "customer_status": 1,
+      "customer_property_details": {
+        "house_type": "Apartment",
+        "bhk_type": "2BHK",
+        "furnishing_status": "Semi",
+        "parking_type": "Car"
+      },
+      "customer_rent_details": {
+        "expected_rent": 30000,
+        "expected_deposit": 150000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "preferred_tenants": "Family"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          72.8264476,
+          19.0974187
+        ]
+      },
+      "__v": 0
+    }
+  ],
+  "commercial_properties": [],
+  "commercial_customer_buys": [
+    {
+      "_id": "688d6b52b1d00f7f5b3aed79",
+      "customer_id": "17540985141939882066539",
+      "agent_id": "17540975855844954575117",
+      "customer_status": 1,
+      "match_count": 2,
+      "customer_details": {
+        "name": "Customer Buy Commercial 1",
+        "mobile1": "9933088888",
+        "address": "juhu mumbai"
+      },
+      "customer_locality": {
+        "city": "Mumbai",
+        "location_area": [
+          {
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                72.8264476,
+                19.0974187
+              ]
+            },
+            "main_text": "Juhu Beach"
+          }
+        ],
+        "property_type": "Commercial",
+        "property_for": "Buy"
+      },
+      "customer_property_details": {
+        "building_type": "Mall",
+        "parking_type": "Must",
+        "property_used_for": "Shop",
+        "property_size": 500
+      },
+      "customer_buy_details": {
+        "expected_buy_price": 30000000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "negotiable": "Yes",
+        "maintenance_charge": 0
+      },
+      "reminders": [
+        "17621614878868085586888"
+      ],
+      "assigned_to_employee": [
+        "17628348127817002631512",
+        "17628358534686530384725",
+        "17628453610254709648811",
+        "17628454782755172363669"
+      ],
+      "assigned_to_employee_name": [
+        "Emp View 1",
+        "Emp Add 1",
+        "Emp Master 1",
+        "Emp Admin 1"
+      ],
+      "create_date_time": "2025-08-02T01:35:14.194Z",
+      "update_date_time": "2025-11-14T02:32:13.463Z",
+      "location": [],
+      "__v": 0,
+      "is_close_successfully": "yes"
+    },
+    {
+      "_id": "688d6f44b1d00f7f5b3aede8",
+      "customer_id": "17540995242537358319044",
+      "agent_id": "17540985575614634602997",
+      "customer_status": 1,
+      "match_count": 2,
+      "customer_details": {
+        "name": "Customer Buy Commercial 2",
+        "mobile1": "9933088882",
+        "address": "juhu mumbai"
+      },
+      "customer_locality": {
+        "city": "Mumbai",
+        "location_area": [
+          {
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                72.8264476,
+                19.0974187
+              ]
+            },
+            "main_text": "Juhu Beach"
+          }
+        ],
+        "property_type": "Commercial",
+        "property_for": "Buy"
+      },
+      "customer_property_details": {
+        "building_type": "Mall",
+        "parking_type": "Must",
+        "property_used_for": "Shop",
+        "property_size": 500
+      },
+      "customer_buy_details": {
+        "expected_buy_price": 30000000,
+        "available_from": "2025-08-01T18:30:00.000Z",
+        "negotiable": "Yes",
+        "maintenance_charge": 0
+      },
+      "reminders": [
+        "17619515223685623225932"
+      ],
+      "assigned_to_employee": [],
+      "assigned_to_employee_name": [],
+      "create_date_time": "2025-08-02T01:52:04.253Z",
+      "update_date_time": "2025-08-02T01:52:04.253Z",
+      "location": [],
+      "__v": 0
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const encryptFieldsPlugin = require('../plugins/encryptFieldsPlugin');
 // var ObjectId = Schema.ObjectId;
 
 const propertySchema = new mongoose.Schema({
@@ -10,9 +11,9 @@ const propertySchema = new mongoose.Schema({
   is_close_successfully: String, // yes, no, open
   match_count: { type: Number, default: 0 },
   customer_details: {
-    name: String,
-    mobile1: String,
-    address: String
+    name: mongoose.Schema.Types.Mixed,
+    mobile1: mongoose.Schema.Types.Mixed,
+    address: mongoose.Schema.Types.Mixed
   },
   location: [// this we are using to display the location names on screen
     {
@@ -57,6 +58,14 @@ const propertySchema = new mongoose.Schema({
   update_date_time: {
     type: Date
   }
+}, { minimize: false });
+
+propertySchema.plugin(encryptFieldsPlugin, {
+  paths: [
+    "customer_details.name",
+    "customer_details.mobile1",
+    "customer_details.address",
+  ]
 });
 
 module.exports = mongoose.model("commercial_customer_buy", propertySchema);

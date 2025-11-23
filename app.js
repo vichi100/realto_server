@@ -27,56 +27,7 @@ const { PORT, DB_URL, NODE_ENV, IMAGE_PATH_URL, OTP_API } = require('./config/en
 // const OTP_API = 'd19dd3b7-fc3f-11e7-a328-0200cd936042';
 
 
-const CommercialPropertyRent = require("./models/commercialPropertyRent");
-const CommercialPropertySell = require("./models/commercialPropertySell");
 
-const CommercialCustomerBuyLocation = require("./models/commercialCustomerBuyLocation");
-const CommercialCustomerRentLocation = require("./models/commercialCustomerRentLocation");
-
-// UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
-const CommercialBuyPropertyMatch = require('./models/match/commercialBuyPropertyMatch'); // UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
-const CommercialBuyCustomerMatch = require('./models/match/commercialBuyCustomerMatch');
-
-const CommercialRentPropertyMatch = require('./models/match/commercialRentPropertyMatch');
-const CommercialRentCustomerMatch = require('./models/match/commercialRentCustomerMatch');
-
-const ResidentialPropertyRent = require("./models/residentialPropertyRent");
-const ResidentialPropertySell = require('./models/residentialPropertySell');
-
-const ResidentialCustomerBuyLocation = require("./models/residentialCustomerBuyLocation");
-const ResidentialCustomerRentLocation = require("./models/residentialCustomerRentLocation");
-
-const ResidentialRentPropertyMatch = require('./models/match/residentialRentPropertyMatch');
-const ResidentialBuyPropertyMatchBuy = require('./models/match/residentialBuyPropertyMatch');
-// const ResidentialBuyCustomerMatch = require('./models/match/residentialBuyCustomerMatch');
-const ResidentialRentCustomerMatch = require('./models/match/residentialRentCustomerMatch');
-
-const ResidentialBuyPropertyMatch = require('./models/match/residentialBuyPropertyMatch');
-const ResidentialBuyCustomerMatch = require('./models/match/residentialBuyCustomerMatch');
-
-
-
-
-
-const Reminder = require("./models/reminder");
-// const Agent = require("./models/agent");
-// const Employee = require("./models/employee");
-const User = require("./models/user");
-// const ResidentialPropertyCustomer = require("./models/residentialPropertyCustomer");
-const ResidentialPropertyCustomerRent = require("./models/residentialPropertyCustomerRent");
-const ResidentialPropertyCustomerBuy = require("./models/residentialPropertyCustomerBuy");
-const CommercialPropertyCustomerRent = require("./models/commercialPropertyCustomerRent");
-const CommercialPropertyCustomerBuy = require("./models/commercialPropertyCustomerBuy");
-const Message = require("./models/message");
-// const commercialProperty = require("./models/commercialProperty");
-const { json } = require("body-parser");
-const commercialPropertyRent = require("./models/commercialPropertyRent");
-
-// const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
-// const IMAGE_PATH_PROD = "/root/realto/images";
-// const IMAGE_PATH_URL = IMAGE_PATH_DEV;
-
-const matchRoutes = require('./routes/matchRoutes');
 
 const app = express();
 
@@ -195,6 +146,61 @@ mongoose
   .catch((err) => {
     logger.error(`Failed to connect to MongoDB: ${err}`);
   });
+
+const decryptPlugin = require("./plugins/mongooseDecryptPlugin");
+mongoose.plugin(decryptPlugin);
+
+
+const CommercialPropertyRent = require("./models/commercialPropertyRent");
+const CommercialPropertySell = require("./models/commercialPropertySell");
+
+const CommercialCustomerBuyLocation = require("./models/commercialCustomerBuyLocation");
+const CommercialCustomerRentLocation = require("./models/commercialCustomerRentLocation");
+
+// UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
+const CommercialBuyPropertyMatch = require('./models/match/commercialBuyPropertyMatch'); // UNCOMMENT THIS LINE LATER FOR PRODUCTION, FIX THIS
+const CommercialBuyCustomerMatch = require('./models/match/commercialBuyCustomerMatch');
+
+const CommercialRentPropertyMatch = require('./models/match/commercialRentPropertyMatch');
+const CommercialRentCustomerMatch = require('./models/match/commercialRentCustomerMatch');
+
+const ResidentialPropertyRent = require("./models/residentialPropertyRent");
+const ResidentialPropertySell = require('./models/residentialPropertySell');
+
+const ResidentialCustomerBuyLocation = require("./models/residentialCustomerBuyLocation");
+const ResidentialCustomerRentLocation = require("./models/residentialCustomerRentLocation");
+
+const ResidentialRentPropertyMatch = require('./models/match/residentialRentPropertyMatch');
+const ResidentialBuyPropertyMatchBuy = require('./models/match/residentialBuyPropertyMatch');
+// const ResidentialBuyCustomerMatch = require('./models/match/residentialBuyCustomerMatch');
+const ResidentialRentCustomerMatch = require('./models/match/residentialRentCustomerMatch');
+
+const ResidentialBuyPropertyMatch = require('./models/match/residentialBuyPropertyMatch');
+const ResidentialBuyCustomerMatch = require('./models/match/residentialBuyCustomerMatch');
+
+
+
+
+
+const Reminder = require("./models/reminder");
+// const Agent = require("./models/agent");
+// const Employee = require("./models/employee");
+const User = require("./models/user");
+// const ResidentialPropertyCustomer = require("./models/residentialPropertyCustomer");
+const ResidentialPropertyCustomerRent = require("./models/residentialPropertyCustomerRent");
+const ResidentialPropertyCustomerBuy = require("./models/residentialPropertyCustomerBuy");
+const CommercialPropertyCustomerRent = require("./models/commercialPropertyCustomerRent");
+const CommercialPropertyCustomerBuy = require("./models/commercialPropertyCustomerBuy");
+const Message = require("./models/message");
+// const commercialProperty = require("./models/commercialProperty");
+const { json } = require("body-parser");
+const commercialPropertyRent = require("./models/commercialPropertyRent");
+
+// const IMAGE_PATH_DEV = "/Users/vichirajan/Documents/github/realtoproject/images";
+// const IMAGE_PATH_PROD = "/root/realto/images";
+// const IMAGE_PATH_URL = IMAGE_PATH_DEV;
+
+const matchRoutes = require('./routes/matchRoutes');
 
 
 // mongoose
@@ -1640,9 +1646,9 @@ const closeResidentialProperty = async (req, res) => {
   const propertyAgentId = itemToClose.agent_id;
   const propertyStaus = itemToClose.property_status;
   var newStaus = 0;
-  if(propertyStaus === 0){
+  if (propertyStaus === 0) {
     newStaus = 1;
-  } else{
+  } else {
     newStaus = 0;
   }
   // first check if request user is agent or employee
@@ -1660,7 +1666,7 @@ const closeResidentialProperty = async (req, res) => {
   }
   // 
   if ((user.user_type === "agent" && reqUserId === propertyAgentId)
-    || (user.user_type === "employee" )) {
+    || (user.user_type === "employee")) {
     // User is an agent or an employee with admin rights
     try {
       // Delete the property from ResidentialPropertyRent and ResidentialPropertySell collections
@@ -1767,9 +1773,9 @@ const closeCommercialProperty = async (req, res) => {
   const propertyAgentId = itemToClose.agent_id;
   const propertyStaus = itemToClose.property_status;
   var newStaus = 0;
-  if(propertyStaus === 0){
+  if (propertyStaus === 0) {
     newStaus = 1;
-  } else{
+  } else {
     newStaus = 0;
   }
   // first check if request user is agent or employee
@@ -1894,9 +1900,9 @@ const closeResidintialCustomer = async (req, res) => {
   const customerAgentId = itemToClose.agent_id;
   const customerStaus = itemToClose.customer_status;
   var newStaus = 0;
-  if(customerStaus === 0){
+  if (customerStaus === 0) {
     newStaus = 1;
-  } else{
+  } else {
     newStaus = 0;
   }
   // first check if request user is agent or employee
@@ -1913,7 +1919,7 @@ const closeResidintialCustomer = async (req, res) => {
     }
   }
   if ((user.user_type === "agent" && reqUserId === customerAgentId)
-    || (user.user_type === "employee" )) {
+    || (user.user_type === "employee")) {
     // User is an agent or an employee with admin rights
     try {
       // Delete the customer from ResidentialPropertyCustomerRent and ResidentialPropertyCustomerBuy collections
@@ -2021,9 +2027,9 @@ const closeCommercialCustomer = async (req, res) => {
   const customerAgentId = itemToClose.agent_id;
   const customerStaus = itemToClose.customer_status;
   var newStaus = 0;
-  if(customerStaus === 0){
+  if (customerStaus === 0) {
     newStaus = 1;
-  } else{
+  } else {
     newStaus = 0;
   }
   // first check if request user is agent or employee
@@ -2040,7 +2046,7 @@ const closeCommercialCustomer = async (req, res) => {
     }
   }
   if ((user.user_type === "agent" && reqUserId === customerAgentId)
-    || (user.user_type === "employee" )) {
+    || (user.user_type === "employee")) {
     // User is an agent or an employee with admin rights
     try {
       // Delete the customer from CommercialPropertyCustomerRent and CommercialPropertyCustomerBuy collections

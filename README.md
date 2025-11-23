@@ -4,7 +4,13 @@ sudo service mongod stop
 sudo service mongod start
 sudo service mongod status
 
+# admin login 
+mongosh --port 27017 -u rootadmin -p rootadmin123! --authenticationDatabase admin
 
+# realtodbencrypt login 
+test> use realtodb
+switched to db realtodb
+realtodb> db.auth("realto", "realto123")
 
 
 admin@vmi2390151:~$ mongosh
