@@ -8,7 +8,7 @@ if (!KEY_HEX) throw new Error('ENCRYPTION_KEY is not set in env');
 
 const KEY = Buffer.from(KEY_HEX, 'hex');
 
-// 🔥 Add this helper
+
 function isEncryptedObject(v) {
   return (
     v &&
@@ -52,5 +52,5 @@ function decryptValue(enc) {
 module.exports = {
   encryptValue,
   decryptValue,
-  isEncryptedObject   // 🔥 export it
+  isEncryptedObject   
 };
