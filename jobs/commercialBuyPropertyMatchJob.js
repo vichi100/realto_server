@@ -10,7 +10,7 @@ const commercialPropertyCustomerBuy = require('../models/commercialPropertyCusto
 const { json } = require('body-parser');
 
 // Connect to MongoDB
-mongoose.connect('mongodb://realto:realto123@207.180.239.115:27017/realtodb');
+// mongoose.connect('mongodb://realto:realto123@207.180.239.115:27017/realtodb');
 
 schedule.scheduleJob('*/10 * * * * *', async () => {
   console.log('Updating Commercial Buy/Sell property match ...');
