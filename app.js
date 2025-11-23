@@ -119,6 +119,13 @@ app.use(bodyParser.json());
 // "mongodb+srv://vichi:vichi123@cluster0-1ys3l.gcp.mongodb.net/test?retryWrites=true&w=majority"
 // "mongodb+srv://vichi:vichi123@cluster0.dx3cf.mongodb.net/propM?retryWrites=true&w=majority"
 // "mongodb://realto:realto123@207.180.239.115:27017/realtodb"
+// =====================================================
+// 1️⃣ LOAD PLUGINS BEFORE MODELS
+// =====================================================
+
+// const mongooseDecryptPlugin = require("./plugins/mongooseDecryptPlugin");
+// mongoose.plugin(mongooseDecryptPlugin);   // decrypt on QUERY
+
 mongoose
   .connect(DB_URL)
   .then(() => {
@@ -147,8 +154,7 @@ mongoose
     logger.error(`Failed to connect to MongoDB: ${err}`);
   });
 
-const decryptPlugin = require("./plugins/mongooseDecryptPlugin");
-mongoose.plugin(decryptPlugin);
+
 
 
 const CommercialPropertyRent = require("./models/commercialPropertyRent");

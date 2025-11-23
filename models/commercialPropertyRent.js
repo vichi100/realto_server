@@ -68,24 +68,21 @@ const propertySchema = new mongoose.Schema({
 
 propertySchema.index({ location: "2dsphere" });
 
-// APPLY PLUGIN — list of fields to encrypt
-propertySchema.plugin(encryptFieldsPlugin, {
-  paths: [
-    'owner_details.name',
-    'owner_details.mobile1',
-    'owner_details.address',
+/**
+ * Declare encrypted fields for global decrypt plugin
+ */
+propertySchema.options.encryptedPaths = [
+  'owner_details.name',
+  'owner_details.mobile1',
+  'owner_details.address',
 
-    // safe-to-encrypt address fields (city is intentionally excluded)
-    'property_address.main_text',
-    'property_address.formatted_address',
-    'property_address.landmark_or_street',
-    'property_address.flat_number',
-    'property_address.building_name',
-    'property_address.pin',
+  'property_address.main_text',
+  'property_address.formatted_address',
+  'property_address.landmark_or_street',
+  'property_address.flat_number',
+  'property_address.building_name',
+];
 
-    // optional: sensitive arrays
-    // 'reminders'  // uncomment if you want to encrypt reminders
-  ]
-});
-
+// Apply plugins
+propertySchema.plugin(encryptFieldsPlugin, { paths: propertySchema.options.encryptedPaths });
 module.exports = mongoose.model("commercial_property_rent", propertySchema);

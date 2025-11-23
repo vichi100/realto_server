@@ -1,23 +1,19 @@
 // plugins/encryptFieldsPlugin.js
-const { encryptValue, decryptValue } = require('../utils/cryptoUtil');
+const { encryptValue, decryptValue, isEncryptedObject } = require('../utils/cryptoUtil');
 
-/**
- * Helper: get nested value by path (a.b.c)
- */
+// Get nested value: a.b.c
 function getByPath(obj, path) {
   if (!obj) return undefined;
   const parts = path.split('.');
   let cur = obj;
   for (const p of parts) {
-    if (cur == null) return undefined;
+    if (cur == null || typeof cur !== 'object') return undefined;
     cur = cur[p];
   }
   return cur;
 }
 
-/**
- * Helper: set nested value by path (creates intermediate objects)
- */
+// Set nested value: a.b.c = value (create branches if needed)
 function setByPath(obj, path, value) {
   const parts = path.split('.');
   let cur = obj;
@@ -29,38 +25,42 @@ function setByPath(obj, path, value) {
   cur[parts[parts.length - 1]] = value;
 }
 
-/**
- * Decide whether a value is already encrypted (simple shape check)
- */
-function looksEncrypted(val) {
-  return (
-    val &&
-    typeof val === 'object' &&
-    typeof val.iv === 'string' &&
-    typeof val.content === 'string' &&
-    typeof val.tag === 'string'
-  );
+// Encrypt a single field on a doc-like object
+function encryptFieldOnDoc(doc, path) {
+  const val = getByPath(doc, path);
+  if (val === undefined || val === null) return;
+  if (isEncryptedObject(val)) return; // already encrypted
+
+  const enc = encryptValue(val);
+  setByPath(doc, path, enc);
 }
 
-/**
- * Plugin factory:
- *   schema.plugin(encryptFieldsPlugin, { paths: ['owner_details.name', ...] })
- */
+// Decrypt a single field on a doc-like object
+function decryptFieldOnDoc(doc, path) {
+  const val = getByPath(doc, path);
+  if (!isEncryptedObject(val)) return;
+
+  try {
+    const dec = decryptValue(val);
+    setByPath(doc, path, dec);
+  } catch {
+    // ignore bad decrypt
+  }
+}
+
 module.exports = function encryptFieldsPlugin(schema, options) {
   if (!options || !Array.isArray(options.paths)) {
     throw new Error('encryptFieldsPlugin requires { paths: [..] }');
   }
   const paths = options.paths;
 
-  // Pre-save: encrypt fields on the document
+  //
+  // 🔐 ENCRYPT ON SAVE
+  //
   schema.pre('save', function (next) {
     try {
       for (const path of paths) {
-        const val = getByPath(this, path);
-        if (val !== undefined && !looksEncrypted(val)) {
-          const enc = encryptValue(val);
-          setByPath(this, path, enc);
-        }
+        encryptFieldOnDoc(this, path);
       }
       next();
     } catch (err) {
@@ -68,35 +68,35 @@ module.exports = function encryptFieldsPlugin(schema, options) {
     }
   });
 
-  // Pre findOneAndUpdate / updateOne / updateMany - encrypt values in the update payload
+  //
+  // 🔐 ENCRYPT ON UPDATEs (updateOne, updateMany, findOneAndUpdate, update)
+  //
   async function encryptUpdate(next) {
     try {
       const update = this.getUpdate && this.getUpdate();
       if (!update) return next();
 
-      // handle $set, top-level fields, $setOnInsert
-      const fineTargets = ['$set', '$setOnInsert', '$push', '$addToSet'];
-      // also maybe direct set: update.field = value
+      const fineTargets = ['$set', '$setOnInsert'];
+
       for (const path of paths) {
-        // 1) check $set / $setOnInsert
-        for (const t of fineTargets) {
-          if (update[t] && Object.prototype.hasOwnProperty.call(update[t], path)) {
-            const raw = update[t][path];
-            if (raw !== undefined && !looksEncrypted(raw)) {
-              update[t][path] = encryptValue(raw);
+        // Handle $set / $setOnInsert
+        for (const op of fineTargets) {
+          if (update[op] && Object.prototype.hasOwnProperty.call(update[op], path)) {
+            const raw = update[op][path];
+            if (raw !== undefined && raw !== null && !isEncryptedObject(raw)) {
+              update[op][path] = encryptValue(raw);
             }
           }
         }
-        // 2) check direct set update e.g. { 'owner_details.name': 'foo' }
+        // Direct top-level path in update
         if (Object.prototype.hasOwnProperty.call(update, path)) {
           const raw = update[path];
-          if (raw !== undefined && !looksEncrypted(raw)) {
+          if (raw !== undefined && raw !== null && !isEncryptedObject(raw)) {
             update[path] = encryptValue(raw);
           }
         }
       }
 
-      // set modified update back
       this.setUpdate(update);
       next();
     } catch (err) {
@@ -109,55 +109,41 @@ module.exports = function encryptFieldsPlugin(schema, options) {
   schema.pre('updateMany', encryptUpdate);
   schema.pre('update', encryptUpdate);
 
-  // Post-init (after mongoose materializes doc): decrypt these fields on the document instance
-  schema.post('init', function (doc) {
-    try {
+  //
+  // 🔓 DECRYPT ON READ (find, findOne, findOneAndUpdate)
+  //
+  schema.post('find', function (docs) {
+    if (!Array.isArray(docs)) return;
+    for (const doc of docs) {
       for (const path of paths) {
-        const enc = getByPath(doc, path);
-        if (enc !== undefined && looksEncrypted(enc)) {
-          const dec = decryptValue(enc);
-          setByPath(doc, path, dec);
-        }
+        decryptFieldOnDoc(doc, path);
       }
-    } catch (err) {
-      // don't crash reads; optionally log
-      // console.error('decrypt post init', err);
     }
   });
 
-  // toObject / toJSON - decrypt before returning plain objects
-  function decryptForOutput(doc) {
-    try {
-      const obj = doc.toObject ? doc.toObject() : doc;
-      for (const path of paths) {
-        const enc = getByPath(obj, path);
-        if (enc !== undefined && looksEncrypted(enc)) {
-          const dec = decryptValue(enc);
-          setByPath(obj, path, dec);
-        }
-      }
-      return obj;
-    } catch (err) {
-      return doc;
+  schema.post('findOne', function (doc) {
+    if (!doc) return;
+    for (const path of paths) {
+      decryptFieldOnDoc(doc, path);
     }
-  }
+  });
 
-  const origToJSON = schema.methods.toJSON;
-  schema.method(
-    'toJSON',
-    function () {
-      return decryptForOutput(this);
-    },
-    { suppressWarning: true }
-  );
+  schema.post('findOneAndUpdate', function (doc) {
+    if (!doc) return;
+    for (const path of paths) {
+      decryptFieldOnDoc(doc, path);
+    }
+  });
 
-  const origToObject = schema.methods.toObject;
-  schema.method(
-    'toObject',
-    function () {
-      return decryptForOutput(this);
+  //
+  // 🔓 DECRYPT IN toJSON (for res.json)
+  //
+  schema.set('toJSON', {
+    transform: function (_, ret) {
+      for (const path of paths) {
+        decryptFieldOnDoc(ret, path);
+      }
+      return ret;
     },
-    { suppressWarning: true }
-  );
+  });
 };
-// To use this plugin, add it to your Mongoose schema with the desired paths to encrypt.
